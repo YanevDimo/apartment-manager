@@ -1,0 +1,213 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Редактиране на продажба</title>
+</head>
+<body>
+ <div>Редактиране на продажба</div>
+
+ <div>
+<div class="row justify-content-center">
+ <div class="col-md-8 col-lg-6">
+ <div class="card">
+ <div class="card-header">
+ <h5 class="mb-0">
+ <i class="bi bi-pencil-square"></i> Редактиране на продажба на обект
+ </h5>
+ </div>
+ <div class="card-body">
+ <form method="POST" action="/edit-sale(saleId=)">
+ <div class="row">
+ <div class="col-md-6 mb-3">
+ <label for="apartment" class="form-label">Обект</label>
+ <input type="text" class="form-control" id="apartment" readonly />
+ <div class="form-text">Обектът не може да се променя</div>
+ </div>
+ <div class="col-md-6 mb-3">
+ <label for="buyer" class="form-label">Купувач *</label>
+ <input type="text" class="form-control" id="buyer" name="buyer"
+ required />
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-md-6 mb-3">
+ <label for="area" class="form-label">Площ (кв.м)</label>
+ <input type="number" class="form-control" id="area" readonly />
+ <div class="form-text">Площта не може да се променя</div>
+ </div>
+ <div class="col-md-6 mb-3">
+ <label for="price_per_m2" class="form-label">Цена на кв.м (€) *</label>
+ <input type="number" class="form-control" id="price_per_m2" name="pricePerM2"
+ step="0.01" min="0" required />
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-md-6 mb-3">
+ <label for="package" class="form-label">Пакет за плащане *</label>
+ <select class="form-select" id="package" name="packageType" required>
+ <option value="">Изберете пакет</option>
+ <option>
+ </option>
+ </select>
+ </div>
+ <div class="col-md-6 mb-3">
+ <label for="stage" class="form-label">Етап *</label>
+ <select class="form-select" id="stage" name="stage" required>
+ <option value="">Изберете етап</option>
+ <option>
+ </option>
+ </select>
+ </div>
+ </div>
+
+ <!-- Package Information -->
+ <div class="alert alert-info" id="packageInfo" style="display: none;">
+ <h6 class="alert-heading">Информация за пакета</h6>
+ <div id="packageDetails"></div>
+ </div>
+
+ <!-- Price Preview -->
+ <div class="alert alert-success" id="pricePreview" style="display: none;">
+ <h6 class="alert-heading">Предварителна цена</h6>
+ <div id="priceDetails"></div>
+ </div>
+
+ <div class="d-flex justify-content-between">
+ <a href="/" class="btn btn-outline-secondary">
+ <i class="bi bi-arrow-left"></i> Назад
+ </a>
+ <div>
+ <button type="submit" class="btn btn-warning me-2">
+ <i class="bi bi-check-circle"></i> Запази промените
+ </button>
+ <button type="button" class="btn btn-danger" onclick="confirmCancel()">
+ <i class="bi bi-x-circle"></i> Анулирай продажбата
+ </button>
+ </div>
+ </div>
+ </form>
+ </div>
+ </div>
+ </div>
+</div>
+
+<!-- Cancel Sale Form (hidden) -->
+<form id="cancelForm" method="POST" action="/cancel-sale(saleId=)" style="display: none;">
+</form>
+ </div>
+
+ <div>
+<script>
+ // Package information
+ const packages = {
+ "стандартен": [0.30, 0.30, 0.30, 0.10, 0.00],
+ "балансиран": [0.50, 0.00, 0.00, 0.50, 0.125],
+ "оптимален": [0.50, 0.30, 0.10, 0.10, 0.15],
+ "инвестиционен": [0.80, 0.00, 0.00, 0.20, 0.175],
+ "печеливш": [1.00, 0.00, 0.00, 0.00, 0.20]
+ };
+
+ const stages = ["При предварителен договор", "Акт 14", "Акт 15", "Акт 16"];
+
+ // Update package information
+ document.getElementById('package').addEventListener('change', function() {
+ updatePackageInfo();
+ updatePricePreview();
+ });
+
+ // Update package info function
+ function updatePackageInfo() {
+ const package = document.getElementById('package').value;
+ const packageInfo = document.getElementById('packageInfo');
+ const packageDetails = document.getElementById('packageDetails');
+
+ if (package && packages[package]) {
+ const percentages = packages[package];
+ let details = '<ul class="mb-0">';
+
+ for (let i = 0; i < 4; i++) {
+ if (percentages[i]> 0) {
+ details += `<li>: %</li>`;
+ }
+ }
+
+ details += '</ul>';
+ packageDetails.innerHTML = details;
+ packageInfo.style.display = 'block';
+ } else {
+ packageInfo.style.display = 'none';
+ }
+ }
+
+ // Update price preview
+ function updatePricePreview() {
+ const area = parseFloat(document.getElementById('area').value) || 0;
+ const pricePerM2 = parseFloat(document.getElementById('price_per_m2').value) || 0;
+ const package = document.getElementById('package').value;
+
+ if (area> 0 && pricePerM2> 0 && package) {
+ const totalPrice = area * pricePerM2;
+ const percentages = packages[package];
+ const pricePreview = document.getElementById('pricePreview');
+ const priceDetails = document.getElementById('priceDetails');
+
+ let details = `<p><strong>Обща цена: €</strong></p>`;
+ details += '<ul class="mb-0">';
+
+ for (let i = 0; i < 4; i++) {
+ if (percentages[i]> 0) {
+ const payment = totalPrice * percentages[i];
+ details += `<li>: € (%)</li>`;
+ }
+ }
+
+ details += '</ul>';
+ priceDetails.innerHTML = details;
+ pricePreview.style.display = 'block';
+ } else {
+ document.getElementById('pricePreview').style.display = 'none';
+ }
+ }
+
+ // Add event listeners for all input fields to update info constantly
+ document.getElementById('price_per_m2').addEventListener('input', function() {
+ updatePackageInfo();
+ updatePricePreview();
+ });
+
+ // Initialize info on page load
+ document.addEventListener('DOMContentLoaded', function() {
+ // Show info immediately when page loads
+ setTimeout(function() {
+ updatePackageInfo();
+ updatePricePreview();
+ }, 100); // Small delay to ensure all elements are loaded
+ });
+
+ // Form validation
+ document.querySelector('form').addEventListener('submit', function(e) {
+ const pricePerM2 = parseFloat(document.getElementById('price_per_m2').value);
+
+ if (pricePerM2 <= 0) {
+ alert('Цената на кв.м трябва да е по-голяма от 0!');
+ e.preventDefault();
+ return;
+ }
+ });
+
+ // Confirm cancel sale
+ function confirmCancel() {
+ if (confirm('Сигурни ли сте, че искате да анулирате тази продажба? Апартаментът ще стане отново наличен за продажба.')) {
+ document.getElementById('cancelForm').submit();
+ }
+ }
+</script>
+ </div>
+</body>
+</html>

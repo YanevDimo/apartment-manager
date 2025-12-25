@@ -1,0 +1,400 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Клиентска база</title>
+</head>
+<body>
+ <div>Клиентска база</div>
+
+ <div>
+<style>
+ /* Иконки за действия */
+ .action-icon {
+ font-size: 18px;
+ text-decoration: none;
+ transition: all 0.2s ease-in-out;
+ cursor: pointer;
+ padding: 6px;
+ border-radius: 4px;
+ }
+
+ .action-icon:hover {
+ transform: scale(1.3);
+ text-decoration: none;
+ background-color: rgba(255,255,255,0.8);
+ box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+ }
+
+ /* Цветни иконки */
+ .icon-blue {
+ color: #0066cc !important;
+ }
+
+ .icon-blue:hover {
+ color: #004499 !important;
+ background-color: rgba(0, 102, 204, 0.1) !important;
+ }
+
+ .icon-green {
+ color: #28a745 !important;
+ }
+
+ .icon-green:hover {
+ color: #1e7e34 !important;
+ background-color: rgba(40, 167, 69, 0.1) !important;
+ }
+
+ .icon-red {
+ color: #dc3545 !important;
+ }
+
+ .icon-red:hover {
+ color: #bd2130 !important;
+ background-color: rgba(220, 53, 69, 0.1) !important;
+ }
+
+ /* Стил за търсачката */
+ .input-group-text {
+ background-color: #f8f9fa;
+ border-right: none;
+ }
+
+ .input-group .form-control {
+ border-left: none;
+ }
+
+ .input-group .form-control:focus {
+ border-left: none;
+ box-shadow: none;
+ }
+
+ .input-group:focus-within .input-group-text {
+ border-color: #86b7fe;
+ background-color: #fff;
+ }
+</style>
+<div class="container-fluid">
+ <div class="row">
+ <div class="col-md-12">
+ <div class="d-flex justify-content-between align-items-center mb-4">
+ <h2>
+ <i class="bi bi-people"></i> Клиентска база
+ </h2>
+ <div>
+ <a href="/add-client" class="btn btn-success me-2">
+ <i class="bi bi-person-plus me-1"></i> Добави клиент
+ </a>
+ <a href="/export-clients" class="btn btn-outline-info">
+ <i class="bi bi-file-earmark-excel me-1"></i> Експорт Excel
+ </a>
+ </div>
+ </div>
+
+ <!-- Статистика -->
+ <div class="row mb-4">
+ <div class="col-md-3">
+ <div class="card bg-primary text-white">
+ <div class="card-body">
+ <div class="d-flex justify-content-between">
+ <div>
+ <h4 class="card-title"></h4>
+ <p class="card-text">Общо клиенти</p>
+ </div>
+ <div class="align-self-center">
+ <i class="bi bi-people" style="font-size: 2rem;"></i>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="col-md-3">
+ <div class="card bg-success text-white">
+ <div class="card-body">
+ <div class="d-flex justify-content-between">
+ <div>
+ <h4 class="card-title"></h4>
+ <p class="card-text">С телефон</p>
+ </div>
+ <div class="align-self-center">
+ <i class="bi bi-telephone" style="font-size: 2rem;"></i>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="col-md-3">
+ <div class="card bg-info text-white">
+ <div class="card-body">
+ <div class="d-flex justify-content-between">
+ <div>
+ <h4 class="card-title"></h4>
+ <p class="card-text">С имейл</p>
+ </div>
+ <div class="align-self-center">
+ <i class="bi bi-envelope" style="font-size: 2rem;"></i>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="col-md-3">
+ <div class="card bg-warning text-white">
+ <div class="card-body">
+ <div class="d-flex justify-content-between">
+ <div>
+ <h4 class="card-title"></h4>
+ <p class="card-text">Нови тази седмица</p>
+ </div>
+ <div class="align-self-center">
+ <i class="bi bi-calendar-plus" style="font-size: 2rem;"></i>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Търсене -->
+ <div class="row mb-3">
+ <div class="col-md-6">
+ <form method="GET" class="d-flex" action="/clients">
+ <div class="input-group">
+ <span class="input-group-text">
+ <i class="bi bi-search text-muted"></i>
+ </span>
+ <input type="text" name="search" class="form-control"
+ placeholder="Търси по име, телефон или имейл..."
+ />
+ </div>
+ <button type="submit" class="btn btn-primary ms-2">
+ Търси
+ </button>
+ <a href="/clients" class="btn btn-outline-secondary ms-2" title="Изчисти търсенето">
+ <i class="bi bi-x-circle"></i>
+ </a>
+ </form>
+ </div>
+ <div class="col-md-6 text-end">
+ <small class="text-muted">
+ <span' + + '\"'"></span>
+ <span></span>
+ </small>
+ </div>
+ </div>
+
+ <!-- Таблица с клиенти -->
+ <div class="card">
+ <div class="card-body">
+ <div class="table-responsive">
+ <table class="table table-hover">
+ <thead class="table-dark">
+ <tr>
+ <th style="width: 80px;">ID</th>
+ <th>Име</th>
+ <th style="width: 140px;">Телефон</th>
+ <th style="width: 180px;">Имейл</th>
+ <th style="width: 100px;">Създаден</th>
+ <th style="width: 90px;">Действия</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>
+ <small class="text-muted"></small>
+ </td>
+ <td>
+ <strong></strong>
+ <br />
+ <small class="text-muted"
+></small>
+ </td>
+ <td>
+ <a class="text-decoration-none">
+ <i class="bi bi-telephone text-success"></i> <span></span>
+ </a>
+ <span class="text-muted">-</span>
+ </td>
+ <td>
+ <a class="text-decoration-none">
+ <i class="bi bi-envelope text-primary"></i> <span></span>
+ </a>
+ <span class="text-muted">-</span>
+ </td>
+ <td>
+ <small></small>
+ </td>
+ <td>
+ <div class="d-flex gap-2 justify-content-center">
+ <a href="/client-detail(clientId=)"
+ class="action-icon icon-blue"
+ title="Преглед на детайли">
+ <i class="bi bi-file-text"></i>
+ </a>
+ <a href="/edit-client(clientId=)"
+ class="action-icon icon-green"
+ title="Редактиране на клиент">
+ <i class="bi bi-pencil"></i>
+ </a>
+ <a href="#" class="action-icon icon-red delete-client-btn"
+ style="cursor: pointer; text-decoration: none;"
+ title="Изтриване на клиент"
+ onclick="return false;">
+ <i class="bi bi-x-circle"></i>
+ </a>
+ </div>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ <div class="alert alert-info text-center">
+ <i class="bi bi-info-circle"></i>
+ <span' + + '\"'"></span>
+ <span>
+ Няма добавени клиенти. <a href="/add-client">Добавете първия клиент</a>
+ </span>
+ </div>
+ </div>
+ </div>
+</div>
+
+<!-- Modal за потвърждение на изтриване -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+ <div class="modal-dialog">
+ <div class="modal-content">
+ <div class="modal-header">
+ <h5 class="modal-title">Потвърждение за изтриване</h5>
+ <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+ </div>
+ <div class="modal-body">
+ <p>Сигурни ли сте, че искате да изтриете клиента <strong id="clientName"></strong>?</p>
+ <div class="alert alert-warning">
+ <i class="bi bi-exclamation-triangle"></i>
+ Това действие не може да бъде отменено!
+ </div>
+ </div>
+ <div class="modal-footer">
+ <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+ <form id="deleteForm" method="POST" class="d-inline">
+ <button type="submit" class="btn btn-danger">
+ <i class="bi bi-trash"></i> Изтрий
+ </button>
+ </form>
+ </div>
+ </div>
+ </div>
+</div>
+ </div>
+
+ <div>
+<script>
+function confirmDelete(clientId, clientName) {
+ console.log('confirmDelete called with:', clientId, clientName);
+
+ // Проверяваме дали имаме валидни параметри
+ if (!clientId || !clientName) {
+ console.error('Invalid parameters:', clientId, clientName);
+ return;
+ }
+
+ // Задаваме името на клиента в модала
+ var clientNameElement = document.getElementById('clientName');
+ if (clientNameElement) {
+ clientNameElement.textContent = clientName;
+ }
+
+ // Задаваме правилния URL за изтриване
+ var deleteForm = document.getElementById('deleteForm');
+ if (deleteForm) {
+ deleteForm.action = '/delete-client/' + clientId;
+ console.log('Delete form action set to:', deleteForm.action);
+ } else {
+ console.error('Delete form not found!');
+ return;
+ }
+
+ // Показваме модала
+ var deleteModalElement = document.getElementById('deleteModal');
+ if (deleteModalElement) {
+ var deleteModal = new bootstrap.Modal(deleteModalElement);
+ deleteModal.show();
+ } else {
+ console.error('Delete modal not found!');
+ }
+}
+
+// Добавяме event listeners когато страницата се зареди
+document.addEventListener('DOMContentLoaded', function() {
+ console.log('DOM loaded, setting up event listeners...');
+ setupDeleteButtons();
+});
+
+// Функция за настройване на бутоните за изтриване
+function setupDeleteButtons() {
+ // Event listener за бутоните за изтриване
+ var deleteButtons = document.querySelectorAll('.delete-client-btn');
+ console.log('Found delete buttons:', deleteButtons.length);
+
+ deleteButtons.forEach(function(button) {
+ // Премахваме старите event listeners
+ button.removeEventListener('click', handleDeleteClick);
+ // Добавяме нов event listener
+ button.addEventListener('click', handleDeleteClick);
+ });
+
+ // Event listener за формата за да предотвратим нежелани действия
+ var deleteForm = document.getElementById('deleteForm');
+ if (deleteForm) {
+ deleteForm.addEventListener('submit', function(e) {
+ console.log('Form submitted to:', this.action);
+ });
+ }
+}
+
+// Функция за обработка на кликване на бутон за изтриване
+function handleDeleteClick(e) {
+ e.preventDefault();
+ e.stopPropagation();
+ e.stopImmediatePropagation();
+
+ var clientId = this.getAttribute('data-client-id');
+ var clientName = this.getAttribute('data-client-name');
+
+ console.log('Delete button clicked for:', clientId, clientName);
+ confirmDelete(clientId, clientName);
+
+ return false;
+}
+
+// Ако DataTables се зарежда след DOM, опитваме се отново
+if (typeof $.fn.DataTable !== 'undefined') {
+ $(document).on('init.dt', function() {
+ console.log('DataTables initialized, setting up delete buttons again...');
+ setTimeout(setupDeleteButtons, 100);
+ });
+}
+
+// jQuery event delegation за да работи дори с динамично добавени елементи
+$(document).on('click', '.delete-client-btn', function(e) {
+ e.preventDefault();
+ e.stopPropagation();
+ e.stopImmediatePropagation();
+
+ var clientId = $(this).data('client-id');
+ var clientName = $(this).data('client-name');
+
+ console.log('jQuery delete button clicked for:', clientId, clientName);
+ confirmDelete(clientId, clientName);
+
+ return false;
+});
+</script>
+ </div>
+</body>
+</html>

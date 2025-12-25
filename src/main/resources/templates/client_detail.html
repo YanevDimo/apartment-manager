@@ -1,0 +1,269 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Детайли</title>
+</head>
+<body>
+ <div>Детайли</div>
+
+ <div>
+<div class="container-fluid">
+ <div class="row">
+ <!-- Информация за клиента -->
+ <div class="col-md-4">
+ <div class="card">
+ <div class="card-header">
+ <h5 class="mb-0">
+ <i class="bi bi-person"></i> Информация за клиента
+ </h5>
+ </div>
+ <div class="card-body">
+ <div class="mb-3">
+ <h4 class="text-primary"></h4>
+ <small class="text-muted">ID: <span></span></small>
+ </div>
+
+ <div class="mb-3">
+ <h6><i class="bi bi-telephone text-success"></i> Телефон</h6>
+ <a class="text-decoration-none"
+>
+ </a>
+ <span class="text-muted">Не е посочен</span>
+ </div>
+
+ <div class="mb-3">
+ <h6><i class="bi bi-envelope text-primary"></i> Имейл</h6>
+ <a class="text-decoration-none"
+>
+ </a>
+ <span class="text-muted">Не е посочен</span>
+ </div>
+
+ <div class="mb-3">
+ <h6><i class="bi bi-sticky text-warning"></i> Бележки</h6>
+ <p class="text-muted"></p>
+ </div>
+
+ <div class="mb-3">
+ <small class="text-muted">
+ <i class="bi bi-calendar-plus"></i> Създаден:
+ <span></span>
+ <span>
+ <br /><i class="bi bi-calendar-check"></i> Последна промяна:
+ <span></span>
+ </span>
+ </small>
+ </div>
+
+ <div class="d-grid gap-2">
+ <a href="/clients/edit(clientId=)" class="btn btn-warning">
+ <i class="bi bi-pencil"></i> Редактирай
+ </a>
+ <a href="/clients" class="btn btn-secondary">
+ <i class="bi bi-arrow-left"></i> Назад към списъка
+ </a>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Покупки и плащания -->
+ <div class="col-md-8">
+ <div>
+ <!-- Обобщение -->
+ <div class="row mb-4">
+ <div class="col-md-3">
+ <div class="card bg-primary text-white">
+ <div class="card-body text-center">
+ <h4></h4>
+ <small>Имота</small>
+ </div>
+ </div>
+ </div>
+ <div class="col-md-3">
+ <div class="card bg-info text-white">
+ <div class="card-body text-center">
+ <h4></h4>
+ <small>Обща стойност</small>
+ </div>
+ </div>
+ </div>
+ <div class="col-md-3">
+ <div class="card bg-success text-white">
+ <div class="card-body text-center">
+ <h4></h4>
+ <small>Платено</small>
+ </div>
+ </div>
+ </div>
+ <div class="col-md-3">
+ <div class="card text-white"
+>
+ <div class="card-body text-center">
+ <h4></h4>
+ <small>Остатък</small>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Детайли по имоти -->
+ <div class="card">
+ <div class="card-header">
+ <h5 class="mb-0">
+ <i class="bi bi-building"></i> Покупени имоти
+ </h5>
+ </div>
+ <div class="card-body">
+ <div class="card mb-3">
+ <div class="card-body">
+ <div class="row">
+ <div class="col-md-6">
+ <h6 class="card-title">
+ <i class="bi bi-house"></i> <span></span>
+ </h6>
+ <p class="card-text">
+ <small class="text-muted">
+ <i class="bi bi-rulers"></i> <span></span> кв.м |
+ <i class="bi bi-currency-euro"></i> <span></span> |
+ <i class="bi bi-box"></i> <span></span> |
+ <i class="bi bi-gear"></i> <span></span>
+ </small>
+ </p>
+ </div>
+ <div class="col-md-6">
+ <div class="text-end">
+ <h5 class="text-primary"></h5>
+ <div class="progress mb-2" style="height: 15px;">
+ <div class="progress-bar">
+ <span></span>
+ </div>
+ </div>
+ <small class="text-muted">
+ Платено: <span></span> |
+ Остатък: <span></span>
+ </small>
+ </div>
+ </div>
+ </div>
+
+ <!-- Методи на плащане за този имот -->
+ <div class="row mt-3">
+ <div class="col-12">
+ <div class="card border-light">
+ <div class="card-body py-2">
+ <h6 class="card-title mb-2">
+ <i class="bi bi-cash-stack me-2"></i>Методи на плащане за този имот
+ </h6>
+ <div class="row text-center">
+ <div class="col-md-6">
+ <div class="d-flex align-items-center justify-content-center">
+ <i class="bi bi-bank text-primary me-2"></i>
+ <span class="fw-bold text-primary"></span>
+ <small class="text-muted ms-2">по банка</small>
+ </div>
+ </div>
+ <div class="col-md-6">
+ <div class="d-flex align-items-center justify-content-center">
+ <i class="bi bi-cash text-success me-2"></i>
+ <span class="fw-bold text-success"></span>
+ <small class="text-muted ms-2">в брой</small>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- История на плащанията за този имот -->
+ <div class="row mt-3">
+ <div class="col-12">
+ <div class="card border-light">
+ <div class="card-header py-2">
+ <h6 class="mb-0">
+ <i class="bi bi-clock-history me-2"></i>История на плащанията за <span></span>
+ </h6>
+ </div>
+ <div class="card-body py-2">
+ <div>
+ <div class="card border-light mb-2">
+ <div class="card-body py-2">
+ <div class="d-flex justify-content-between align-items-start mb-1">
+ <div>
+ <small class="fw-bold text-primary"></small>
+ <br />
+ <small class="text-muted"></small>
+ </div>
+ <div class="text-end">
+ <small class="fw-bold"></small>
+ <br />
+ <span class="badge"
+
+ style="font-size: 0.7em;">
+ <i></i>
+ <span></span>
+ </span>
+ </div>
+ </div>
+ <div class="mt-1">
+ <small class="text-muted">
+ <i class="bi bi-receipt"></i> <span></span>
+ </small>
+ </div>
+ <div class="mt-1">
+ <span class="badge bg-warning" style="font-size: 0.7em;">
+ <i class="bi bi-cash-stack"></i> Капаро
+ </span>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="text-center mt-2">
+ <small class="text-muted">
+ И още <span></span> плащания...
+ </small>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div>
+ <!-- Няма покупки -->
+ <div class="card">
+ <div class="card-body text-center">
+ <div class="py-5">
+ <i class="bi bi-cart text-muted" style="font-size: 4rem;"></i>
+ <h4 class="text-muted mt-3">Няма покупки</h4>
+ <p class="text-muted">Клиентът все още няма покупки.</p>
+ <a href="/add-apartment" class="btn btn-primary">
+ <i class="bi bi-plus-circle"></i> Добави покупка
+ </a>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+</div>
+
+<style>
+.opacity-75 {
+ opacity: 0.75;
+}
+</style>
+ </div>
+
+ <div>
+ </div>
+</body>
+</html>

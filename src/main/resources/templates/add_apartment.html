@@ -1,0 +1,780 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Продажба на обекти</title>
+</head>
+<body>
+ <div>Продажба на обекти</div>
+
+ <div>
+<div class="row justify-content-center">
+ <div class="col-md-8 col-lg-6">
+ <div class="card">
+ <div class="card-header">
+ <h5 class="mb-0">
+ <i class="bi bi-cart-check"></i> Продажба на обекти
+ <small class="text-muted d-block mt-1">
+ <i class="bi bi-building"></i> Сграда: <span></span>
+ </small>
+ </h5>
+ </div>
+ <div class="card-body">
+ <form method="POST" id="saleForm" action="/add-apartment">
+ <!-- Клиентска информация -->
+ <div class="alert alert-info mb-3">
+ <h6 class="alert-heading">
+ <i class="bi bi-person"></i> Информация за купувача
+ </h6>
+ <div class="row">
+ <div class="col-md-8">
+ <label for="buyer" class="form-label">Купувач *</label>
+ <input type="text" class="form-control" id="buyer" name="buyer" required
+ list="clientsList" placeholder="Въведете или изберете клиент" />
+ <datalist id="clientsList">
+ <option>
+ <span></span>
+ </option>
+ </datalist>
+ <div class="form-text">Започнете да пишете за да видите съществуващи клиенти</div>
+ </div>
+ <div class="col-md-4 d-flex align-items-end">
+ <button type="button" class="btn btn-outline-success btn-sm" id="addNewClientBtn">
+ <i class="bi bi-person-plus"></i> Нов клиент
+ </button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Списък с обекти -->
+ <div class="mb-3">
+ <div class="d-flex justify-content-between align-items-center mb-2">
+ <h6 class="mb-0">
+ <i class="bi bi-building"></i> Обекти за продажба
+ </h6>
+ <button type="button" class="btn btn-primary btn-sm" id="addObjectBtn">
+ <i class="bi bi-plus-circle"></i> Добави обект
+ </button>
+ </div>
+
+ <!-- Информация за наличните обекти -->
+ <div class="alert alert-info mb-3">
+ <div class="row">
+ <div class="col-md-8">
+ <h6 class="alert-heading mb-1">
+ <i class="bi bi-info-circle"></i> Налични обекти за продажба
+ </h6>
+ <p class="mb-0">
+ Имате <strong></strong> за продажба в сграда
+ <strong></strong>.
+ </p>
+ </div>
+ <div class="col-md-4 text-end">
+ <span class="badge bg-success fs-6"></span>
+ </div>
+ </div>
+ </div>
+ <div class="alert alert-warning mb-3">
+ <h6 class="alert-heading mb-1">
+ <i class="bi bi-exclamation-triangle"></i> Няма налични обекти
+ </h6>
+ <p class="mb-0">
+ Всички обекти в сграда <strong></strong>
+ са вече продадени или няма заредени обекти.
+ </p>
+ </div>
+
+ <div id="objectsContainer">
+ <!-- Първият обект -->
+ <div class="object-item card mb-3" data-object-index="0">
+ <div class="card-header py-2">
+ <div class="d-flex justify-content-between align-items-center">
+ <h6 class="mb-0">Обект #1</h6>
+ <button type="button" class="btn btn-outline-danger btn-sm remove-object" style="display: none;">
+ <i class="bi bi-trash"></i> Премахни
+ </button>
+ </div>
+ </div>
+ <div class="card-body">
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Обект *</label>
+ <div class="position-relative">
+ <input type="text" class="form-control object-search" placeholder="Търсете обект..." autocomplete="off" />
+ <select class="form-select object-apartment" name="objects[0][apartment]" required style="display: none;">
+ <option value="">Изберете обект</option>
+ <option
+>
+ </option>
+ <option value="">--- Или въведете нов ---</option>
+ </select>
+ <div class="object-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ced4da; border-radius: 0.375rem; max-height: 200px; overflow-y: auto; z-index: 1000;">
+ <div class="dropdown-item object-option"
+>
+ </div>
+ <div class="dropdown-item object-option" data-value="" data-area="" data-price="">
+ --- Или въведете нов ---
+ </div>
+ </div>
+ </div>
+ <input
+ type="text" class="form-control object-apartment" name="objects[0][apartment]" required />
+ </div>
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Площ (кв.м) *</label>
+ <input type="number" class="form-control object-area" name="objects[0][area]" step="0.01" min="0" required />
+ </div>
+ </div>
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Цена на кв.м (€) *</label>
+ <input type="number" class="form-control object-price" name="objects[0][price_per_m2]" step="0.01" min="0" required />
+ </div>
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Пакет за плащане *</label>
+ <select class="form-select object-package" name="objects[0][package]" required>
+ <option value="">Изберете пакет</option>
+ <option
+
+>
+ </option>
+ </select>
+ </div>
+ </div>
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Етап</label>
+ <div class="form-control-plaintext text-primary fw-bold">
+ <i class="bi bi-building"></i>
+ <span></span>
+ </div>
+ <div class="form-text">
+ <small class="text-muted">
+ <i class="bi bi-info-circle"></i> Етапът се взима автоматично от глобалния етап на сградата
+ </small>
+ </div>
+ </div>
+ <div class="col-md-6 mb-2 d-flex align-items-end">
+ <div class="w-100">
+ <label class="form-label">Обща цена</label>
+ <div class="form-control-plaintext object-total-price">0.00 €</div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Обща сума -->
+ <div class="alert alert-success mb-3">
+ <div class="row">
+ <div class="col-md-6">
+ <h6 class="alert-heading mb-2">
+ <i class="bi bi-calculator"></i> Обща сума за всички обекти
+ </h6>
+ <div class="h4 mb-0" id="totalAmount">0.00 €</div>
+ </div>
+ <div class="col-md-6">
+ <small class="text-muted">
+ <strong>Брой обекти:</strong> <span id="objectCount">1</span><br />
+ <strong>Средна цена на кв.м:</strong> <span id="avgPricePerM2">0.00 €</span>
+ </small>
+ </div>
+ </div>
+ </div>
+
+ <!-- Package Information -->
+ <div class="alert alert-info" id="packageInfo" style="display: none;">
+ <h6 class="alert-heading">Информация за пакета</h6>
+ <div id="packageDetails"></div>
+ </div>
+
+ <!-- Individual Payment Plan Form -->
+ <div class="alert alert-warning" id="individualPlanForm" style="display: none;">
+ <h6 class="alert-heading">
+ <i class="bi bi-gear"></i> Индивидуален план за плащане
+ </h6>
+ <div class="form-text mb-3">
+ Задайте сумите за плащане за всеки етап. Общата сума трябва да бъде равна на цената на обекта.
+ </div>
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Предварителен договор (€)</label>
+ <input type="number" class="form-control custom-plan-input" name="custom_plan[Предварителен договор]" step="0.01" min="0" placeholder="0.00" />
+ </div>
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Акт 14 (€)</label>
+ <input type="number" class="form-control custom-plan-input" name="custom_plan[Акт 14]" step="0.01" min="0" placeholder="0.00" />
+ </div>
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Акт 15 (€)</label>
+ <input type="number" class="form-control custom-plan-input" name="custom_plan[Акт 15]" step="0.01" min="0" placeholder="0.00" />
+ </div>
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Акт 16 (€)</label>
+ <input type="number" class="form-control custom-plan-input" name="custom_plan[Акт 16]" step="0.01" min="0" placeholder="0.00" />
+ </div>
+ </div>
+ <div class="row mt-2">
+ <div class="col-md-6">
+ <div class="alert alert-info mb-0">
+ <strong>Обща цена на обекта:</strong> <span id="objectTotalPrice">0.00 €</span>
+ </div>
+ </div>
+ <div class="col-md-6">
+ <div class="alert alert-info mb-0">
+ <strong>Обща сума от плана:</strong> <span id="planTotalAmount">0.00 €</span>
+ </div>
+ </div>
+ </div>
+ <div class="alert alert-danger mt-2" id="planValidationError" style="display: none;">
+ <i class="bi bi-exclamation-triangle"></i> <span id="planValidationMessage"></span>
+ </div>
+ </div>
+
+ <!-- Price Preview -->
+ <div class="alert alert-success" id="pricePreview" style="display: none;">
+ <h6 class="alert-heading">Предварителна цена</h6>
+ <div id="priceDetails"></div>
+ </div>
+
+ <div class="d-flex justify-content-between">
+ <a href="/" class="btn btn-outline-secondary btn-sm">
+ <i class="bi bi-arrow-left"></i> Назад
+ </a>
+ <button type="submit" class="btn btn-primary btn-sm">
+ <i class="bi bi-check-circle"></i> Запиши продажбата
+ </button>
+ </div>
+ </form>
+ </div>
+ </div>
+ </div>
+</div>
+ </div>
+
+ <div>
+<script>
+ /*<![CDATA[*/
+ // Package information
+ const packages = {
+ "стандартен": [0.30, 0.30, 0.30, 0.10, 0.00],
+ "балансиран": [0.50, 0.00, 0.00, 0.50, 0.125],
+ "оптимален": [0.50, 0.30, 0.10, 0.10, 0.15],
+ "инвестиционен": [0.80, 0.00, 0.00, 0.20, 0.175],
+ "печеливш": [1.00, 0.00, 0.00, 0.00, 0.20],
+ "индивидуален": "custom"
+ };
+
+ const stages = ["При предварителен договор", "Акт 14", "Акт 15", "Акт 16"];
+
+ // Глобални променливи
+ let objectCounter = 1;
+ let allClients = /**/ [];
+
+ // Current building stage
+ const currentStage = /**/ 'Открита строителна площадка';
+
+ // Apartment names for dynamic generation
+ const apartmentNames = /**/ [];
+ const packageOptions = /**/ [];
+
+ // Инициализация при зареждане на страницата
+ document.addEventListener('DOMContentLoaded', function() {
+ initializeMultipleObjects();
+ initializeClientAutocomplete();
+ initializeObjectSearch();
+ updateTotalAmount();
+ });
+
+ // Функционалност за множество обекти
+ function initializeMultipleObjects() {
+ const addObjectBtn = document.getElementById('addObjectBtn');
+ const objectsContainer = document.getElementById('objectsContainer');
+
+ // Бутон за добавяне на нов обект
+ addObjectBtn.addEventListener('click', function() {
+ addNewObject();
+ });
+
+ // Инициализиране на първия обект
+ initializeObjectEvents(document.querySelector('.object-item'));
+ }
+
+ // Добавяне на нов обект
+ function addNewObject() {
+ objectCounter++;
+ const objectsContainer = document.getElementById('objectsContainer');
+ const newObjectHtml = createObjectHtml(objectCounter);
+
+ objectsContainer.insertAdjacentHTML('beforeend', newObjectHtml);
+
+ const newObject = objectsContainer.lastElementChild;
+ initializeObjectEvents(newObject);
+
+ // Показване на бутона за премахване
+ const removeBtn = newObject.querySelector('.remove-object');
+ removeBtn.style.display = 'block';
+
+ updateObjectNumbers();
+ updateTotalAmount();
+ }
+
+ // Създаване на HTML за нов обект
+ function createObjectHtml(index) {
+ let apartmentOptions = '';
+ let apartmentDropdownOptions = '';
+
+ if (apartmentNames && apartmentNames.length> 0) {
+ apartmentNames.forEach(function(apartment) {
+ const name = apartment.name || apartment;
+ const area = apartment.area || '';
+ const price = apartment.pricePerM2 || '';
+ apartmentOptions += `<option value="" data-area="" data-price=""></option>`;
+ apartmentDropdownOptions += `<div class="dropdown-item object-option" data-value="" data-area="" data-price=""></div>`;
+ });
+ }
+
+ let packageOptionsHtml = '';
+ if (packageOptions && packageOptions.length> 0) {
+ packageOptions.forEach(function(pkg) {
+ packageOptionsHtml += `<option value=""></option>`;
+ });
+ }
+
+ return `
+ <div class="object-item card mb-3" data-object-index="">
+ <div class="card-header py-2">
+ <div class="d-flex justify-content-between align-items-center">
+ <h6 class="mb-0">Обект #</h6>
+ <button type="button" class="btn btn-outline-danger btn-sm remove-object">
+ <i class="bi bi-trash"></i> Премахни
+ </button>
+ </div>
+ </div>
+ <div class="card-body">
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Обект *</label>
+ ][apartment]" required style="display: none;">
+ <option value="">Изберете обект</option>
+
+ <option value="">--- Или въведете нов ---</option>
+ </select>
+ <div class="object-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ced4da; border-radius: 0.375rem; max-height: 200px; overflow-y: auto; z-index: 1000;">
+
+ <div class="dropdown-item object-option" data-value="" data-area="" data-price="">
+ --- Или въведете нов ---
+ </div>
+ </div>
+ </div>
+ ` : `
+ <input type="text" class="form-control object-apartment" name="objects[][apartment]" required />
+ `}
+ </div>
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Площ (кв.м) *</label>
+ <input type="number" class="form-control object-area" name="objects[][area]" step="0.01" min="0" required />
+ </div>
+ </div>
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Цена на кв.м (€) *</label>
+ <input type="number" class="form-control object-price" name="objects[][price_per_m2]" step="0.01" min="0" required />
+ </div>
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Пакет за плащане *</label>
+ <select class="form-select object-package" name="objects[][package]" required>
+ <option value="">Изберете пакет</option>
+
+ </select>
+ </div>
+ </div>
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label class="form-label">Етап</label>
+ <div class="form-control-plaintext text-primary fw-bold">
+ <i class="bi bi-building"></i>
+ </div>
+ <div class="form-text">
+ <small class="text-muted">
+ <i class="bi bi-info-circle"></i> Етапът се взима автоматично от глобалния етап на сградата
+ </small>
+ </div>
+ </div>
+ <div class="col-md-6 mb-2 d-flex align-items-end">
+ <div class="w-100">
+ <label class="form-label">Обща цена</label>
+ <div class="form-control-plaintext object-total-price">0.00 €</div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ `;
+ }
+
+ // Инициализиране на събития за обект
+ function initializeObjectEvents(objectElement) {
+ const apartmentSelect = objectElement.querySelector('.object-apartment');
+ const searchInput = objectElement.querySelector('.object-search');
+ const areaInput = objectElement.querySelector('.object-area');
+ const priceInput = objectElement.querySelector('.object-price');
+ const packageSelect = objectElement.querySelector('.object-package');
+ const removeBtn = objectElement.querySelector('.remove-object');
+
+ // Автопопълване при избор на обект (за скрития select)
+ if (apartmentSelect) {
+ apartmentSelect.addEventListener('change', function() {
+ const selectedOption = this.options[this.selectedIndex];
+ if (selectedOption && selectedOption.value) {
+ const area = selectedOption.getAttribute('data-area');
+ const price = selectedOption.getAttribute('data-price');
+
+ if (area) areaInput.value = area;
+ if (price) priceInput.value = price;
+
+ updateObjectTotal(objectElement);
+ }
+ });
+ }
+
+ // Синхронизиране на search input със select
+ if (searchInput && apartmentSelect) {
+ searchInput.addEventListener('input', function() {
+ apartmentSelect.value = this.value;
+ });
+ }
+
+ // Обновяване на общата цена при промяна
+ [areaInput, priceInput].forEach(input => {
+ input.addEventListener('input', function() {
+ updateObjectTotal(objectElement);
+ });
+ });
+
+ // Бутон за премахване на обект
+ if (removeBtn) {
+ removeBtn.addEventListener('click', function() {
+ if (document.querySelectorAll('.object-item').length> 1) {
+ objectElement.remove();
+ updateObjectNumbers();
+ updateTotalAmount();
+ } else {
+ alert('Трябва да има поне един обект!');
+ }
+ });
+ }
+ }
+
+ // Обновяване на номерата на обектите
+ function updateObjectNumbers() {
+ const objects = document.querySelectorAll('.object-item');
+ objects.forEach((object, index) => {
+ const title = object.querySelector('h6');
+ title.textContent = `Обект #`;
+ object.setAttribute('data-object-index', index);
+
+ // Обновяване на имената на полетата
+ const inputs = object.querySelectorAll('input, select');
+ inputs.forEach(input => {
+ const name = input.getAttribute('name');
+ if (name) {
+ input.setAttribute('name', name.replace(/objects\[\d+\]/, `objects[]`));
+ }
+ });
+ });
+ }
+
+ // Изчисляване на общата цена за обект
+ function updateObjectTotal(objectElement) {
+ const area = parseFloat(objectElement.querySelector('.object-area').value) || 0;
+ const price = parseFloat(objectElement.querySelector('.object-price').value) || 0;
+ const totalPriceElement = objectElement.querySelector('.object-total-price');
+
+ const totalPrice = area * price;
+ totalPriceElement.textContent = totalPrice.toFixed(2) + ' €';
+
+ updateTotalAmount();
+ }
+
+ // Изчисляване на общата сума
+ function updateTotalAmount() {
+ const objects = document.querySelectorAll('.object-item');
+ let totalAmount = 0;
+ let totalArea = 0;
+ let totalPricePerM2 = 0;
+ let validObjects = 0;
+
+ objects.forEach(object => {
+ const area = parseFloat(object.querySelector('.object-area').value) || 0;
+ const price = parseFloat(object.querySelector('.object-price').value) || 0;
+
+ if (area> 0 && price> 0) {
+ totalAmount += area * price;
+ totalArea += area;
+ totalPricePerM2 += price;
+ validObjects++;
+ }
+ });
+
+ // Обновяване на общата сума
+ document.getElementById('totalAmount').textContent = totalAmount.toFixed(2) + ' €';
+ document.getElementById('objectCount').textContent = objects.length;
+
+ // Средна цена на кв.м
+ const avgPricePerM2 = validObjects> 0 ? totalPricePerM2 / validObjects : 0;
+ document.getElementById('avgPricePerM2').textContent = avgPricePerM2.toFixed(2) + ' €';
+ }
+
+ // Автодопълване на клиенти
+ function initializeClientAutocomplete() {
+ const buyerInput = document.getElementById('buyer');
+ const clientsList = document.getElementById('clientsList');
+ const addNewClientBtn = document.getElementById('addNewClientBtn');
+
+ // Бутон за добавяне на нов клиент
+ addNewClientBtn.addEventListener('click', function() {
+ const currentBuyer = buyerInput.value.trim();
+ if (currentBuyer) {
+ const newClientUrl = '/clients/add?name=' + encodeURIComponent(currentBuyer);
+ const newWindow = window.open(newClientUrl, '_blank', 'width=800,height=600');
+
+ const checkClosed = setInterval(function() {
+ if (newWindow.closed) {
+ clearInterval(checkClosed);
+ fetch('/api/clients')
+ .then(response => response.json())
+ .then(clients => {
+ allClients = clients;
+ const newClient = clients.find(c => c.name === currentBuyer);
+ if (newClient) {
+ buyerInput.value = newClient.name;
+ }
+ });
+ }
+ }, 1000);
+ } else {
+ window.open('/clients/add', '_blank', 'width=800,height=600');
+ }
+ });
+
+ // Показване на контактна информация
+ buyerInput.addEventListener('input', function() {
+ const selectedOption = Array.from(clientsList.options)
+ .find(option => option.value === this.value);
+
+ if (selectedOption) {
+ const contact = selectedOption.getAttribute('data-contact');
+ if (contact) {
+ const tooltip = document.createElement('div');
+ tooltip.className = 'alert alert-info alert-sm mt-1';
+ tooltip.innerHTML = '<small><i class="bi bi-info-circle"></i> ' + contact + '</small>';
+
+ const existingTooltip = buyerInput.parentNode.querySelector('.alert-info');
+ if (existingTooltip) {
+ existingTooltip.remove();
+ }
+
+ buyerInput.parentNode.appendChild(tooltip);
+
+ setTimeout(() => {
+ if (tooltip.parentNode) {
+ tooltip.remove();
+ }
+ }, 3000);
+ }
+ }
+ });
+ }
+
+ // Функционалност за търсене в обекти
+ function initializeObjectSearch() {
+ document.addEventListener('click', function(e) {
+ // Скриване на dropdown при клик извън него
+ if (!e.target.closest('.position-relative')) {
+ document.querySelectorAll('.object-dropdown').forEach(dropdown => {
+ dropdown.style.display = 'none';
+ });
+ }
+ });
+
+ // Инициализиране на търсенето за всички обекти
+ function setupObjectSearch(objectItem) {
+ const searchInput = objectItem.querySelector('.object-search');
+ const dropdown = objectItem.querySelector('.object-dropdown');
+ const select = objectItem.querySelector('.object-apartment');
+ const options = dropdown ? dropdown.querySelectorAll('.object-option') : [];
+
+ if (!searchInput || !dropdown) return;
+
+ // Показване на dropdown при фокус
+ searchInput.addEventListener('focus', function() {
+ dropdown.style.display = 'block';
+ filterOptions();
+ });
+
+ // Филтриране при въвеждане
+ searchInput.addEventListener('input', function() {
+ filterOptions();
+ });
+
+ // Избор на опция
+ dropdown.addEventListener('click', function(e) {
+ const option = e.target.closest('.object-option');
+ if (option) {
+ const value = option.getAttribute('data-value');
+ const area = option.getAttribute('data-area');
+ const price = option.getAttribute('data-price');
+
+ searchInput.value = value;
+ if (select) select.value = value;
+
+ // Автопопълване на площ и цена
+ if (area) {
+ objectItem.querySelector('.object-area').value = area;
+ }
+ if (price) {
+ objectItem.querySelector('.object-price').value = price;
+ }
+
+ dropdown.style.display = 'none';
+ updateObjectTotal(objectItem);
+ }
+ });
+
+ function filterOptions() {
+ const searchTerm = searchInput.value.toLowerCase();
+ let hasVisibleOptions = false;
+
+ options.forEach(option => {
+ const text = option.textContent.toLowerCase();
+ if (text.includes(searchTerm)) {
+ option.style.display = 'block';
+ hasVisibleOptions = true;
+ } else {
+ option.style.display = 'none';
+ }
+ });
+
+ dropdown.style.display = hasVisibleOptions ? 'block' : 'none';
+ }
+ }
+
+ // Инициализиране за съществуващи обекти
+ document.querySelectorAll('.object-item').forEach(setupObjectSearch);
+
+ // Инициализиране за нови обекти (при добавяне)
+ const addObjectBtn = document.getElementById('addObjectBtn');
+ if (addObjectBtn) {
+ addObjectBtn.addEventListener('click', function() {
+ setTimeout(() => {
+ const newObject = document.querySelector('.object-item:last-child');
+ if (newObject) {
+ setupObjectSearch(newObject);
+ }
+ }, 100);
+ });
+ }
+ }
+
+ // Функционалност за индивидуални планове
+ function initializeIndividualPlanForm() {
+ const packageSelects = document.querySelectorAll('.object-package');
+
+ packageSelects.forEach(select => {
+ select.addEventListener('change', function() {
+ const objectItem = this.closest('.object-item');
+ const individualPlanForm = document.getElementById('individualPlanForm');
+
+ if (this.value === 'индивидуален') {
+ individualPlanForm.style.display = 'block';
+ updateIndividualPlanValidation(objectItem);
+ } else {
+ individualPlanForm.style.display = 'none';
+ }
+ });
+ });
+
+ // Валидация на индивидуалния план
+ const customPlanInputs = document.querySelectorAll('.custom-plan-input');
+ customPlanInputs.forEach(input => {
+ input.addEventListener('input', function() {
+ updateIndividualPlanValidation();
+ });
+ });
+ }
+
+ function updateIndividualPlanValidation(objectItem = null) {
+ const planInputs = document.querySelectorAll('.custom-plan-input');
+ const objectTotalPriceSpan = document.getElementById('objectTotalPrice');
+ const planTotalAmountSpan = document.getElementById('planTotalAmount');
+ const validationError = document.getElementById('planValidationError');
+ const validationMessage = document.getElementById('planValidationMessage');
+
+ // Изчисляване на общата цена на обекта
+ let objectTotalPrice = 0;
+ if (objectItem) {
+ const area = parseFloat(objectItem.querySelector('.object-area').value) || 0;
+ const pricePerM2 = parseFloat(objectItem.querySelector('.object-price').value) || 0;
+ objectTotalPrice = area * pricePerM2;
+ }
+
+ // Изчисляване на общата сума от плана
+ let planTotalAmount = 0;
+ planInputs.forEach(input => {
+ planTotalAmount += parseFloat(input.value) || 0;
+ });
+
+ // Обновяване на дисплея
+ if (objectTotalPriceSpan) objectTotalPriceSpan.textContent = objectTotalPrice.toFixed(2) + ' €';
+ if (planTotalAmountSpan) planTotalAmountSpan.textContent = planTotalAmount.toFixed(2) + ' €';
+
+ // Валидация
+ const difference = Math.abs(planTotalAmount - objectTotalPrice);
+ if (difference> 0.01 && validationError && validationMessage) {
+ validationError.style.display = 'block';
+ validationMessage.textContent = `Разликата между плана (€) и цената на обекта (€) е €`;
+ } else if (validationError) {
+ validationError.style.display = 'none';
+ }
+ }
+
+ // Инициализиране на индивидуалните планове
+ initializeIndividualPlanForm();
+
+ // Валидация на формата
+ document.getElementById('saleForm').addEventListener('submit', function(e) {
+ const objects = document.querySelectorAll('.object-item');
+ let hasErrors = false;
+
+ objects.forEach((object, index) => {
+ const area = parseFloat(object.querySelector('.object-area').value);
+ const price = parseFloat(object.querySelector('.object-price').value);
+
+ if (area <= 0) {
+ alert(`Площта на обект # трябва да е по-голяма от 0!`);
+ hasErrors = true;
+ return;
+ }
+
+ if (price <= 0) {
+ alert(`Цената на кв.м за обект # трябва да е по-голяма от 0!`);
+ hasErrors = true;
+ return;
+ }
+ });
+
+ if (hasErrors) {
+ e.preventDefault();
+ }
+ });
+ /*]]>*/
+</script>
+ </div>
+</body>
+</html>

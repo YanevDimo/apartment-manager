@@ -1,0 +1,949 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Ariete-Estate - Управление на имоти</title>
+
+ <!-- Bootstrap 5 CSS -->
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+ <!-- Bootstrap Icons -->
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+ <!-- DataTables CSS -->
+ <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+
+ <style>
+ :root {
+ --primary-color: #7367f0;
+ --primary-dark: #5e50ee;
+ --secondary-color: #82868b;
+ --success-color: #28c76f;
+ --warning-color: #ff9f43;
+ --danger-color: #ea5455;
+ --info-color: #00cfe8;
+ --dark-bg: #283046;
+ --sidebar-bg: #161d31;
+ --sidebar-hover: #283046;
+ --light-bg: #f8f8f8;
+ --card-bg: #ffffff;
+ --border-color: #d8d6de;
+ --text-primary: #625f6e;
+ --text-secondary: #6e6b7b;
+ --text-muted: #b9b9c3;
+ --shadow: 0 4px 24px 0 rgba(34, 41, 47, 0.24);
+ }
+
+ * {
+ margin: 0;
+ padding: 0;
+ box-sizing: border-box;
+ }
+
+ body {
+ background-color: var(--light-bg);
+ font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+ color: var(--text-primary);
+ overflow-x: hidden;
+ font-size: 0.875rem;
+ }
+
+ /* Sidebar - Adminty Style */
+ .sidebar {
+ position: fixed;
+ top: 0;
+ left: 0;
+ height: 100vh;
+ width: 260px;
+ background: var(--sidebar-bg);
+ z-index: 1000;
+ transition: all 0.3s ease;
+ box-shadow: var(--shadow);
+ }
+
+ .sidebar.collapsed {
+ width: 70px;
+ }
+
+ .sidebar-header {
+ padding: 1rem;
+ border-bottom: 1px solid rgba(255,255,255,0.1);
+ background: var(--primary-color);
+ position: relative;
+ }
+
+ .sidebar-header::after {
+ content: '';
+ position: absolute;
+ bottom: 0;
+ left: 0;
+ right: 0;
+ height: 1px;
+ background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+ }
+
+ .sidebar-brand {
+ color: white;
+ font-size: 1rem;
+ font-weight: 600;
+ text-decoration: none;
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+ }
+
+ .sidebar-brand i {
+ font-size: 1.25rem;
+ color: #fff;
+ }
+
+ .sidebar-nav {
+ padding: 1rem 0;
+ overflow-y: auto;
+ height: calc(100vh - 80px);
+ }
+
+ .nav-item {
+ margin: 0.25rem 1rem;
+ }
+
+ .nav-link {
+ color: #d0d2d6;
+ padding: 0.75rem 1rem;
+ border-radius: 0.375rem;
+ text-decoration: none;
+ display: flex;
+ align-items: center;
+ gap: 0.75rem;
+ transition: all 0.3s ease;
+ font-weight: 500;
+ position: relative;
+ }
+
+ .nav-link:hover {
+ color: white;
+ background: var(--sidebar-hover);
+ transform: translateX(5px);
+ }
+
+ .nav-link.active {
+ color: white;
+ background: var(--primary-color);
+ box-shadow: 0 0 10px rgba(115, 103, 240, 0.5);
+ }
+
+ .nav-link.active::before {
+ content: '';
+ position: absolute;
+ left: 0;
+ top: 0;
+ bottom: 0;
+ width: 3px;
+ background: #fff;
+ border-radius: 0 2px 2px 0;
+ }
+
+ .nav-link i {
+ font-size: 1.1rem;
+ min-width: 20px;
+ }
+
+ /* Main Content */
+ .main-content {
+ margin-left: 260px;
+ min-height: 100vh;
+ transition: all 0.3s ease;
+ }
+
+ .main-content.expanded {
+ margin-left: 70px;
+ }
+
+ /* Top Navigation - Adminty Style */
+ .top-nav {
+ background: var(--card-bg);
+ padding: 1rem 2rem;
+ border-bottom: 1px solid var(--border-color);
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+ }
+
+ .page-title {
+ font-size: 1.5rem;
+ font-weight: 600;
+ color: var(--text-primary);
+ margin: 0;
+ }
+
+ .top-nav-actions {
+ display: flex;
+ gap: 1rem;
+ align-items: center;
+ }
+
+ .btn-toggle-sidebar {
+ background: none;
+ border: none;
+ color: var(--text-secondary);
+ font-size: 1.25rem;
+ cursor: pointer;
+ padding: 0.5rem;
+ border-radius: 0.375rem;
+ transition: all 0.3s ease;
+ }
+
+ .btn-toggle-sidebar:hover {
+ background: var(--light-bg);
+ color: var(--text-primary);
+ }
+
+ /* Cards - Adminty Style */
+ .card {
+ background: var(--card-bg);
+ border: 1px solid var(--border-color);
+ border-radius: 0.5rem;
+ box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+ transition: all 0.3s ease;
+ }
+
+ .card:hover {
+ box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+ transform: translateY(-2px);
+ }
+
+ .card-header {
+ background: var(--card-bg);
+ border-bottom: 1px solid var(--border-color);
+ padding: 1.25rem 1.5rem;
+ font-weight: 600;
+ color: var(--text-primary);
+ border-radius: 0.5rem 0.5rem 0 0;
+ }
+
+ .card-body {
+ padding: 1.5rem;
+ }
+
+ /* Stats Cards - Adminty Style */
+ .stats-card {
+ background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+ color: white;
+ border: none;
+ position: relative;
+ overflow: hidden;
+ border-radius: 0.5rem;
+ }
+
+ .stats-card::before {
+ content: '';
+ position: absolute;
+ top: -50%;
+ right: -50%;
+ width: 200px;
+ height: 200px;
+ background: rgba(255,255,255,0.1);
+ border-radius: 50%;
+ transform: rotate(45deg);
+ }
+
+ .stats-card .card-body {
+ position: relative;
+ z-index: 1;
+ }
+
+ .stats-number {
+ font-size: 2.5rem;
+ font-weight: 700;
+ line-height: 1;
+ margin-bottom: 0.5rem;
+ }
+
+ .stats-label {
+ font-size: 0.875rem;
+ opacity: 0.9;
+ font-weight: 500;
+ text-transform: uppercase;
+ letter-spacing: 0.5px;
+ }
+
+ .stats-icon {
+ font-size: 2rem;
+ opacity: 0.8;
+ position: absolute;
+ top: 1rem;
+ right: 1rem;
+ }
+
+ /* Buttons - Adminty Style */
+ .btn {
+ border-radius: 0.375rem;
+ font-weight: 500;
+ padding: 0.5rem 1rem;
+ transition: all 0.3s ease;
+ border: none;
+ position: relative;
+ overflow: hidden;
+ }
+
+ .btn::before {
+ content: '';
+ position: absolute;
+ top: 0;
+ left: -100%;
+ width: 100%;
+ height: 100%;
+ background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+ transition: left 0.5s;
+ }
+
+ .btn:hover::before {
+ left: 100%;
+ }
+
+ .btn-primary {
+ background: var(--primary-color);
+ color: white;
+ }
+
+ .btn-primary:hover {
+ background: var(--primary-dark);
+ transform: translateY(-1px);
+ box-shadow: 0 4px 8px rgba(115, 103, 240, 0.3);
+ }
+
+ .btn-success {
+ background: var(--success-color);
+ color: white;
+ }
+
+ .btn-warning {
+ background: var(--warning-color);
+ color: white;
+ }
+
+ .btn-danger {
+ background: var(--danger-color);
+ color: white;
+ }
+
+ .btn-outline-primary {
+ border: 1px solid var(--primary-color);
+ color: var(--primary-color);
+ background: transparent;
+ }
+
+ .btn-outline-primary:hover {
+ background: var(--primary-color);
+ color: white;
+ }
+
+ /* Tables - Adminty Style */
+ .table {
+ border-radius: 0.5rem;
+ overflow: hidden;
+ background: var(--card-bg);
+ }
+
+ .table th {
+ background: #f8f9fa;
+ border-bottom: 2px solid var(--border-color);
+ font-weight: 600;
+ color: var(--text-primary);
+ padding: 1rem;
+ text-transform: uppercase;
+ font-size: 0.875rem;
+ letter-spacing: 0.5px;
+ }
+
+ .table td {
+ padding: 1rem;
+ border-bottom: 1px solid var(--border-color);
+ vertical-align: middle;
+ }
+
+ .table tbody tr:hover {
+ background: #f8f9fa;
+ }
+
+ /* Forms - Adminty Style */
+ .form-control, .form-select {
+ border-radius: 0.375rem;
+ border: 1px solid var(--border-color);
+ padding: 0.75rem 1rem;
+ transition: all 0.3s ease;
+ background: var(--card-bg);
+ }
+
+ .form-control:focus, .form-select:focus {
+ border-color: var(--primary-color);
+ box-shadow: 0 0 0 0.2rem rgba(115, 103, 240, 0.25);
+ }
+
+ .form-label {
+ font-weight: 500;
+ color: var(--text-primary);
+ margin-bottom: 0.5rem;
+ }
+
+ /* Alerts - Adminty Style */
+ .alert {
+ border: none;
+ border-radius: 0.5rem;
+ padding: 1rem 1.25rem;
+ margin-bottom: 1rem;
+ border-left: 4px solid;
+ }
+
+ .alert-success {
+ background: #d1fae5;
+ color: #065f46;
+ border-left-color: var(--success-color);
+ }
+
+ .alert-danger {
+ background: #fee2e2;
+ color: #991b1b;
+ border-left-color: var(--danger-color);
+ }
+
+ .alert-warning {
+ background: #fef3c7;
+ color: #92400e;
+ border-left-color: var(--warning-color);
+ }
+
+ .alert-info {
+ background: #cffafe;
+ color: #155e75;
+ border-left-color: var(--info-color);
+ }
+
+ /* Badges - Adminty Style */
+ .badge {
+ border-radius: 0.375rem;
+ font-weight: 500;
+ padding: 0.375rem 0.75rem;
+ font-size: 0.75rem;
+ }
+
+ /* Progress bars - Adminty Style */
+ .progress {
+ border-radius: 0.375rem;
+ height: 0.75rem;
+ background: #e9ecef;
+ }
+
+ .progress-bar {
+ border-radius: 0.375rem;
+ }
+
+ /* Modals - Adminty Style */
+ .modal-content {
+ border: none;
+ border-radius: 0.5rem;
+ box-shadow: var(--shadow);
+ }
+
+ .modal-header {
+ border-bottom: 1px solid var(--border-color);
+ padding: 1.5rem;
+ }
+
+ .modal-body {
+ padding: 1.5rem;
+ }
+
+ .modal-footer {
+ border-top: 1px solid var(--border-color);
+ padding: 1.5rem;
+ }
+
+ /* Flash Messages */
+ .flash-messages {
+ position: fixed;
+ top: 20px;
+ right: 20px;
+ z-index: 1050;
+ max-width: 400px;
+ }
+
+ /* Responsive */
+ @media (max-width: 768px) {
+ .sidebar {
+ transform: translateX(-100%);
+ }
+
+ .sidebar.show {
+ transform: translateX(0);
+ }
+
+ .main-content {
+ margin-left: 0;
+ }
+
+ .stats-number {
+ font-size: 2rem;
+ }
+
+ .table-responsive {
+ font-size: 0.875rem;
+ }
+ }
+
+ /* DataTables customization */
+ .dataTables_wrapper .dataTables_length,
+ .dataTables_wrapper .dataTables_filter {
+ margin-bottom: 1rem;
+ }
+
+ /* Глобални стилове за по-малки елементи */
+ .card-header {
+ padding: 0.75rem 1rem;
+ }
+
+ .card-body {
+ padding: 1rem;
+ }
+
+ .modal-header {
+ padding: 1rem;
+ }
+
+ .modal-body {
+ padding: 1rem;
+ }
+
+ .modal-footer {
+ padding: 1rem;
+ }
+
+ .btn {
+ padding: 0.375rem 0.75rem;
+ font-size: 0.875rem;
+ }
+
+ .btn-sm {
+ padding: 0.25rem 0.5rem;
+ font-size: 0.8rem;
+ }
+
+ .table {
+ font-size: 0.875rem;
+ }
+
+ .table th,
+ .table td {
+ padding: 0.5rem;
+ }
+
+ .form-control {
+ font-size: 0.875rem;
+ padding: 0.375rem 0.75rem;
+ }
+
+ .form-label {
+ font-size: 0.875rem;
+ margin-bottom: 0.25rem;
+ }
+
+ .alert {
+ padding: 0.75rem 1rem;
+ font-size: 0.875rem;
+ }
+
+ .badge {
+ font-size: 0.7rem;
+ padding: 0.25rem 0.5rem;
+ }
+
+ .progress {
+ height: 0.5rem;
+ }
+
+ .stats-number {
+ font-size: 1.75rem;
+ }
+
+ .stats-label {
+ font-size: 0.75rem;
+ }
+
+ .stats-icon {
+ font-size: 1.5rem;
+ }
+
+ /* Responsive adjustments */
+ @media (max-width: 1200px) {
+ .container-fluid {
+ padding-left: 0.5rem;
+ padding-right: 0.5rem;
+ }
+ }
+
+ @media (max-width: 768px) {
+ .card-header {
+ padding: 0.5rem 0.75rem;
+ }
+
+ .card-body {
+ padding: 0.75rem;
+ }
+
+ .btn {
+ padding: 0.25rem 0.5rem;
+ font-size: 0.8rem;
+ }
+
+ .table {
+ font-size: 0.8rem;
+ }
+
+ .table th,
+ .table td {
+ padding: 0.375rem;
+ }
+ }
+
+ .dataTables_wrapper .dataTables_info,
+ .dataTables_wrapper .dataTables_paginate {
+ margin-top: 0.75rem;
+ }
+
+ .dataTables_wrapper .dataTables_paginate .paginate_button {
+ padding: 0.25rem 0.5rem;
+ margin: 0 0.125rem;
+ border-radius: 0.375rem;
+ font-size: 0.8rem;
+ }
+
+ .action-buttons {
+ white-space: nowrap;
+ }
+
+ .action-buttons .btn {
+ margin: 0 0.125rem;
+ }
+
+ /* Content area */
+ .content-area {
+ padding: 1.5rem;
+ }
+
+ /* Loading animation */
+ .loading {
+ display: inline-block;
+ width: 20px;
+ height: 20px;
+ border: 3px solid rgba(255,255,255,.3);
+ border-radius: 50%;
+ border-top-color: #fff;
+ animation: spin 1s ease-in-out infinite;
+ }
+
+ @keyframes spin {
+ to { transform: rotate(360deg); }
+ }
+
+ /* Adminty specific styles */
+ .dropdown-menu {
+ border: none;
+ box-shadow: var(--shadow);
+ border-radius: 0.5rem;
+ }
+
+ .dropdown-item:hover {
+ background: var(--light-bg);
+ }
+
+ /* Custom scrollbar for sidebar */
+ .sidebar-nav::-webkit-scrollbar {
+ width: 4px;
+ }
+
+ .sidebar-nav::-webkit-scrollbar-track {
+ background: transparent;
+ }
+
+ .sidebar-nav::-webkit-scrollbar-thumb {
+ background: rgba(255,255,255,0.2);
+ border-radius: 2px;
+ }
+
+ .sidebar-nav::-webkit-scrollbar-thumb:hover {
+ background: rgba(255,255,255,0.3);
+ }
+ </style>
+</head>
+<body>
+ <!-- Sidebar -->
+ <nav class="sidebar" id="sidebar">
+ <div class="sidebar-header">
+ <a href="/" class="sidebar-brand">
+ <i class="bi bi-building"></i>
+ <span class="brand-text">Ariete-Estate</span>
+ </a>
+ </div>
+
+ <div class="sidebar-nav">
+ <div class="nav-item">
+ <a href="/buildings" class="nav-link">
+ <i class="bi bi-buildings"></i>
+ <span class="nav-text">Сгради</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/" class="nav-link">
+ <i class="bi bi-house"></i>
+ <span class="nav-text">Начало</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/clients" class="nav-link">
+ <i class="bi bi-people"></i>
+ <span class="nav-text">Клиентска база</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/payment-plans" class="nav-link">
+ <i class="bi bi-calendar-check"></i>
+ <span class="nav-text">Планове за плащане</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/add-apartment" class="nav-link">
+ <i class="bi bi-cart-check"></i>
+ <span class="nav-text">Продажба на обект</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/upload-apartments" class="nav-link">
+ <i class="bi bi-upload"></i>
+ <span class="nav-text">Качи обекти</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/export-data" class="nav-link">
+ <i class="bi bi-file-earmark-excel"></i>
+ <span class="nav-text">Експорт на данни</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/building-stage" class="nav-link">
+ <i class="bi bi-building-gear"></i>
+ <span class="nav-text">Етап на сграда</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/global-stage-change" class="nav-link">
+ <i class="bi bi-gear"></i>
+ <span class="nav-text">Глобални настройки</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/backup" class="nav-link">
+ <i class="bi bi-download"></i>
+ <span class="nav-text">Backup</span>
+ </a>
+ </div>
+
+ <div class="nav-item">
+ <a href="/restore-backup" class="nav-link">
+ <i class="bi bi-upload"></i>
+ <span class="nav-text">Възстанови</span>
+ </a>
+ </div>
+ </div>
+ </nav>
+
+ <!-- Main Content -->
+ <div class="main-content" id="main-content">
+ <!-- Top Navigation -->
+ <div class="top-nav">
+ <div class="d-flex align-items-center">
+ <button class="btn-toggle-sidebar me-3" id="toggle-sidebar">
+ <i class="bi bi-list"></i>
+ </button>
+ <h1 class="page-title">Ariete-Estate - Управление на имоти</h1>
+ </div>
+
+ <div class="top-nav-actions">
+ <div class="dropdown">
+ <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+ <i class="bi bi-gear"></i> Настройки
+ </button>
+ <ul class="dropdown-menu">
+ <li><a class="dropdown-item" href="/building-stage"><i class="bi bi-building-gear me-2"></i>Етап на сграда</a></li>
+ <li><hr class="dropdown-divider" /></li>
+ <li><a class="dropdown-item" href="/backup"><i class="bi bi-download me-2"></i>Създай Backup</a></li>
+ <li><a class="dropdown-item" href="/restore-backup"><i class="bi bi-upload me-2"></i>Възстанови</a></li>
+ <li><hr class="dropdown-divider" /></li>
+ <li><a class="dropdown-item" href="/export-data"><i class="bi bi-file-earmark-excel me-2"></i>Експорт на данни</a></li>
+ </ul>
+ </div>
+ </div>
+ </div>
+
+ <!-- Flash Messages -->
+ <div class="flash-messages">
+ <div
+
+ role="alert">
+ <i></i>
+ <span></span>
+ <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+ </div>
+ </div>
+
+ <!-- Content Area -->
+ <div class="content-area">
+ <!-- Content will be replaced by child templates -->
+ </div>
+ </div>
+
+ <!-- Bootstrap 5 JS -->
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+ <!-- jQuery -->
+ <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+ <!-- DataTables JS -->
+ <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+ <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+ <script>
+ console.log('Base template script loaded');
+
+ // Добавяме debugging за всички форми
+ document.addEventListener('DOMContentLoaded', function() {
+ console.log('Base template DOM loaded');
+
+ // Debugging за всички форми
+ const forms = document.querySelectorAll('form');
+ console.log('Found forms:', forms.length);
+
+ forms.forEach((form, index) => {
+ console.log(`Form :`, form.action, form.method);
+
+ form.addEventListener('submit', function(e) {
+ console.log(`Form submitted:`, this.action, this.method);
+ console.log('Form data:', new FormData(this));
+ });
+ });
+ });
+
+ // Sidebar toggle functionality
+ document.getElementById('toggle-sidebar').addEventListener('click', function() {
+ const sidebar = document.getElementById('sidebar');
+ const mainContent = document.getElementById('main-content');
+
+ sidebar.classList.toggle('collapsed');
+ mainContent.classList.toggle('expanded');
+
+ // Toggle text visibility in sidebar
+ const navTexts = sidebar.querySelectorAll('.nav-text, .brand-text');
+ navTexts.forEach(text => {
+ text.style.display = sidebar.classList.contains('collapsed') ? 'none' : 'block';
+ });
+ });
+
+ // Auto-hide flash messages after 5 seconds (only for flash messages, not content alerts)
+ setTimeout(function() {
+ $('.alert-dismissible').fadeOut('slow');
+ }, 5000);
+
+ // Prevent any automatic hiding of main content
+ $(document).ready(function() {
+ // Ensure main content stays visible
+ $('.card, .table, .stats-card').show();
+
+ // Initialize DataTables only for tables that don't have specific initialization
+ $('.datatable').DataTable({
+ language: {
+ // Използваме вградени български настройки вместо външен файл
+ "sProcessing": "Обработване...",
+ "sLengthMenu": "Покажи _MENU_ записа",
+ "sZeroRecords": "Не са намерени съответстващи записи",
+ "sInfo": "Показване на _START_ до _END_ от _TOTAL_ записа",
+ "sInfoEmpty": "Показване на 0 до 0 от 0 записа",
+ "sInfoFiltered": "(филтрирани от _MAX_ общо записа)",
+ "sInfoPostFix": "",
+ "sSearch": "Търсене:",
+ "sUrl": "",
+ "sEmptyTable": "Няма данни в таблицата",
+ "sLoadingRecords": "Зареждане...",
+ "sFirst": "Първа",
+ "sPrevious": "Предишна",
+ "sNext": "Следваща",
+ "sLast": "Последна",
+ "oPaginate": {
+ "sFirst": "Първа",
+ "sPrevious": "Предишна",
+ "sNext": "Следваща",
+ "sLast": "Последна"
+ },
+ "oAria": {
+ "sSortAscending": ": активирайте за сортиране на колоната във възходящ ред",
+ "sSortDescending": ": активирайте за сортиране на колоната в низходящ ред"
+ }
+ },
+ pageLength: 25,
+ responsive: true,
+ order:
+ });
+ });
+
+ // Confirm delete actions
+ function confirmDelete(url, message) {
+ if (confirm(message || 'Сигурни ли сте, че искате да изтриете този елемент?')) {
+ window.location.href = url;
+ }
+ }
+
+ // Format currency
+ function formatCurrency(amount) {
+ return new Intl.NumberFormat('bg-BG', {
+ minimumFractionDigits: 0,
+ maximumFractionDigits: 0
+ }).format(amount) + ' €';
+ }
+
+ // Add loading state to buttons - DISABLED FOR DEBUGGING
+ function setLoading(button, loading = true) {
+ if (loading) {
+ // Temporarily disabled to allow form submission
+ console.log('Loading state disabled for debugging');
+ // button.disabled = true;
+ // button.innerHTML = '<span class="loading"></span> Зареждане...';
+ } else {
+ button.disabled = false;
+ button.innerHTML = button.getAttribute('data-original-text') || 'Запази';
+ }
+ }
+
+ // Initialize loading states - DISABLED FOR DEBUGGING
+ document.addEventListener('DOMContentLoaded', function() {
+ const submitButtons = document.querySelectorAll('button[type="submit"]');
+ submitButtons.forEach(button => {
+ button.setAttribute('data-original-text', button.innerHTML);
+ // Temporarily disabled to allow form submission
+ console.log('Submit button found:', button.textContent.trim());
+ // button.addEventListener('click', function() {
+ // setLoading(this, true);
+ // });
+ });
+ });
+ </script>
+
+ <div>
+ <!-- Scripts will be replaced by child templates -->
+ </div>
+</body>
+</html>

@@ -1,0 +1,230 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Редактирай апартамент</title>
+</head>
+<body>
+ <div>Редактирай апартамент</div>
+
+ <div>
+<div class="row justify-content-center">
+ <div class="col-md-8 col-lg-6">
+ <div class="card">
+ <div class="card-header">
+ <h5 class="mb-0">
+ <i class="bi bi-pencil"></i> Редактирай апартамент: <span></span>
+ <small class="text-muted d-block mt-1">
+ <i class="bi bi-building"></i> Сграда: <span></span>
+ </small>
+ </h5>
+ </div>
+ <div class="card-body">
+ <form method="POST" action="/edit-sale(saleId=)">
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label for="apartment" class="form-label">Апартамент *</label>
+ <input type="text" class="form-control" id="apartment" name="apartment"
+ required readonly />
+ <div class="form-text">Апартаментът не може да бъде променен</div>
+ </div>
+ <div class="col-md-6 mb-2">
+ <label for="buyer" class="form-label">Купувач *</label>
+ <input type="text" class="form-control" id="buyer" name="buyer"
+ required />
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label for="area" class="form-label">Площ (кв.м) *</label>
+ <input type="number" class="form-control" id="area" name="area"
+ step="0.01" min="0" required />
+ </div>
+ <div class="col-md-6 mb-2">
+ <label for="price_per_m2" class="form-label">Цена на кв.м (€) *</label>
+ <input type="number" class="form-control" id="price_per_m2" name="pricePerM2"
+ step="0.01" min="0" required />
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label for="package" class="form-label">Пакет за плащане *</label>
+ <select class="form-select" id="package" name="packageType" required>
+ <option value="">Изберете пакет</option>
+ <option>
+ </option>
+ </select>
+ </div>
+ <div class="col-md-6 mb-2">
+ <label for="stage" class="form-label">Етап *</label>
+ <select class="form-select" id="stage" name="stage" required>
+ <option value="">Изберете етап</option>
+ <option>
+ </option>
+ </select>
+ </div>
+ </div>
+
+ <!-- Current Payments Summary -->
+ <div class="alert alert-info">
+ <h6 class="alert-heading">Текущи плащания</h6>
+ <div class="row">
+ <div class="col-md-6">
+ <small>Остатък за плащане:
+ <strong></strong>
+ </small>
+ </div>
+ <div class="col-md-6">
+ <small>Общо платено:
+ <strong></strong>
+ </small>
+ </div>
+ </div>
+ </div>
+
+ <!-- Package Information -->
+ <div class="alert alert-info" id="packageInfo" style="display: none;">
+ <h6 class="alert-heading">Информация за пакета</h6>
+ <div id="packageDetails"></div>
+ </div>
+
+ <!-- Price Preview -->
+ <div class="alert alert-success" id="pricePreview" style="display: none;">
+ <h6 class="alert-heading">Нова цена</h6>
+ <div id="priceDetails"></div>
+ </div>
+
+ <div class="d-flex justify-content-between">
+ <a href="/" class="btn btn-outline-secondary btn-sm">
+ <i class="bi bi-arrow-left"></i> Назад
+ </a>
+ <button type="submit" class="btn btn-primary btn-sm">
+ <i class="bi bi-check-circle"></i> Запази промените
+ </button>
+ </div>
+ </form>
+ </div>
+ </div>
+ </div>
+</div>
+ </div>
+
+ <div>
+<script>
+ // Package information
+ const packages = {
+ "стандартен": [0.30, 0.30, 0.30, 0.10, 0.00],
+ "балансиран": [0.50, 0.00, 0.00, 0.50, 0.125],
+ "оптимален": [0.50, 0.30, 0.10, 0.10, 0.15],
+ "инвестиционен": [0.80, 0.00, 0.00, 0.20, 0.175],
+ "печеливш": [1.00, 0.00, 0.00, 0.00, 0.20]
+ };
+
+ const stages = ["При предварителен договор", "Акт 14", "Акт 15", "Акт 16"];
+
+ // Update package information
+ document.getElementById('package').addEventListener('change', function() {
+ updatePackageInfo();
+ updatePricePreview();
+ });
+
+ // Update package info function
+ function updatePackageInfo() {
+ const package = document.getElementById('package').value;
+ const packageInfo = document.getElementById('packageInfo');
+ const packageDetails = document.getElementById('packageDetails');
+
+ if (package && packages[package]) {
+ const percentages = packages[package];
+ let details = '<ul class="mb-0">';
+
+ for (let i = 0; i < 4; i++) {
+ if (percentages[i]> 0) {
+ details += `<li>: %</li>`;
+ }
+ }
+
+ details += '</ul>';
+ packageDetails.innerHTML = details;
+ packageInfo.style.display = 'block';
+ } else {
+ packageInfo.style.display = 'none';
+ }
+ }
+
+ // Update price preview
+ function updatePricePreview() {
+ const area = parseFloat(document.getElementById('area').value) || 0;
+ const pricePerM2 = parseFloat(document.getElementById('price_per_m2').value) || 0;
+ const package = document.getElementById('package').value;
+
+ if (area> 0 && pricePerM2> 0 && package) {
+ const totalPrice = area * pricePerM2;
+ const percentages = packages[package];
+ const pricePreview = document.getElementById('pricePreview');
+ const priceDetails = document.getElementById('priceDetails');
+
+ let details = `<p><strong>Нова обща цена: €</strong></p>`;
+ details += '<ul class="mb-0">';
+
+ for (let i = 0; i < 4; i++) {
+ if (percentages[i]> 0) {
+ const payment = totalPrice * percentages[i];
+ details += `<li>: € (%)</li>`;
+ }
+ }
+
+ details += '</ul>';
+ priceDetails.innerHTML = details;
+ pricePreview.style.display = 'block';
+ } else {
+ document.getElementById('pricePreview').style.display = 'none';
+ }
+ }
+
+ // Add event listeners for all input fields to update info constantly
+ document.getElementById('area').addEventListener('input', function() {
+ updatePackageInfo();
+ updatePricePreview();
+ });
+
+ document.getElementById('price_per_m2').addEventListener('input', function() {
+ updatePackageInfo();
+ updatePricePreview();
+ });
+
+ // Initialize info on page load
+ document.addEventListener('DOMContentLoaded', function() {
+ // Show info immediately when page loads
+ setTimeout(function() {
+ updatePackageInfo();
+ updatePricePreview();
+ }, 100); // Small delay to ensure all elements are loaded
+ });
+
+ // Form validation
+ document.querySelector('form').addEventListener('submit', function(e) {
+ const area = parseFloat(document.getElementById('area').value);
+ const pricePerM2 = parseFloat(document.getElementById('price_per_m2').value);
+
+ if (area <= 0) {
+ alert('Площта трябва да е по-голяма от 0!');
+ e.preventDefault();
+ return;
+ }
+
+ if (pricePerM2 <= 0) {
+ alert('Цената на кв.м трябва да е по-голяма от 0!');
+ e.preventDefault();
+ return;
+ }
+ });
+</script>
+ </div>
+</body>
+</html>

@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Експорт на данни</title>
+</head>
+<body>
+ <div>Експорт на данни</div>
+
+ <div>
+<div class="container mt-4">
+ <div class="row">
+ <div class="col-12">
+ <div class="card">
+ <div class="card-header">
+ <h3 class="card-title mb-0">
+ <i class="bi bi-file-earmark-excel text-success"></i>
+ Експорт на данни към Excel файл
+ </h3>
+ </div>
+ <div class="card-body">
+ <div class="row">
+ <div class="col-md-8">
+ <div class="alert alert-info">
+ <h6><i class="bi bi-info-circle"></i> Информация за експорта:</h6>
+ <p class="mb-0">
+ Експортът включва цялата информация за обектите в текущата сграда,
+ включително плановете за плащане и направените плащания.
+ </p>
+ </div>
+
+ <div class="mb-3">
+ <a href="/export-data" class="btn btn-success btn-lg">
+ <i class="bi bi-download"></i>
+ Експортирай данните
+ </a>
+ <a href="/" class="btn btn-secondary">
+ <i class="bi bi-arrow-left"></i>
+ Назад
+ </a>
+ </div>
+ </div>
+
+ <div class="col-md-4">
+ <div class="card bg-light">
+ <div class="card-header">
+ <h6 class="card-title mb-0">
+ <i class="bi bi-list-check"></i>
+ Съдържание на експорта
+ </h6>
+ </div>
+ <div class="card-body">
+ <h6>Листове в Excel файла:</h6>
+ <ul class="list-unstyled">
+ <li><strong>Обекти</strong> - основна информация за всички обекти</li>
+ <li><strong>Планове за плащане</strong> - детайлен анализ на плановете</li>
+ <li><strong>Предстоящи плащания</strong> - справка за предстоящи плащания</li>
+ <li><strong>Забавени плащания</strong> - справка за забавени плащания</li>
+ <li><strong>Статистика</strong> - обща статистика</li>
+ </ul>
+
+ <div class="mt-3">
+ <small class="text-muted">
+ <i class="bi bi-clock"></i>
+ Файлът ще включва данните за текущата сграда
+ </small>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div class="row mt-4">
+ <div class="col-12">
+ <div class="alert alert-warning">
+ <h6><i class="bi bi-lightbulb"></i> Важно:</h6>
+ <ul class="mb-0">
+ <li>Експортът включва цялата информация за обектите в избраната сграда</li>
+ <li>Данните включват плановете за плащане и направените плащания</li>
+ <li>Файлът се генерира с текущото име на сградата и дата</li>
+ <li>Форматът е Excel (.xlsx) и може да се отвори в Excel или подобни програми</li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+</div>
+ </div>
+
+ <div>
+ </div>
+</body>
+</html>

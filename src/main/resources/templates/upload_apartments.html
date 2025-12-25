@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Качи апартаменти</title>
+</head>
+<body>
+ <div>Качи апартаменти</div>
+
+ <div>
+<div class="container-fluid">
+ <div class="row">
+ <div class="col-12">
+ <div class="card">
+ <div class="card-header">
+ <h5 class="card-title mb-0">
+ <i class="bi bi-upload me-2"></i>
+ Качи обекти от файл
+ </h5>
+ </div>
+ <div class="card-body">
+ <div class="row">
+ <div class="col-md-6">
+ <h6 class="mb-3">Качи файл</h6>
+ <form method="POST" enctype="multipart/form-data" action="/upload-apartments">
+ <div class="mb-3">
+ <label for="file" class="form-label">Избери Excel файл (.xlsx, .xls)</label>
+ <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required />
+ <div class="form-text">
+ <strong>Изисквани колони:</strong> "Обект" и "Площ" (задължителни)<br />
+ <strong>Опционални колони:</strong> "Купувач", "Цена кв.м (€)", "Пакет", "Етап"
+ </div>
+ </div>
+ <button type="submit" class="btn btn-primary">
+ <i class="bi bi-upload me-2"></i>
+ Качи файл
+ </button>
+ </form>
+
+ <div class="mt-4">
+ <h6 class="mb-3">Полезни линкове</h6>
+ <div class="d-flex gap-2">
+ <a href="/download-template" class="btn btn-outline-success btn-sm">
+ <i class="bi bi-download me-2"></i>
+ Изтегли шаблон
+ </a>
+ <form method="POST" action="/delete-apartments" class="d-inline"
+ onsubmit="return confirm('Сигурни ли сте, че искате да изтриете всички апартаменти?')">
+ <button type="submit" class="btn btn-outline-danger btn-sm">
+ <i class="bi bi-trash me-2"></i>
+ Изтрий всички
+ </button>
+ </form>
+ </div>
+ </div>
+ </div>
+
+ <div class="col-md-6">
+ <h6 class="mb-3">Качени обекти (<span></span>)</h6>
+ <div class="table-responsive">
+ <table class="table table-sm">
+ <thead>
+ <tr>
+ <th>№</th>
+ <th>Обект</th>
+ <th>Площ</th>
+ <th>Купувач</th>
+ <th>Цена кв.м (€)</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td></td>
+ <td><strong></strong></td>
+ <td></td>
+ <td></td>
+ <td></td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ <div class="alert alert-info">
+ <i class="bi bi-info-circle me-2"></i>
+ Няма качени обекти. Качете Excel файл за да добавите обекти в списъка.
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div class="row mt-4">
+ <div class="col-12">
+ <div class="card">
+ <div class="card-header">
+ <h5 class="card-title mb-0">
+ <i class="bi bi-info-circle me-2"></i>
+ Информация за качване
+ </h5>
+ </div>
+ <div class="card-body">
+ <div class="row">
+ <div class="col-md-6">
+ <h6>Изисквания за файла:</h6>
+ <ul class="mb-0">
+ <li><strong>Задължителни колони:</strong> "Обект", "Площ"</li>
+ <li><strong>Опционални колони:</strong> "Купувач", "Цена кв.м (€)", "Пакет", "Етап"</li>
+ <li>Файлът трябва да бъде в Excel формат (.xlsx, .xls)</li>
+ <li>Първият ред трябва да съдържа заглавията на колоните</li>
+ </ul>
+ </div>
+ <div class="col-md-6">
+ <h6>Примерен формат:</h6>
+ <div class="table-responsive">
+ <table class="table table-sm table-bordered">
+ <thead class="table-light">
+ <tr>
+ <th>Обект</th>
+ <th>Площ</th>
+ <th>Купувач</th>
+ <th>Цена кв.м (€)</th>
+ <th>Пакет</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>1-А-01</td>
+ <td>85.5</td>
+ <td>Иван Петров</td>
+ <td>1200</td>
+ <td>стандартен</td>
+ </tr>
+ <tr>
+ <td>1-Б-02</td>
+ <td>120.0</td>
+ <td>Мария Георгиева</td>
+ <td>1150</td>
+ <td>оптимален</td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+</div>
+ </div>
+
+ <div>
+ </div>
+</body>
+</html>

@@ -1,0 +1,449 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Добави плащане</title>
+</head>
+<body>
+ <div>Добави плащане</div>
+
+ <div>
+<div class="row justify-content-center">
+ <div class="col-md-8 col-lg-6">
+ <div class="card">
+ <div class="card-header">
+ <h5 class="mb-0">
+ <i class="bi bi-cash"></i> Добави плащане за обект:
+ <span></span>
+ </h5>
+ </div>
+ <div class="card-body">
+ <!-- Apartment Information -->
+ <div class="alert alert-info mb-4">
+ <h6 class="alert-heading">Информация за апартамента</h6>
+ <div class="row">
+ <div class="col-md-6">
+ <small><strong>Купувач:</strong> <span></span></small><br />
+ <small><strong>Площ:</strong> <span></span> кв.м</small><br />
+ <small><strong>Пакет:</strong> <span></span></small>
+ </div>
+ <div class="col-md-6">
+ <small><strong>Обща цена:</strong> <span></span> €</small><br />
+ <small><strong>Етап:</strong> <span></span></small><br />
+ <small><strong>Остатък:</strong> <span></span> €</small>
+ </div>
+ </div>
+ </div>
+
+ <!-- Current Payments -->
+ <div class="alert alert-warning mb-4">
+ <h6 class="alert-heading">Текущи плащания</h6>
+ <div class="row">
+ <div class="col-md-3">
+ <small><strong>Предв. договор:</strong><br /><span></span> €</small>
+ </div>
+ <div class="col-md-3">
+ <small><strong>Акт 14:</strong><br /><span></span> €</small>
+ </div>
+ <div class="col-md-3">
+ <small><strong>Акт 15:</strong><br /><span></span> €</small>
+ </div>
+ <div class="col-md-3">
+ <small><strong>Акт 16:</strong><br /><span></span> €</small>
+ </div>
+ </div>
+ </div>
+
+ <!-- Delayed Payment Information -->
+ <div class="alert alert-danger mb-4">
+ <h6 class="alert-heading">
+ <i class="bi bi-exclamation-triangle"></i> Забавени плащания към момента
+ </h6>
+ <div class="row">
+ <div class="col-md-6">
+ <small><strong>Етап:</strong> <span></span></small><br />
+ <small><strong>Пакет:</strong> <span></span></small><br />
+ <small><strong>Общо забавено:</strong> <span class="text-danger"></span> €</small>
+ </div>
+ <div class="col-md-6">
+ <small><strong>Общо очаквано:</strong> <span></span> €</small><br />
+ <small><strong>Общо платено:</strong> <span></span> €</small><br />
+ <small><strong>Процент изпълнение:</strong> <span class="text-danger"></span>%</small>
+ </div>
+ </div>
+
+ <!-- Delayed Stages Details -->
+ <div class="mt-3">
+ <small><strong>Детайли по етапи:</strong></small>
+ <div class="row mt-2">
+ <div class="col-md-6 mb-2">
+ <div class="card border-danger">
+ <div class="card-body py-2">
+ <small>
+ <strong></strong>:<br />
+ Очаквано: <span></span> €<br />
+ Платено: <span></span> €<br />
+ <span class="text-danger">Забавено: <span></span> €</span>
+ </small>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div class="alert alert-success mb-4">
+ <h6 class="alert-heading">
+ <i class="bi bi-check-circle"></i> Всички плащания са навреме
+ </h6>
+ <small>
+ <strong>Етап:</strong> <span></span> |
+ <strong>Пакет:</strong> <span></span> |
+ <strong>Процент изпълнение:</strong> <span></span>%
+ </small>
+ </div>
+
+ <div class="alert alert-info mb-4">
+ <h6 class="alert-heading">
+ <i class="bi bi-info-circle"></i> Информация за забавени плащания
+ </h6>
+ <small>Не може да се зареди информация за забавени плащания.</small>
+ </div>
+
+ <!-- Payment Methods Summary -->
+ <div class="mb-4">
+ <h6 class="mb-3">Обобщение на методите на плащане</h6>
+ <div>
+ <div class="row">
+ <div class="col-md-6 mb-3">
+ <div class="card border-primary">
+ <div class="card-body py-3">
+ <div class="d-flex justify-content-between align-items-center">
+ <div>
+ <h6 class="card-title text-primary mb-1">
+ <i class="bi bi-bank me-2"></i>Плащания по банка
+ </h6>
+ <div class="h5 mb-0"></div>
+ <small class="text-muted">
+ <span></span>
+ <span>0% от общите плащания</span>
+ </small>
+ </div>
+ <div class="text-primary">
+ <i class="bi bi-bank fa-2x"></i>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="col-md-6 mb-3">
+ <div class="card border-success">
+ <div class="card-body py-3">
+ <div class="d-flex justify-content-between align-items-center">
+ <div>
+ <h6 class="card-title text-success mb-1">
+ <i class="bi bi-cash me-2"></i>Плащания в брой
+ </h6>
+ <div class="h5 mb-0"></div>
+ <small class="text-muted">
+ <span></span>
+ <span>0% от общите плащания</span>
+ </small>
+ </div>
+ <div class="text-success">
+ <i class="bi bi-cash fa-2x"></i>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Payment History -->
+ <div class="mb-4">
+ <h6 class="mb-3">История на плащанията</h6>
+ <div>
+ <div class="card mb-3">
+ <div class="card-header">
+ <h6 class="mb-0"></h6>
+ </div>
+ <div class="card-body">
+ <div class="table-responsive">
+ <table class="table table-sm">
+ <thead>
+ <tr>
+ <th>Дата</th>
+ <th>Сума (€)</th>
+ <th>Фактура</th>
+ <th>Начин</th>
+ <th>Капаро</th>
+ <th>Действие</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td></td>
+ <td></td>
+ <td>
+ <small class="text-muted"></small>
+ </td>
+ <td>
+ <span class="badge bg-primary">
+ <i class="bi bi-bank"></i> Банка
+ </span>
+ <span class="badge bg-success">
+ <i class="bi bi-cash"></i> В брой
+ </span>
+ <small class="text-muted"></small>
+ </td>
+ <td>
+ <span class="badge bg-warning">
+ <i class="bi bi-cash-stack"></i> Капаро
+ </span>
+ <small class="text-muted">-</small>
+ </td>
+ <td>
+ <form method="POST" action="/delete-payment(index=, paymentType=, paymentId=)"
+ style="display: inline;" onsubmit="return confirm('Сигурни ли сте, че искате да изтриете това плащане?')">
+ <button type="submit" class="btn btn-danger btn-sm">
+ <i class="bi bi-trash"></i> Изтрий
+ </button>
+ </form>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div class="alert alert-info">
+ <i class="bi bi-info-circle"></i> Все още няма направени плащания за този обект.
+ </div>
+ </div>
+
+ <!-- Next Payment Information -->
+ <div class="alert alert-primary mb-4">
+ <h6 class="alert-heading">
+ <i class="bi bi-arrow-right"></i> Следващо плащане
+ </h6>
+ <div class="row">
+ <div class="col-md-6">
+ <small><strong>Следващ етап:</strong> <span></span></small><br />
+ <small><strong>Очаквана сума:</strong> <span></span> €</small>
+ </div>
+ <div class="col-md-6">
+ <small><strong>Плащанията се прилагат автоматично от най-ранния етап</strong></small><br />
+ <small class="text-muted">Ако има забавяне в по-ранни етапи, те ще бъдат първо изплатени</small>
+ </div>
+ </div>
+ </div>
+
+ <form method="POST" action="/add-payment">
+ <input type="hidden" name="index" />
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label for="payment_date" class="form-label">Дата на плащане *</label>
+ <input type="date" class="form-control" id="payment_date" name="paymentDate"
+ required />
+ <div class="form-text">Може да въведете стара дата</div>
+ </div>
+ <div class="col-md-6 mb-2">
+ <label for="amount" class="form-label">Сума (€) *</label>
+ <input type="number" class="form-control" id="amount" name="amount"
+ step="0.01" min="0" required />
+ <div class="form-text">
+ Максимална сума: <span></span> €
+ <small class="text-muted">(включва забавени плащания)</small>
+ </div>
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-md-6 mb-2">
+ <label for="invoice_number" class="form-label">Номер на фактура</label>
+ <input type="text" class="form-control" id="invoice_number" name="invoiceNumber"
+ placeholder="Въведете номер на фактура" />
+ <div class="form-text">Незадължително поле</div>
+ </div>
+ <div class="col-md-6 mb-2">
+ <label for="payment_method" class="form-label">Начин на плащане *</label>
+ <select class="form-select" id="payment_method" name="paymentMethod" required>
+ <option value="">Изберете начин на плащане</option>
+ <option value="Банка">Банка</option>
+ <option value="В брой">В брой</option>
+ </select>
+ </div>
+ </div>
+
+ <div class="row">
+ <div class="col-md-12 mb-3">
+ <div class="alert alert-info">
+ <i class="bi bi-info-circle"></i>
+ <strong>Капаро вече е платено за този обект.</strong>
+ <small class="d-block mt-1">Капарото се плаща само веднъж в началото на договора.</small>
+ </div>
+ <div class="form-check">
+ <input class="form-check-input" type="checkbox" id="is_deposit" name="isDeposit" value="true" />
+ <label class="form-check-label" for="is_deposit">
+ <i class="bi bi-cash-stack"></i> Това плащане е капаро
+ </label>
+ <div class="form-text">Отбележете ако плащането е капаро</div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Payment Preview -->
+ <div class="alert alert-success" id="paymentPreview" style="display: none;">
+ <h6 class="alert-heading">Предварителен преглед</h6>
+ <div id="paymentDetails"></div>
+ </div>
+
+ <div class="d-flex justify-content-between">
+ <a href="/" class="btn btn-outline-secondary btn-sm">
+ <i class="bi bi-arrow-left"></i> Назад
+ </a>
+ <button type="submit" class="btn btn-success btn-sm">
+ <i class="bi bi-check-circle"></i> Добави плащане
+ </button>
+ </div>
+ </form>
+ </div>
+ </div>
+ </div>
+</div>
+ </div>
+
+ <div>
+<script>
+ /*<![CDATA[*/
+ // Payment type labels
+ const paymentLabels = {
+ "Предварителен договор": "При предварителен договор",
+ "Акт 14": "Акт 14",
+ "Акт 15": "Акт 15",
+ "Акт 16": "Акт 16"
+ };
+
+ // Current apartment data
+ const apartment = {
+ totalPrice: /*[[]]*/ 0,
+ remainingPayment: /*[[]]*/ 0,
+ maxPaymentAmount: /**/ 0,
+ currentPayments: {
+ "Предварителен договор": /*[[]]*/ 0,
+ "Акт 14": /*[[]]*/ 0,
+ "Акт 15": /*[[]]*/ 0,
+ "Акт 16": /*[[]]*/ 0
+ }
+ };
+ /*]]>*/
+</script>
+<script>
+ // Update payment preview
+ function updatePaymentPreview() {
+ const amount = parseFloat(document.getElementById('amount').value) || 0;
+ const paymentDate = document.getElementById('payment_date').value;
+ const invoiceNumber = document.getElementById('invoice_number').value.trim();
+ const paymentMethod = document.getElementById('payment_method').value;
+ const depositCheckbox = document.getElementById('is_deposit');
+ const isDeposit = depositCheckbox ? depositCheckbox.checked : false;
+
+ if (amount> 0 && paymentDate && paymentMethod) {
+ const paymentPreview = document.getElementById('paymentPreview');
+ const paymentDetails = document.getElementById('paymentDetails');
+
+ const newRemaining = apartment.remainingPayment - amount;
+
+ const paymentMethodText = paymentMethod;
+
+ let details = `
+ <p><strong>Ново плащане: €</strong></p>
+ <ul class="mb-0">
+ <li>Дата на плащане: </li>
+ <li>Начин на плащане: </li>
+ </li>` : ''}
+
+ <li>Плащането ще се приложи автоматично от най-ранния етап</li>
+ <li>Нов остатък за плащане: €</li>
+ </ul>
+ `;
+
+ paymentDetails.innerHTML = details;
+ paymentPreview.style.display = 'block';
+ } else {
+ document.getElementById('paymentPreview').style.display = 'none';
+ }
+ }
+
+ // Add event listeners
+ document.addEventListener('DOMContentLoaded', function() {
+ const amountInput = document.getElementById('amount');
+ const paymentDateInput = document.getElementById('payment_date');
+ const invoiceNumberInput = document.getElementById('invoice_number');
+ const paymentMethodInput = document.getElementById('payment_method');
+ const depositCheckbox = document.getElementById('is_deposit');
+
+ if (amountInput) amountInput.addEventListener('input', updatePaymentPreview);
+ if (paymentDateInput) paymentDateInput.addEventListener('change', updatePaymentPreview);
+ if (invoiceNumberInput) invoiceNumberInput.addEventListener('input', updatePaymentPreview);
+ if (paymentMethodInput) paymentMethodInput.addEventListener('change', updatePaymentPreview);
+ if (depositCheckbox) depositCheckbox.addEventListener('change', updatePaymentPreview);
+
+ // Form validation
+ const form = document.querySelector('form');
+ if (form) {
+ form.addEventListener('submit', function(e) {
+ const amount = parseFloat(document.getElementById('amount').value);
+ const paymentDate = document.getElementById('payment_date').value;
+ const paymentMethod = document.getElementById('payment_method').value;
+
+ if (!paymentDate) {
+ alert('Моля въведете дата на плащане!');
+ e.preventDefault();
+ return;
+ }
+
+ if (!paymentMethod) {
+ alert('Моля изберете начин на плащане!');
+ e.preventDefault();
+ return;
+ }
+
+ if (amount <= 0) {
+ alert('Сумата трябва да е по-голяма от 0!');
+ e.preventDefault();
+ return;
+ }
+
+ if (amount> apartment.maxPaymentAmount) {
+ alert(`Сумата не може да бъде по-голяма от максималната сума ( €)!`);
+ e.preventDefault();
+ return;
+ }
+ });
+ }
+
+ // Set max amount based on maximum payment amount
+ if (amountInput) {
+ amountInput.addEventListener('input', function() {
+ const amount = parseFloat(this.value) || 0;
+ const maxAmount = apartment.maxPaymentAmount;
+
+ if (amount> maxAmount) {
+ this.value = maxAmount;
+ updatePaymentPreview();
+ }
+ });
+ }
+ });
+</script>
+ </div>
+</body>
+</html>

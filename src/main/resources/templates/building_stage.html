@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Глобален етап на сграда</title>
+</head>
+<body>
+ <div>Глобален етап на сграда</div>
+
+ <div>
+<div class="container mt-4">
+ <div class="row justify-content-center">
+ <div class="col-md-8">
+ <div class="card">
+ <div class="card-header">
+ <h3 class="card-title mb-0">
+ <i class="bi bi-building-gear text-primary"></i>
+ Глобален етап на сграда
+ </h3>
+ </div>
+ <div class="card-body">
+ <div>
+ <div class="alert alert-info mb-4">
+ <h6 class="alert-heading">
+ <i class="bi bi-building"></i> <span></span>
+ </h6>
+ <p class="mb-0">
+ <strong>Адрес:</strong> <span></span><br />
+ <strong>Статус:</strong> <span></span><br />
+ <strong>Текущ етап:</strong>
+ <span class="badge bg-primary fs-6">
+ <span></span>
+ </span>
+ </p>
+ </div>
+
+ <div class="alert alert-warning">
+ <h6 class="alert-heading">
+ <i class="bi bi-exclamation-triangle"></i> Важно
+ </h6>
+ <p class="mb-0">
+ Промяната на глобалния етап на сградата ще повлияе на всички нови продажби.
+ Всички нови обекти ще се продават автоматично на избрания етап.
+ </p>
+ </div>
+
+ <form method="POST" action="/buildings/stage">
+ <div class="row">
+ <div class="col-md-8">
+ <div class="mb-3">
+ <label for="new_stage" class="form-label">
+ <strong>Нов глобален етап *</strong>
+ </label>
+ <select class="form-select form-select-lg" id="new_stage" name="newStage" required>
+ <option value="">Изберете нов етап</option>
+ <option>
+ </option>
+ </select>
+ <div class="form-text">
+ Този етап ще се прилага автоматично за всички нови продажби на обекти
+ </div>
+ </div>
+ </div>
+ <div class="col-md-4 d-flex align-items-end">
+ <button type="submit" class="btn btn-primary btn-lg w-100">
+ <i class="bi bi-check-circle"></i> Промени етапа
+ </button>
+ </div>
+ </div>
+ </form>
+
+ <!-- Timeline на етапите -->
+ <div class="mt-5">
+ <h5 class="mb-3">
+ <i class="bi bi-list-check"></i> Етапи на завършване
+ </h5>
+ <div class="horizontal-timeline">
+ <div class="timeline-item">
+ <div class="timeline-marker"
+>
+ <i></i>
+ </div>
+ <div class="timeline-content">
+ <div class="timeline-title"></div>
+ <div class="timeline-status">
+ <span class="badge bg-success">Текущ етап</span>
+ <span class="badge bg-light text-dark">Предстои</span>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div>
+ <div class="alert alert-warning">
+ <i class="bi bi-exclamation-triangle"></i>
+ <strong>Внимание:</strong> Няма избрана сграда за работа!
+ </div>
+ <a href="/buildings" class="btn btn-primary">
+ <i class="bi bi-buildings"></i> Управлявай сгради
+ </a>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+</div>
+
+<style>
+.horizontal-timeline {
+ display: flex;
+ align-items: center;
+ gap: 1rem;
+ overflow-x: auto;
+ padding: 1rem 0;
+}
+
+.timeline-item {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ min-width: 120px;
+ text-align: center;
+}
+
+.timeline-marker {
+ width: 40px;
+ height: 40px;
+ border-radius: 50%;
+ background-color: #e9ecef;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ margin-bottom: 0.5rem;
+ color: #6c757d;
+}
+
+.timeline-marker.active {
+ background-color: #007bff;
+ color: white;
+}
+
+.timeline-content {
+ text-align: center;
+}
+
+.timeline-title {
+ font-size: 0.8rem;
+ font-weight: 500;
+ margin-bottom: 0.25rem;
+ line-height: 1.2;
+}
+
+.timeline-status {
+ margin-top: 0.25rem;
+}
+
+.timeline-item:not(:last-child)::after {
+ content: '';
+ position: absolute;
+ top: 20px;
+ left: 100%;
+ width: 1rem;
+ height: 2px;
+ background-color: #dee2e6;
+ z-index: -1;
+}
+
+.timeline-item:not(:last-child) {
+ position: relative;
+}
+</style>
+ </div>
+
+ <div>
+ </div>
+</body>
+</html>

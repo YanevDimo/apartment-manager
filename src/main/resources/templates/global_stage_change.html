@@ -1,0 +1,194 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Глобална промяна на етап</title>
+</head>
+<body>
+ <div>Глобална промяна на етап</div>
+
+ <div>
+<div class="container mt-4">
+ <div class="row">
+ <div class="col-12">
+ <div class="card">
+ <div class="card-header">
+ <h3 class="card-title mb-0">
+ <i class="bi bi-gear-wide-connected text-primary"></i>
+ Глобална промяна на етапа на апартаменти
+ </h3>
+ </div>
+ <div class="card-body">
+ <div class="alert alert-info">
+ <i class="bi bi-info-circle"></i>
+ <strong>Инструкции:</strong> Изберете апартаментите, които искате да промените, и новия етап.
+ Преди промяната ще се създаде автоматичен backup.
+ </div>
+
+ <form method="POST" action="/global-stage-change">
+ <div class="row">
+ <div class="col-md-4">
+ <div class="card">
+ <div class="card-header">
+ <h6 class="card-title mb-0">
+ <i class="bi bi-list-check"></i>
+ Избор на нов етап
+ </h6>
+ </div>
+ <div class="card-body">
+ <div class="mb-3">
+ <label for="new_stage" class="form-label">Нов етап *</label>
+ <select class="form-select" id="new_stage" name="newStage" required>
+ <option value="">Изберете нов етап</option>
+ <option
+
+>
+ </option>
+ </select>
+ </div>
+
+ <div class="mb-3">
+ <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAll()">
+ <i class="bi bi-check-all"></i>
+ Избери всички
+ </button>
+ <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAll()">
+ <i class="bi bi-x-circle"></i>
+ Отмени избора
+ </button>
+ </div>
+
+ <div class="mb-3">
+ <button type="submit" class="btn btn-primary" onclick="return confirmSubmit()">
+ <i class="bi bi-check-circle"></i>
+ Приложи промяната
+ </button>
+ <a href="/" class="btn btn-secondary">
+ <i class="bi bi-arrow-left"></i>
+ Назад
+ </a>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div class="col-md-8">
+ <div class="card">
+ <div class="card-header">
+ <h6 class="card-title mb-0">
+ <i class="bi bi-building"></i>
+ Избор на апартаменти
+ </h6>
+ </div>
+ <div class="card-body">
+ <div class="table-responsive">
+ <table class="table table-hover">
+ <thead>
+ <tr>
+ <th>
+ <input type="checkbox" id="select_all" onchange="toggleAll()" />
+ </th>
+ <th>Апартамент</th>
+ <th>Купувач</th>
+ <th>Площ (м²)</th>
+ <th>Обща цена</th>
+ <th>Текущ етап</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>
+ <input type="checkbox" name="apartmentIds"
+ class="apartment-checkbox" />
+ </td>
+ <td><strong></strong></td>
+ <td></td>
+ <td></td>
+ <td></td>
+ <td>
+ <span class="badge bg-info"></span>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ <div class="alert alert-warning">
+ <i class="bi bi-exclamation-triangle"></i>
+ Няма налични апартаменти за промяна.
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </form>
+ </div>
+ </div>
+ </div>
+ </div>
+</div>
+ </div>
+
+ <div>
+<script>
+function selectAll() {
+ document.querySelectorAll('.apartment-checkbox').forEach(checkbox => {
+ checkbox.checked = true;
+ });
+ document.getElementById('select_all').checked = true;
+}
+
+function deselectAll() {
+ document.querySelectorAll('.apartment-checkbox').forEach(checkbox => {
+ checkbox.checked = false;
+ });
+ document.getElementById('select_all').checked = false;
+}
+
+function toggleAll() {
+ const selectAllCheckbox = document.getElementById('select_all');
+ const apartmentCheckboxes = document.querySelectorAll('.apartment-checkbox');
+
+ apartmentCheckboxes.forEach(checkbox => {
+ checkbox.checked = selectAllCheckbox.checked;
+ });
+}
+
+function confirmSubmit() {
+ const selectedApartments = document.querySelectorAll('input[name="apartmentIds"]:checked');
+ const newStage = document.getElementById('new_stage').value;
+
+ if (selectedApartments.length === 0) {
+ alert('Моля изберете поне един апартамент!');
+ return false;
+ }
+
+ if (!newStage) {
+ alert('Моля изберете нов етап!');
+ return false;
+ }
+
+ return confirm(`Сигурни ли сте, че искате да промените етапа на апартамента на ""?`);
+}
+
+// Следим промените в чекбоксовете за да обновяваме "Избери всички"
+document.addEventListener('DOMContentLoaded', function() {
+ const apartmentCheckboxes = document.querySelectorAll('.apartment-checkbox');
+ const selectAllCheckbox = document.getElementById('select_all');
+
+ apartmentCheckboxes.forEach(checkbox => {
+ checkbox.addEventListener('change', function() {
+ const allChecked = Array.from(apartmentCheckboxes).every(cb => cb.checked);
+ const anyChecked = Array.from(apartmentCheckboxes).some(cb => cb.checked);
+
+ selectAllCheckbox.checked = allChecked;
+ selectAllCheckbox.indeterminate = anyChecked && !allChecked;
+ });
+ });
+});
+</script>
+ </div>
+</body>
+</html>

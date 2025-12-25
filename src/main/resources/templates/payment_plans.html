@@ -1,0 +1,376 @@
+﻿<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/static/css/app.css" rel="stylesheet" />
+<meta charset="UTF-8" />
+     <link href="/static/css/app.css" rel="stylesheet" />
+<title>Планове за плащане - Анализ по пакети</title>
+</head>
+<body>
+<div>Планове за плащане - Анализ по пакети</div>
+
+<div>
+ <div class="container-fluid">
+ <!-- Header -->
+ <div class="row mb-4">
+ <div class="col-12">
+ <div class="d-flex justify-content-between align-items-center">
+ <h1 class="h3 mb-0">
+ <i class="bi bi-calendar-check text-primary"></i>
+ Планове за плащане - Анализ по пакети
+ </h1>
+ <a href="/" class="btn btn-outline-secondary">
+ <i class="bi bi-arrow-left"></i> Назад към списъка
+ </a>
+ </div>
+
+</div>
+
+ <!-- Информация за пакетите -->
+ <div class="row mb-4">
+ <div class="col-12">
+ <div class="card shadow">
+ <div class="card-header">
+ <h6 class="m-0 font-weight-bold text-info">
+ <i class="bi bi-info-circle"></i> Информация за пакетите за плащане
+ </h6>
+ </div>
+ <div class="card-body">
+ <div class="row">
+ <div
+ class="col-md-4 mb-3">
+ <div class="card border-left-info">
+ <div class="card-body">
+ <h6 class="card-title text-info"
+></h6>
+ <div class="small">
+ <div class="row">
+ <div class="col-6">
+ <strong>Предварителен договор:</strong><br />
+ <strong>Акт 14:</strong><br />
+ <strong>Акт 15:</strong><br />
+ <strong>Акт 16:</strong>
+ </div>
+ <div class="col-6">
+ <span
+ class="text-muted">
+ Индивидуален план<br />
+ (задава се ръчно)<br />
+ за всеки етап<br />
+ от клиента
+ </span>
+ <span>
+ <span
+></span><br />
+ <span
+></span><br />
+ <span
+></span><br />
+ <span
+></span>
+ </span>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Обща статистика за методите на плащане -->
+ <div class="row mb-4">
+ <div class="col-12">
+ <div class="card shadow">
+ <div class="card-header">
+ <h6 class="m-0 font-weight-bold text-info">
+ <i class="bi bi-cash-stack"></i> Обща статистика за методите на плащане
+ </h6>
+ </div>
+ <div class="card-body">
+ <div>
+ <div class="row">
+ <div class="col-md-4 mb-3">
+ <div class="card border-primary">
+ <div class="card-body text-center">
+ <div class="d-flex justify-content-between align-items-center">
+ <div>
+ <h6 class="card-title text-primary mb-1">
+ <i class="bi bi-bank me-2"></i>Плащания по банка
+ </h6>
+ <div class="h4 text-primary mb-1"
+></div>
+ <small class="text-muted"
+></small>
+ </div>
+ <div class="text-primary">
+ <i class="bi bi-bank fa-2x opacity-75"></i>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="col-md-4 mb-3">
+ <div class="card border-success">
+ <div class="card-body text-center">
+ <div class="d-flex justify-content-between align-items-center">
+ <div>
+ <h6 class="card-title text-success mb-1">
+ <i class="bi bi-cash-stack me-2"></i>Плащания в брой
+ </h6>
+ <div class="h4 text-success mb-1"
+></div>
+ <small class="text-muted"
+></small>
+ </div>
+ <div class="text-success">
+ <i class="bi bi-cash-stack fa-2x opacity-75"></i>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="col-md-4 mb-3">
+ <div class="card border-info">
+ <div class="card-body text-center">
+ <div class="d-flex justify-content-between align-items-center">
+ <div>
+ <h6 class="card-title text-info mb-1">
+ <i class="bi bi-graph-up me-2"></i>Общо плащания
+ </h6>
+ <div class="h4 text-info mb-1"
+></div>
+ <small class="text-muted">Обща сума от всички методи</small>
+ </div>
+ <div class="text-info">
+ <i class="bi bi-graph-up fa-2x opacity-75"></i>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div>
+ <div class="text-center py-3">
+ <i class="bi bi-info-circle text-info fa-2x mb-2"></i>
+ <h6 class="text-info">Няма данни за плащания</h6>
+ <p class="text-muted">Добавете плащания за да видите статистиката за методите на
+ плащане.</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Списък с планове за плащане -->
+ <div class="row">
+ <div class="col-12">
+ <div class="card shadow">
+ <div class="card-header">
+ <h6 class="m-0 font-weight-bold text-primary">
+ <i class="bi bi-list-check"></i> Детайлен анализ на плановете за плащане
+ </h6>
+ </div>
+ <div class="card-body">
+ <div class="table-responsive">
+ <table class="table table-bordered" id="paymentPlansTable">
+ <thead>
+ <tr>
+ <th>Апартамент</th>
+ <th>Купувач</th>
+ <th>Пакет</th>
+ <th>Платено в %</th>
+ <th>Методи на плащане</th>
+ <th>Предварителен договор</th>
+ <th>Акт 14</th>
+ <th>Акт 15</th>
+ <th>Акт 16</th>
+ <th>Действия</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>
+ <strong></strong><br />
+ <small class="text-muted"></small><br />
+ <small class="text-muted"
+></small>
+ </td>
+ <td></td>
+ <td>
+ <span class="badge bg-primary"></span><br />
+ <small class="text-muted"></small>
+ </td>
+ <td>
+ <span class="badge"
+ style="font-size: 1em; padding: 2px 5px;">
+ <span></span>
+ </span>
+ </td>
+
+ <!-- Методи на плащане -->
+ <td>
+ <div
+ class="small">
+ <div class="d-flex align-items-center mb-1">
+ <i class="bi bi-bank text-primary me-1"></i>
+ <span class="text-primary fw-bold"
+></span>
+ <small class="text-muted ms-1">банка</small>
+ </div>
+ <div class="d-flex align-items-center">
+ <i class="bi bi-cash-stack text-success me-1"></i>
+ <span class="text-success fw-bold"
+></span>
+ <small class="text-muted ms-1">брой</small>
+ </div>
+ <div class="mt-1">
+ <small class="text-muted">
+ Общо: <span
+></span>
+ </small>
+ </div>
+ </div>
+ <div
+ class="text-center">
+ <small class="text-muted">
+ <i class="bi bi-info-circle"></i>
+ Няма плащания
+ </small>
+ </div>
+ </td>
+
+ <!-- Предварителен договор -->
+ <td>
+ <div class="small">
+ <strong>Очаквано:</strong> <span
+></span><br />
+ <strong>Платено:</strong> <span
+></span><br />
+ <span
+
+>
+ </span>
+ </div>
+ <span class="badge"
+
+></span>
+ </td>
+
+ <!-- Акт 14 -->
+ <td>
+ <div class="small">
+ <strong>Очаквано:</strong> <span
+></span><br />
+ <strong>Платено:</strong> <span
+></span><br />
+ <span
+
+>
+ </span>
+ </div>
+ <span class="badge"
+
+></span>
+ </td>
+
+ <!-- Акт 15 -->
+ <td>
+ <div class="small">
+ <strong>Очаквано:</strong> <span
+></span><br />
+ <strong>Платено:</strong> <span
+></span><br />
+ <span
+
+>
+ </span>
+ </div>
+ <span class="badge"
+
+></span>
+ </td>
+
+ <!-- Акт 16 -->
+ <td>
+ <div class="small">
+ <strong>Очаквано:</strong> <span
+></span><br />
+ <strong>Платено:</strong> <span
+></span><br />
+ <span
+
+>
+ </span>
+ </div>
+ <span class="badge"
+
+></span>
+ </td>
+
+ <td>
+ <a href="/add-payment(index=)"
+ class="btn btn-sm btn-primary">
+ <i class="bi bi-plus-circle"></i> Добави плащане
+ </a>
+ <a href="/edit-sale(saleId=)"
+ class="btn btn-sm btn-outline-secondary">
+ <i class="bi bi-pencil"></i> Редактирай
+ </a>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ <div class="text-center py-4">
+ <i class="bi bi-info-circle text-info fa-3x mb-3"></i>
+ <h5 class="text-info">Няма данни за планове за плащане</h5>
+ <p class="text-muted">Добавете апартаменти за да видите анализа на плановете за
+ плащане.</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div>
+ <script>
+ $(document).ready(function () {
+ // Инициализация на DataTables
+ if ($('#paymentPlansTable').length) {
+ $('#paymentPlansTable').DataTable({
+ language: {
+ // Използваме вградени български настройки
+ "sProcessing": "Обработване...",
+ "sLengthMenu": "Покажи _MENU_ записа",
+ "sZeroRecords": "Не са намерени съответстващи записи",
+ "sInfo": "Показване на _START_ до _END_ от _TOTAL_ записа",
+ "sInfoEmpty": "Показване на 0 до 0 от 0 записа",
+ "sInfoFiltered": "(филтрирани от _MAX_ общо записа)",
+ "sSearch": "Търсене:",
+ "sEmptyTable": "Няма данни в таблицата",
+ "sFirst": "Първа",
+ "sPrevious": "Предишна",
+ "sNext": "Следваща",
+ "sLast": "Последна"
+ },
+ order: , // Сортиране по платено в % (възходящо)
+ pageLength: 10,
+ scrollX: true
+ });
+ }
+ });
+ </script>
+ </div>
+</div>
+
+</body>
+</html>
