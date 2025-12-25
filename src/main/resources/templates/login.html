@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Apartments Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-5">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-house-door-fill text-primary" style="font-size: 3rem;"></i>
+                            <h2 class="mt-3">Вход в системата</h2>
+                            <p class="text-muted">Моля, въведете вашите данни</p>
+                        </div>
+                        
+                        <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Невалидно потребителско име или парола.
+                        </div>
+                        
+                        <div th:if="${param.logout}" class="alert alert-success" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            Успешно излязохте от системата.
+                        </div>
+                        
+                        <form th:action="@{/auth/login}" method="post">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Потребителско име или Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" id="username" name="username" 
+                                           placeholder="Въведете потребителско име" required autofocus>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Парола</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" id="password" name="password" 
+                                           placeholder="Въведете парола" required>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Вход
+                                </button>
+                            </div>
+                            
+                            <div class="text-center">
+                                <p class="mb-0">Нямате акаунт? 
+                                    <a th:href="@{/auth/register}" class="text-decoration-none">Регистрирайте се</a>
+                                </p>
+                                <p class="mt-2">
+                                    <a th:href="@{/}" class="text-decoration-none">
+                                        <i class="bi bi-arrow-left me-1"></i>Назад към началната страница
+                                    </a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

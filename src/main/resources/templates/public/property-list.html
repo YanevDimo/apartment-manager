@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Имоти - Недвижими имоти</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-house-door-fill me-2"></i>Недвижими имоти
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/public/home">Начало</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/public/properties">Имоти</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/public/about">За нас</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/public/contact">Контакти</a></li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" href="/auth/login">Вход</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" href="/auth/register">Регистрация</a>
+                    </li>
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>Профил
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/user/dashboard">Моят профил</a></li>
+                            <li><a class="dropdown-item" href="/agent/dashboard" sec:authorize="hasRole('AGENT')">Агентски панел</a></li>
+                            <li><a class="dropdown-item" href="/admin/dashboard" sec:authorize="hasRole('ADMIN')">Админ панел</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/auth/logout">Изход</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Filters Section -->
+    <section class="bg-light py-4">
+        <div class="container">
+            <form id="filterForm" method="get" action="/public/properties">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="city" class="form-label">Град</label>
+                        <select class="form-select" id="city" name="city">
+                            <option value="">Всички градове</option>
+                            <option th:each="c : ${cities}" th:value="${c}" th:text="${c}" 
+                                    th:selected="${selectedCity == c}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="type" class="form-label">Тип имот</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="">Всички типове</option>
+                            <option value="APARTMENT" th:selected="${selectedType == T(apartmentsmanager.apartmentsmanager.entity.Property.PropertyType).APARTMENT}">Апартамент</option>
+                            <option value="HOUSE" th:selected="${selectedType == T(apartmentsmanager.apartmentsmanager.entity.Property.PropertyType).HOUSE}">Къща</option>
+                            <option value="OFFICE" th:selected="${selectedType == T(apartmentsmanager.apartmentsmanager.entity.Property.PropertyType).OFFICE}">Офис</option>
+                            <option value="COMMERCIAL" th:selected="${selectedType == T(apartmentsmanager.apartmentsmanager.entity.Property.PropertyType).COMMERCIAL}">Търговски обект</option>
+                            <option value="LAND" th:selected="${selectedType == T(apartmentsmanager.apartmentsmanager.entity.Property.PropertyType).LAND}">Парцел</option>
+                            <option value="VILLA" th:selected="${selectedType == T(apartmentsmanager.apartmentsmanager.entity.Property.PropertyType).VILLA}">Вила</option>
+                            <option value="STUDIO" th:selected="${selectedType == T(apartmentsmanager.apartmentsmanager.entity.Property.PropertyType).STUDIO}">Студио</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="minPrice" class="form-label">Мин. цена</label>
+                        <input type="number" class="form-control" id="minPrice" name="minPrice" 
+                               th:value="${selectedMinPrice}" placeholder="0" min="0">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="maxPrice" class="form-label">Макс. цена</label>
+                        <input type="number" class="form-control" id="maxPrice" name="maxPrice" 
+                               th:value="${selectedMaxPrice}" placeholder="Без лимит" min="0">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-2"></i>Търси
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Properties List -->
+    <section class="py-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Намерени имоти: <span th:text="${properties != null ? properties.size() : 0}">0</span></h2>
+            </div>
+            
+            <div class="row" th:if="${properties != null and !properties.isEmpty()}">
+                <div class="col-md-6 col-lg-4 mb-4" th:each="property : ${properties}">
+                    <div class="card h-100 shadow-sm">
+                        <div class="position-relative">
+                            <img th:src="${property.images != null and !property.images.isEmpty() ? property.images[0].imageUrl : '/static/images/placeholder.jpg'}" 
+                                 class="card-img-top" style="height: 250px; object-fit: cover;" alt="Property image">
+                            <span class="badge bg-primary position-absolute top-0 end-0 m-2" 
+                                  th:text="${property.type}">Type</span>
+                            <span class="badge bg-success position-absolute top-0 start-0 m-2" 
+                                  th:if="${property.featured}">Препоръчан</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${property.title}">Property Title</h5>
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                <span th:text="${property.city}">City</span>
+                                <span th:if="${property.address}">, <span th:text="${property.address}">Address</span></span>
+                            </p>
+                            <p class="card-text text-muted small" 
+                               th:text="${property.description != null ? (#strings.abbreviate(property.description, 100)) : 'Няма описание'}">
+                                Description
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <span th:if="${property.bedrooms != null}">
+                                        <i class="bi bi-door-open me-1"></i><span th:text="${property.bedrooms}">0</span>
+                                    </span>
+                                    <span th:if="${property.bathrooms != null}" class="ms-3">
+                                        <i class="bi bi-droplet me-1"></i><span th:text="${property.bathrooms}">0</span>
+                                    </span>
+                                    <span th:if="${property.area != null}" class="ms-3">
+                                        <i class="bi bi-rulers me-1"></i><span th:text="${#numbers.formatDecimal(property.area, 0, 'COMMA', 2, 'POINT')}">0</span> м²
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 text-primary mb-0" 
+                                      th:text="${#numbers.formatDecimal(property.price, 0, 'COMMA', 2, 'POINT') + ' лв.'}">
+                                    Price
+                                </span>
+                                <a th:href="@{/public/properties/{id}(id=${property.id})}" class="btn btn-primary btn-sm">
+                                    Виж детайли <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center py-5" th:if="${properties == null or properties.isEmpty()}">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                <h4 class="mt-3 text-muted">Няма намерени имоти</h4>
+                <p class="text-muted">Опитайте с други филтри</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2025 Недвижими имоти. Всички права запазени.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/public.js"></script>
+</body>
+</html>
+
+

@@ -206,19 +206,29 @@
                                 </a>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <a href="/apartments/api/add" class="btn btn-success w-100 d-flex align-items-center justify-content-center">
+                                <button type="button" onclick="showAddApartmentModal()" class="btn btn-success w-100 d-flex align-items-center justify-content-center">
                                     <i class="bi bi-plus-circle me-2"></i>Добави апартамент
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/clients" class="btn btn-info w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-people me-2"></i>Клиенти
                                 </a>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <a href="/payment-plans" class="btn btn-info w-100 d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-calendar-check me-2"></i>Планове за плащане
+                                <a href="/add-apartment" class="btn btn-success w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-building-add me-2"></i>Продажба на обекти
                                 </a>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <a href="/export-data" class="btn btn-warning w-100 d-flex align-items-center justify-content-center">
+                                <a href="/add-building" class="btn btn-secondary w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-building me-2"></i>Добави сграда
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button type="button" onclick="exportToExcel(event)" class="btn btn-warning w-100 d-flex align-items-center justify-content-center">
                                     <i class="bi bi-file-earmark-excel me-2"></i>Експорт на данни
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -443,7 +453,7 @@
                         <td><span class="text-danger">${formatCurrency(apt.remainingPayment || 0)}</span></td>
                         <td><span class="badge bg-danger">-</span></td>
                         <td>
-                            <a href="/apartments/${apt.id}" class="btn btn-sm btn-warning">
+                            <a href="/apartments" class="btn btn-sm btn-warning">
                                 <i class="bi bi-plus-circle me-1"></i> Добави плащане
                             </a>
                         </td>
@@ -569,6 +579,69 @@
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }).format(amount);
+        }
+        
+        function exportToExcel(event) {
+            // Show loading indicator
+            const btn = event ? event.target.closest('button') : document.querySelector('button[onclick*="exportToExcel"]');
+            const originalText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Генериране...';
+            }
+            
+            // Use fetch API to download the file as blob
+            fetch('/excel/export', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.status);
+                }
+                // Check if response is actually a blob
+                const contentType = response.headers.get('content-type');
+                console.log('Content-Type:', contentType);
+                if (!contentType || (!contentType.includes('spreadsheetml') && !contentType.includes('octet-stream'))) {
+                    // Try to read as text first to see what we got
+                    return response.text().then(text => {
+                        console.error('Unexpected response:', text.substring(0, 200));
+                        throw new Error('Invalid content type: ' + contentType + '. Response starts with: ' + text.substring(0, 50));
+                    });
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                console.log('Blob size:', blob.size, 'Blob type:', blob.type);
+                // Create a temporary link element to trigger download
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'apartments_export.xlsx';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                // Clean up the URL object
+                window.URL.revokeObjectURL(url);
+                
+                // Restore button
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error exporting Excel:', error);
+                alert('Грешка при експорт на Excel файл: ' + error.message);
+                // Restore button
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            });
         }
     </script>
 </body>

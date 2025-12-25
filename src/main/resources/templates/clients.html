@@ -1,11 +1,15 @@
 ﻿<!DOCTYPE html>
 <html lang="bg">
 <head>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link href="/static/css/app.css" rel="stylesheet" />
-<meta charset="UTF-8" />
-     <link href="/static/css/app.css" rel="stylesheet" />
-<title>Клиентска база</title>
+    <title>Клиентска база</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link href="/static/css/app.css" rel="stylesheet" />
 </head>
 <body>
  <div>Клиентска база</div>
@@ -201,64 +205,12 @@
  <th style="width: 90px;">Действия</th>
  </tr>
  </thead>
- <tbody>
- <tr>
- <td>
- <small class="text-muted"></small>
- </td>
- <td>
- <strong></strong>
- <br />
- <small class="text-muted"
-></small>
- </td>
- <td>
- <a class="text-decoration-none">
- <i class="bi bi-telephone text-success"></i> <span></span>
- </a>
- <span class="text-muted">-</span>
- </td>
- <td>
- <a class="text-decoration-none">
- <i class="bi bi-envelope text-primary"></i> <span></span>
- </a>
- <span class="text-muted">-</span>
- </td>
- <td>
- <small></small>
- </td>
- <td>
- <div class="d-flex gap-2 justify-content-center">
- <a href="/client-detail(clientId=)"
- class="action-icon icon-blue"
- title="Преглед на детайли">
- <i class="bi bi-file-text"></i>
- </a>
- <a href="/edit-client(clientId=)"
- class="action-icon icon-green"
- title="Редактиране на клиент">
- <i class="bi bi-pencil"></i>
- </a>
- <a href="#" class="action-icon icon-red delete-client-btn"
- style="cursor: pointer; text-decoration: none;"
- title="Изтриване на клиент"
- onclick="return false;">
- <i class="bi bi-x-circle"></i>
- </a>
- </div>
- </td>
- </tr>
+ <tbody id="clients-tbody">
+ <!-- Clients will be loaded here via JavaScript -->
  </tbody>
  </table>
  </div>
  </div>
- </div>
- <div class="alert alert-info text-center">
- <i class="bi bi-info-circle"></i>
- <span' + + '\"'"></span>
- <span>
- Няма добавени клиенти. <a href="/add-client">Добавете първия клиент</a>
- </span>
  </div>
  </div>
  </div>
@@ -281,11 +233,9 @@
  </div>
  <div class="modal-footer">
  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
- <form id="deleteForm" method="POST" class="d-inline">
- <button type="submit" class="btn btn-danger">
+ <button type="button" id="confirmDeleteBtn" class="btn btn-danger">
  <i class="bi bi-trash"></i> Изтрий
  </button>
- </form>
  </div>
  </div>
  </div>
@@ -293,7 +243,127 @@
  </div>
 
  <div>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Load clients on page load
+$(document).ready(function() {
+    loadClients();
+    
+    // Get search term from URL if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchTerm = urlParams.get('search');
+    if (searchTerm) {
+        $('input[name="search"]').val(searchTerm);
+    }
+});
+
+function loadClients() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchTerm = urlParams.get('search');
+    
+    let url = '/clients/api/list';
+    if (searchTerm) {
+        url = '/clients/api/search?q=' + encodeURIComponent(searchTerm);
+    }
+    
+    $.ajax({
+        url: url,
+        method: 'GET',
+        success: function(response) {
+            const clients = response.clients || [];
+            populateTable(clients);
+            updateStatistics(clients);
+        },
+        error: function(xhr) {
+            console.error('Error loading clients:', xhr);
+            $('#clients-tbody').html('<tr><td colspan="6" class="text-center text-danger">Грешка при зареждане на клиентите</td></tr>');
+        }
+    });
+}
+
+function populateTable(clients) {
+    const tbody = $('#clients-tbody');
+    tbody.empty();
+    
+    if (clients.length === 0) {
+        tbody.html('<tr><td colspan="6" class="text-center text-muted">Няма намерени клиенти</td></tr>');
+        return;
+    }
+    
+    clients.forEach(function(client) {
+        const row = `
+            <tr>
+                <td><small class="text-muted">${client.id || ''}</small></td>
+                <td>
+                    <strong>${escapeHtml(client.name || '')}</strong>
+                    ${client.egn ? '<br/><small class="text-muted">ЕГН/ЕИК: ' + escapeHtml(client.egn) + '</small>' : ''}
+                </td>
+                <td>
+                    ${client.phone ? 
+                        '<a href="tel:' + escapeHtml(client.phone) + '" class="text-decoration-none"><i class="bi bi-telephone text-success"></i> ' + escapeHtml(client.phone) + '</a>' : 
+                        '<span class="text-muted">-</span>'}
+                </td>
+                <td>
+                    ${client.email ? 
+                        '<a href="mailto:' + escapeHtml(client.email) + '" class="text-decoration-none"><i class="bi bi-envelope text-primary"></i> ' + escapeHtml(client.email) + '</a>' : 
+                        '<span class="text-muted">-</span>'}
+                </td>
+                <td><small class="text-muted">-</small></td>
+                <td>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="/clients/api/${client.id}" class="action-icon icon-blue" title="Преглед на детайли">
+                            <i class="bi bi-file-text"></i>
+                        </a>
+                        <a href="#" class="action-icon icon-green" title="Редактиране на клиент" onclick="editClient(${client.id}); return false;">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="#" class="action-icon icon-red delete-client-btn" 
+                           data-client-id="${client.id}" 
+                           data-client-name="${escapeHtml(client.name || '')}"
+                           style="cursor: pointer; text-decoration: none;" 
+                           title="Изтриване на клиент">
+                            <i class="bi bi-x-circle"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+    
+    // Re-setup delete buttons after populating table
+    setupDeleteButtons();
+}
+
+function updateStatistics(clients) {
+    const totalClients = clients.length;
+    const withPhone = clients.filter(c => c.phone && c.phone.trim() !== '').length;
+    const withEmail = clients.filter(c => c.email && c.email.trim() !== '').length;
+    
+    $('.card.bg-primary .card-title').text(totalClients);
+    $('.card.bg-success .card-title').text(withPhone);
+    $('.card.bg-info .card-title').text(withEmail);
+    $('.card.bg-warning .card-title').text('0'); // New this week - would need date logic
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+function editClient(clientId) {
+    // TODO: Implement edit functionality
+    alert('Редактиране на клиент ' + clientId + ' - функционалността ще бъде добавена');
+}
+
 function confirmDelete(clientId, clientName) {
  console.log('confirmDelete called with:', clientId, clientName);
 
@@ -312,8 +382,8 @@ function confirmDelete(clientId, clientName) {
  // Задаваме правилния URL за изтриване
  var deleteForm = document.getElementById('deleteForm');
  if (deleteForm) {
- deleteForm.action = '/delete-client/' + clientId;
- console.log('Delete form action set to:', deleteForm.action);
+ deleteForm.setAttribute('data-client-id', clientId);
+ console.log('Delete form client ID set to:', clientId);
  } else {
  console.error('Delete form not found!');
  return;
@@ -348,11 +418,17 @@ function setupDeleteButtons() {
  button.addEventListener('click', handleDeleteClick);
  });
 
- // Event listener за формата за да предотвратим нежелани действия
+ // Event listener за бутона за потвърждение на изтриване
+ var confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+ if (confirmDeleteBtn) {
+ confirmDeleteBtn.addEventListener('click', function() {
  var deleteForm = document.getElementById('deleteForm');
  if (deleteForm) {
- deleteForm.addEventListener('submit', function(e) {
- console.log('Form submitted to:', this.action);
+ var clientId = deleteForm.getAttribute('data-client-id');
+ if (clientId) {
+ deleteClient(clientId);
+ }
+ }
  });
  }
 }
@@ -394,6 +470,30 @@ $(document).on('click', '.delete-client-btn', function(e) {
 
  return false;
 });
+
+// Function to delete client via API
+function deleteClient(clientId) {
+ $.ajax({
+ url: '/clients/api/delete/' + clientId,
+ method: 'DELETE',
+ success: function(response) {
+ if (response.success) {
+ $('#deleteModal').modal('hide');
+ loadClients(); // Reload clients after deletion
+ alert('Клиентът е изтрит успешно');
+ } else {
+ alert('Грешка: ' + (response.message || 'Неуспешно изтриване'));
+ }
+ },
+ error: function(xhr) {
+ let errorMessage = 'Грешка при изтриване';
+ if (xhr.responseJSON && xhr.responseJSON.message) {
+ errorMessage = xhr.responseJSON.message;
+ }
+ alert(errorMessage);
+ }
+ });
+}
 </script>
  </div>
 </body>

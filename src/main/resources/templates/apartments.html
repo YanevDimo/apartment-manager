@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Апартаменти - Управление на апартаменти</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <!-- Custom CSS -->
+    <link href="/static/css/app.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #4e73df;
+            --success: #1cc88a;
+            --danger: #e74a3b;
+            --warning: #f6c23e;
+            --info: #36b9cc;
+            --secondary: #858796;
+            --light: #f8f9fc;
+            --dark: #5a5c69;
+        }
+
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .page-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.35rem;
+            font-weight: 700;
+        }
+
+        /* Table row selection styles */
+        #apartmentsTable tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #apartmentsTable tbody tr.selected {
+            background-color: #e3f2fd !important;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Color coding for overdue payments */
+        #apartmentsTable tbody tr.overdue {
+            background-color: #fee2e2 !important;
+        }
+
+        #apartmentsTable tbody tr.overdue:hover {
+            background-color: #fecaca !important;
+        }
+
+        #apartmentsTable tbody tr:not(.overdue) {
+            background-color: #f0fdf4 !important;
+        }
+
+        #apartmentsTable tbody tr:not(.overdue):hover {
+            background-color: #dcfce7 !important;
+        }
+
+        #apartmentsTable tbody tr.selected.overdue {
+            background-color: #fecaca !important;
+            border-left: 4px solid var(--danger);
+        }
+
+        #apartmentsTable tbody tr.selected:not(.overdue) {
+            background-color: #dbeafe !important;
+            border-left: 4px solid var(--primary);
+        }
+
+        .action-buttons {
+            white-space: nowrap;
+        }
+
+        .action-buttons .btn {
+            margin: 0 0.125rem;
+        }
+
+        .badge-overdue {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .badge-paid {
+            background-color: var(--success);
+            color: white;
+        }
+
+        /* Fixed columns for large tables */
+        .table-responsive {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">
+                        <i class="bi bi-building me-2"></i>Управление на апартаменти
+                    </h4>
+                    <p class="text-muted mb-0 mt-1">Преглед и управление на всички апартаменти</p>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" id="btnAddApartment">
+                        <i class="bi bi-plus-circle me-2"></i>Добави апартамент
+                    </button>
+                    <button type="button" class="btn btn-success" id="btnAddPayment" disabled>
+                        <i class="bi bi-cash-coin me-2"></i>Добави плащане
+                    </button>
+                    <button type="button" class="btn btn-warning" id="btnOverdueReport">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Изостанали плащания
+                    </button>
+                    <button type="button" class="btn btn-info" id="btnGlobalStage">
+                        <i class="bi bi-gear me-2"></i>Глобална промяна на етап
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Apartments Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-table me-2"></i>Списък с апартаменти
+                </h6>
+                <span class="badge bg-primary" id="totalBadge">0</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="apartmentsTable" width="100%" cellspacing="0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Сграда</th>
+                                <th>Апартамент</th>
+                                <th>Площ (кв.м)</th>
+                                <th>Цена/кв.м (€)</th>
+                                <th>Обща цена (€)</th>
+                                <th>Етап</th>
+                                <th>Клиент</th>
+                                <th>Платено (€)</th>
+                                <th>Остатък (€)</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Apartment Modal -->
+    <div class="modal fade" id="apartmentModal" tabindex="-1" aria-labelledby="apartmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="apartmentModalLabel">
+                        <i class="bi bi-plus-circle me-2"></i>Добави апартамент
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="apartmentForm">
+                        <input type="hidden" id="apartmentId" name="id" />
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="buildingName" class="form-label">Сграда *</label>
+                                <input type="text" class="form-control" id="buildingName" name="buildingName" required />
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="apartmentNumber" class="form-label">Номер на апартамент *</label>
+                                <input type="text" class="form-control" id="apartmentNumber" name="apartmentNumber" required />
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="area" class="form-label">Площ (кв.м) *</label>
+                                <input type="number" class="form-control" id="area" name="area" step="0.01" min="0.01" required />
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pricePerM2" class="form-label">Цена на кв.м (€) *</label>
+                                <input type="number" class="form-control" id="pricePerM2" name="pricePerM2" step="0.01" min="0.01" required />
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="stage" class="form-label">Етап</label>
+                                <select class="form-select" id="stage" name="stage">
+                                    <option value="">Изберете етап</option>
+                                    <option value="При предварителен договор">При предварителен договор</option>
+                                    <option value="Акт 14">Акт 14</option>
+                                    <option value="Акт 15">Акт 15</option>
+                                    <option value="Акт 16">Акт 16</option>
+                                    <option value="Завършен">Завършен</option>
+                                    <option value="В процес">В процес</option>
+                                    <option value="Незапочнат">Незапочнат</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="clientSelect" class="form-label">Клиент</label>
+                                <select class="form-select" id="clientSelect" name="clientId">
+                                    <option value="">Изберете клиент</option>
+                                    <!-- Will be populated by JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Бележки</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+
+                        <div class="alert alert-info" id="totalPriceAlert" style="display: none;">
+                            <strong>Обща цена:</strong> <span id="totalPricePreview">0.00</span> €
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveApartment">
+                        <i class="bi bi-check-circle me-2"></i>Запази
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Payments Modal -->
+    <div class="modal fade" id="overdueModal" tabindex="-1" aria-labelledby="overdueModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="overdueModalLabel">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Изостанали плащания
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="overdueTable">
+                            <thead>
+                                <tr>
+                                    <th>Сграда</th>
+                                    <th>Апартамент</th>
+                                    <th>Клиент</th>
+                                    <th>Етап</th>
+                                    <th>Остатък (€)</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overdueTableBody">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Затвори</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">
+                        <i class="bi bi-cash-coin me-2"></i>Добави плащане
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymentForm">
+                        <input type="hidden" id="paymentId" name="id" />
+                        <input type="hidden" id="paymentApartmentId" name="apartmentId" />
+                        
+                        <div class="alert alert-info" id="apartmentInfo">
+                            <strong>Апартамент:</strong> <span id="apartmentInfoText">-</span>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="paymentAmount" class="form-label">Сума (€) *</label>
+                                <input type="number" class="form-control" id="paymentAmount" name="amount" step="0.01" min="0.01" required />
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="paymentDate" class="form-label">Дата на плащане *</label>
+                                <input type="date" class="form-control" id="paymentDate" name="paymentDate" required />
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="paymentMethod" class="form-label">Метод на плащане</label>
+                                <select class="form-select" id="paymentMethod" name="paymentMethod">
+                                    <option value="">Изберете метод</option>
+                                    <option value="Банка">Банка</option>
+                                    <option value="В брой">В брой</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="paymentStage" class="form-label">Етап на плащане</label>
+                                <select class="form-select" id="paymentStage" name="paymentStage">
+                                    <option value="">Изберете етап</option>
+                                    <option value="При предварителен договор">При предварителен договор</option>
+                                    <option value="Акт 14">Акт 14</option>
+                                    <option value="Акт 15">Акт 15</option>
+                                    <option value="Акт 16">Акт 16</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="invoiceNumber" class="form-label">Номер на фактура</label>
+                                <input type="text" class="form-control" id="invoiceNumber" name="invoiceNumber" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="isDeposit" name="isDeposit" />
+                                    <label class="form-check-label" for="isDeposit">
+                                        Капаро
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="paymentNotes" class="form-label">Бележки</label>
+                            <textarea class="form-control" id="paymentNotes" name="notes" rows="3"></textarea>
+                        </div>
+
+                        <div class="alert alert-warning" id="paymentSummary" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <small><strong>Обща цена:</strong> <span id="totalPriceInfo">0.00</span> €</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <small><strong>Платено:</strong> <span id="totalPaidInfo">0.00</span> €</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <small><strong>Остатък:</strong> <span id="remainingInfo">0.00</span> €</small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                    <button type="button" class="btn btn-primary" id="btnSavePayment">
+                        <i class="bi bi-check-circle me-2"></i>Запази
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Payments Modal -->
+    <div class="modal fade" id="viewPaymentsModal" tabindex="-1" aria-labelledby="viewPaymentsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewPaymentsModalLabel">
+                        <i class="bi bi-list-ul me-2"></i>Плащания за апартамент
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="paymentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Сума (€)</th>
+                                    <th>Метод</th>
+                                    <th>Етап</th>
+                                    <th>Фактура</th>
+                                    <th>Капаро</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTableBody">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Затвори</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Stage Change Modal -->
+    <div class="modal fade" id="globalStageModal" tabindex="-1" aria-labelledby="globalStageModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title" id="globalStageModalLabel">
+                        <i class="bi bi-gear me-2"></i>Глобална промяна на етап
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Внимание!</strong> Това ще промени етапа на <strong>всички</strong> апартаменти.
+                    </div>
+                    <div class="mb-3">
+                        <label for="globalStage" class="form-label">Нов етап *</label>
+                        <select class="form-select" id="globalStage" required>
+                            <option value="">Изберете етап</option>
+                            <option value="При предварителен договор">При предварителен договор</option>
+                            <option value="Акт 14">Акт 14</option>
+                            <option value="Акт 15">Акт 15</option>
+                            <option value="Акт 16">Акт 16</option>
+                            <option value="Завършен">Завършен</option>
+                            <option value="В процес">В процес</option>
+                            <option value="Незапочнат">Незапочнат</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                    <button type="button" class="btn btn-info" id="btnSaveGlobalStage">
+                        <i class="bi bi-check-circle me-2"></i>Запази промяната
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Зареждане...</span>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="/static/js/apartments.js"></script>
+    <script src="/static/js/payments.js"></script>
+</body>
+</html>
+

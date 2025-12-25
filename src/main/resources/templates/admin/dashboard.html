@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Администраторски панел - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin/dashboard">
+                <i class="bi bi-shield-lock-fill me-2"></i>Администраторски панел
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link text-white" href="/admin/users">Потребители</a>
+                <a class="nav-link text-white" href="/admin/inquiries">Запитвания</a>
+                <a class="nav-link text-white" href="/admin/system">Система</a>
+                <a class="nav-link text-white" href="/public/home">Публична страница</a>
+                <a class="nav-link text-white" href="/auth/logout">Изход</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <h2 class="mb-4">Dashboard</h2>
+        
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6>Общо потребители</h6>
+                        <h2 th:text="${totalUsers}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h6>Агенти</h6>
+                        <h2 th:text="${totalAgents}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h6>Общо имоти</h6>
+                        <h2 th:text="${totalProperties}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h6>Публикувани</h6>
+                        <h2 th:text="${publishedProperties}">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h6>Общо запитвания</h6>
+                        <h2 th:text="${totalInquiries}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h6>Очакващи запитвания</h6>
+                        <h2 th:text="${pendingInquiries}">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Бързи действия</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="/admin/users" class="btn btn-primary me-2">
+                            <i class="bi bi-people me-2"></i>Управление на потребители
+                        </a>
+                        <a href="/admin/inquiries" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-envelope me-2"></i>Всички запитвания
+                        </a>
+                        <a href="/admin/system" class="btn btn-outline-secondary">
+                            <i class="bi bi-gear me-2"></i>Системно здраве
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/admin.js"></script>
+</body>
+</html>
+
+

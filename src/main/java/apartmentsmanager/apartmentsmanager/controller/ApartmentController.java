@@ -180,5 +180,27 @@ public class ApartmentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+    
+    @GetMapping("/api/clients")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getClientsApi() {
+        List<Client> clients = clientService.getAllClients();
+        
+        List<Map<String, Object>> clientData = clients.stream().map(client -> {
+            Map<String, Object> data = new HashMap<>();
+            data.put("id", client.getId());
+            data.put("name", client.getName());
+            data.put("phone", client.getPhone());
+            data.put("email", client.getEmail());
+            return data;
+        }).collect(Collectors.toList());
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("clients", clientData);
+        response.put("total", clients.size());
+        
+        return ResponseEntity.ok(response);
+    }
 }
+
 

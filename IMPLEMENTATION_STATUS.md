@@ -201,3 +201,5 @@ src/main/java/apartmentsmanager/apartmentsmanager/
 
 **Следваща стъпка**: Създаване на JavaScript функционалност и интеграция с таблицата.
 
+
+

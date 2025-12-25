@@ -81,3 +81,5 @@ Write-Host "Files with formatting fixes: $fixedFiles" -ForegroundColor Green
 Write-Host "Files already properly formatted: $($totalFiles - $fixedFiles)" -ForegroundColor Gray
 Write-Host "`nAll HTML templates are now pure, valid HTML! ✓" -ForegroundColor Green
 
+
+

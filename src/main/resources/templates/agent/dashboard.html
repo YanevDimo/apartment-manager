@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Агентски панел - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-house-door-fill me-2"></i>Агентски панел
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="/agent/dashboard">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/agent/properties">Моите имоти</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/agent/inquiries">Запитвания</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/agent/profile">Профил</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/public/home">Публична страница</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/auth/logout">Изход</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Statistics Cards -->
+            <div class="col-md-3 mb-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-subtitle mb-2">Общо имоти</h6>
+                                <h2 class="mb-0" th:text="${totalProperties}">0</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-house-door" style="font-size: 3rem; opacity: 0.5;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-subtitle mb-2">Публикувани</h6>
+                                <h2 class="mb-0" th:text="${properties != null ? properties.stream().filter(p -> p.published).count() : 0}">0</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-check-circle" style="font-size: 3rem; opacity: 0.5;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-subtitle mb-2">Запитвания</h6>
+                                <h2 class="mb-0" th:text="${inquiries != null ? inquiries.size() : 0}">0</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-envelope" style="font-size: 3rem; opacity: 0.5;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-subtitle mb-2">Очакващи</h6>
+                                <h2 class="mb-0" th:text="${pendingInquiries}">0</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-clock-history" style="font-size: 3rem; opacity: 0.5;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Бързи действия</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="/agent/properties/create" class="btn btn-primary me-2">
+                            <i class="bi bi-plus-circle me-2"></i>Добави нов имот
+                        </a>
+                        <a href="/agent/inquiries" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-envelope me-2"></i>Виж запитвания
+                        </a>
+                        <a href="/agent/profile" class="btn btn-outline-secondary">
+                            <i class="bi bi-person me-2"></i>Редактирай профил
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Properties -->
+        <div class="row">
+            <div class="col-lg-8 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Последни имоти</h5>
+                        <a href="/agent/properties" class="btn btn-sm btn-outline-primary">Виж всички</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Заглавие</th>
+                                        <th>Град</th>
+                                        <th>Цена</th>
+                                        <th>Статус</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${properties == null or properties.isEmpty()}">
+                                        <td colspan="5" class="text-center text-muted">Няма имоти</td>
+                                    </tr>
+                                    <tr th:each="property : ${properties}" th:if="${properties != null and !properties.isEmpty()}">
+                                        <td th:text="${property.title}">Title</td>
+                                        <td th:text="${property.city}">City</td>
+                                        <td th:text="${#numbers.formatDecimal(property.price, 0, 'COMMA', 2, 'POINT') + ' лв.'}">Price</td>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:classappend="${property.published ? 'bg-success' : 'bg-secondary'}"
+                                                  th:text="${property.published ? 'Публикуван' : 'Чернова'}">
+                                                Status
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/agent/properties/edit/{id}(id=${property.id})}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Inquiries -->
+            <div class="col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Последни запитвания</h5>
+                        <a href="/agent/inquiries" class="btn btn-sm btn-outline-primary">Виж всички</a>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${inquiries == null or inquiries.isEmpty()}" class="text-center text-muted">
+                            Няма запитвания
+                        </div>
+                        <div th:each="inquiry : ${inquiries}" th:if="${inquiries != null and !inquiries.isEmpty()}" 
+                             class="mb-3 pb-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong th:text="${inquiry.name}">Name</strong>
+                                    <br>
+                                    <small class="text-muted" th:text="${inquiry.property.title}">Property</small>
+                                </div>
+                                <span class="badge" 
+                                      th:classappend="${inquiry.status.name() == 'PENDING' ? 'bg-warning' : 'bg-success'}"
+                                      th:text="${inquiry.status}">
+                                    Status
+                                </span>
+                            </div>
+                            <a th:href="@{/agent/inquiries/{id}(id=${inquiry.id})}" 
+                               class="btn btn-sm btn-outline-primary mt-2">
+                                Виж детайли
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/agent.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детайли за запитване</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/user/dashboard">
+                <i class="bi bi-house-door-fill me-2"></i>Моят профил
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link text-white" href="/user/inquiries">Назад</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h4>Детайли за запитване</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h5>Имот</h5>
+                            <p><strong>Заглавие:</strong> <span th:text="${inquiry.property.title}">Property</span></p>
+                            <p><strong>Град:</strong> <span th:text="${inquiry.property.city}">City</span></p>
+                            <p><strong>Цена:</strong> 
+                                <span th:text="${#numbers.formatDecimal(inquiry.property.price, 0, 'COMMA', 2, 'POINT') + ' лв.'}">Price</span>
+                            </p>
+                            <a th:href="@{/public/properties/{id}(id=${inquiry.property.id})}" 
+                               class="btn btn-sm btn-outline-primary">Виж имота</a>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5>Вашето запитване</h5>
+                            <p><strong>Дата:</strong> 
+                                <span th:text="${#temporals.format(inquiry.createdAt, 'dd.MM.yyyy HH:mm')}">Date</span>
+                            </p>
+                            <p th:if="${inquiry.message != null}"><strong>Съобщение:</strong></p>
+                            <p th:if="${inquiry.message != null}" th:text="${inquiry.message}">Message</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5>Статус</h5>
+                            <span class="badge fs-6" 
+                                  th:classappend="${inquiry.status.name() == 'PENDING' ? 'bg-warning' : 
+                                                  inquiry.status.name() == 'CONTACTED' ? 'bg-info' : 
+                                                  inquiry.status.name() == 'CLOSED' ? 'bg-secondary' : 'bg-success'}"
+                                  th:text="${inquiry.status}">Status</span>
+                        </div>
+                        
+                        <div class="mb-4" th:if="${inquiry.agentResponse != null}">
+                            <h5>Отговор от агента</h5>
+                            <div class="alert alert-info">
+                                <p th:text="${inquiry.agentResponse}">Response</p>
+                                <small class="text-muted" th:if="${inquiry.respondedAt != null}">
+                                    Отговорено на: <span th:text="${#temporals.format(inquiry.respondedAt, 'dd.MM.yyyy HH:mm')}">Date</span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

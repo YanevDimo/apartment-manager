@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${property.id != null ? 'Редактиране на имот' : 'Добавяне на имот'}">Property Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/agent/dashboard">
+                <i class="bi bi-house-door-fill me-2"></i>Агентски панел
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link text-white" href="/agent/properties">Назад към имоти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h4 th:text="${property.id != null ? 'Редактиране на имот' : 'Добавяне на нов имот'}">Property Form</h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="${property.id != null ? '/agent/properties/edit/' + property.id : '/agent/properties/create'}" 
+                              th:object="${property}" method="post" enctype="multipart/form-data" id="propertyForm">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Заглавие <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="title" th:field="*{title}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Описание</label>
+                                <textarea class="form-control" id="description" th:field="*{description}" rows="5"></textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="city" class="form-label">Град <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="city" th:field="*{city}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="address" class="form-label">Адрес</label>
+                                    <input type="text" class="form-control" id="address" th:field="*{address}">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="type" class="form-label">Тип имот <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="type" th:field="*{type}" required>
+                                        <option value="APARTMENT">Апартамент</option>
+                                        <option value="HOUSE">Къща</option>
+                                        <option value="OFFICE">Офис</option>
+                                        <option value="COMMERCIAL">Търговски обект</option>
+                                        <option value="LAND">Парцел</option>
+                                        <option value="VILLA">Вила</option>
+                                        <option value="STUDIO">Студио</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="price" class="form-label">Цена (лв.) <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="price" th:field="*{price}" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="bedrooms" class="form-label">Спални</label>
+                                    <input type="number" class="form-control" id="bedrooms" th:field="*{bedrooms}" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="bathrooms" class="form-label">Бани</label>
+                                    <input type="number" class="form-control" id="bathrooms" th:field="*{bathrooms}" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="area" class="form-label">Площ (м²)</label>
+                                    <input type="number" class="form-control" id="area" th:field="*{area}" step="0.01" min="0">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="images" class="form-label">Снимки</label>
+                                <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">
+                                <small class="text-muted">Можете да изберете няколко снимки</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="published" th:field="*{published}">
+                                    <label class="form-check-label" for="published">
+                                        Публикувай имота
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="featured" th:field="*{featured}">
+                                    <label class="form-check-label" for="featured">
+                                        Препоръчан имот
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="/agent/properties" class="btn btn-secondary">Отказ</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-2"></i>Запази
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/agent.js"></script>
+</body>
+</html>
+
+

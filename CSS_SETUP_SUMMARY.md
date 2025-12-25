@@ -154,3 +154,5 @@ The custom CSS (`app.css`) complements Bootstrap and provides:
 
 **All templates are now fully styled and ready to use!** ✓
 
+
+
