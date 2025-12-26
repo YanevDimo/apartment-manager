@@ -1,99 +1,320 @@
 ﻿<!DOCTYPE html>
-<html lang="bg">
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link href="/static/css/app.css" rel="stylesheet" />
-<meta charset="UTF-8" />
-     <link href="/static/css/app.css" rel="stylesheet" />
-<title>Експорт на данни</title>
+    <meta charset="UTF-8" />
+    <title>Импорт и Експорт на данни - Excel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="/static/css/app.css" rel="stylesheet" />
+    <!-- Sidebar Styles -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
 </head>
 <body>
- <div>Експорт на данни</div>
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarToggle}"></th:block>
+    
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
 
- <div>
-<div class="container mt-4">
- <div class="row">
- <div class="col-12">
- <div class="card">
- <div class="card-header">
- <h3 class="card-title mb-0">
- <i class="bi bi-file-earmark-excel text-success"></i>
- Експорт на данни към Excel файл
- </h3>
- </div>
- <div class="card-body">
- <div class="row">
- <div class="col-md-8">
- <div class="alert alert-info">
- <h6><i class="bi bi-info-circle"></i> Информация за експорта:</h6>
- <p class="mb-0">
- Експортът включва цялата информация за обектите в текущата сграда,
- включително плановете за плащане и направените плащания.
- </p>
- </div>
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="mb-4">
+                        <i class="bi bi-file-earmark-excel text-success me-2"></i>
+                        Импорт и Експорт на данни
+                    </h2>
+                </div>
+            </div>
 
- <div class="mb-3">
- <a href="/export-data" class="btn btn-success btn-lg">
- <i class="bi bi-download"></i>
- Експортирай данните
- </a>
- <a href="/" class="btn btn-secondary">
- <i class="bi bi-arrow-left"></i>
- Назад
- </a>
- </div>
- </div>
+            <!-- Импорт секция -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-upload me-2"></i>
+                                Импорт на данни от Excel
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Информация:</strong> Изберете типа данни, които искате да импортирате, и качете Excel файл (.xlsx или .xls).
+                                <br><small>Можете да изтеглите шаблон за всеки тип данни по-долу.</small>
+                            </div>
+                            
+                            <!-- Формат на файловете -->
+                            <div class="card bg-light mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="bi bi-file-text me-2"></i>Формат на Excel файлове</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="formatInfo">
+                                        <div class="format-apartments">
+                                            <strong>За Апартаменти:</strong>
+                                            <ul class="mb-0 small">
+                                                <li>Колони: ID, Сграда, Апартамент, Площ (кв.м), Цена/кв.м (€), Обща цена (€), Етап, Клиент, Платено (€), Остатък (€), Бележки</li>
+                                                <li>Използвайте същия формат като при експорта</li>
+                                            </ul>
+                                        </div>
+                                        <div class="format-buildings mt-2">
+                                            <strong>За Сгради:</strong>
+                                            <ul class="mb-0 small">
+                                                <li>Колони: <strong>Име</strong>, Адрес, Статус, Етап, Бележки</li>
+                                                <li>Име е задължително поле</li>
+                                            </ul>
+                                        </div>
+                                        <div class="format-clients mt-2">
+                                            <strong>За Клиенти:</strong>
+                                            <ul class="mb-0 small">
+                                                <li>Колони: <strong>Име</strong>, Телефон, Email, Адрес, Бележки</li>
+                                                <li>Име е задължително поле</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
- <div class="col-md-4">
- <div class="card bg-light">
- <div class="card-header">
- <h6 class="card-title mb-0">
- <i class="bi bi-list-check"></i>
- Съдържание на експорта
- </h6>
- </div>
- <div class="card-body">
- <h6>Листове в Excel файла:</h6>
- <ul class="list-unstyled">
- <li><strong>Обекти</strong> - основна информация за всички обекти</li>
- <li><strong>Планове за плащане</strong> - детайлен анализ на плановете</li>
- <li><strong>Предстоящи плащания</strong> - справка за предстоящи плащания</li>
- <li><strong>Забавени плащания</strong> - справка за забавени плащания</li>
- <li><strong>Статистика</strong> - обща статистика</li>
- </ul>
+                            <form id="importForm" enctype="multipart/form-data">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="importType" class="form-label">Тип данни *</label>
+                                        <select class="form-select" id="importType" name="type" required>
+                                            <option value="apartments">Апартаменти</option>
+                                            <option value="buildings">Сгради</option>
+                                            <option value="clients">Клиенти</option>
+                                        </select>
+                                        <div class="form-text">Изберете типа данни за импорт</div>
+                                    </div>
+                                    <div class="col-md-8 mb-3">
+                                        <label for="excelFile" class="form-label">Excel файл *</label>
+                                        <input type="file" class="form-control" id="excelFile" name="file" 
+                                               accept=".xlsx,.xls" required />
+                                        <div class="form-text">Поддържат се файлове .xlsx и .xls</div>
+                                    </div>
+                                </div>
 
- <div class="mt-3">
- <small class="text-muted">
- <i class="bi bi-clock"></i>
- Файлът ще включва данните за текущата сграда
- </small>
- </div>
- </div>
- </div>
- </div>
- </div>
+                                <div class="mb-3">
+                                    <button type="submit" class="btn btn-success btn-lg" id="importBtn">
+                                        <i class="bi bi-upload me-2"></i>
+                                        Импортирай данни
+                                    </button>
+                                    <a th:href="@{/index}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left me-2"></i>
+                                        Назад
+                                    </a>
+                                </div>
+                            </form>
 
- <div class="row mt-4">
- <div class="col-12">
- <div class="alert alert-warning">
- <h6><i class="bi bi-lightbulb"></i> Важно:</h6>
- <ul class="mb-0">
- <li>Експортът включва цялата информация за обектите в избраната сграда</li>
- <li>Данните включват плановете за плащане и направените плащания</li>
- <li>Файлът се генерира с текущото име на сградата и дата</li>
- <li>Форматът е Excel (.xlsx) и може да се отвори в Excel или подобни програми</li>
- </ul>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
-</div>
- </div>
+                            <!-- Резултати от импорта -->
+                            <div id="importResults" class="mt-4" style="display: none;">
+                                <div class="alert" id="importAlert">
+                                    <h6><i class="bi me-2" id="importIcon"></i><span id="importMessage"></span></h6>
+                                    <div id="importDetails"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
- <div>
- </div>
+            <!-- Експорт секция -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-download me-2"></i>
+                                Експорт на данни към Excel
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-info-circle"></i> Информация за експорта:</h6>
+                                <p class="mb-0">
+                                    Експортът включва цялата информация за продадените апартаменти,
+                                    включително плановете за плащане и направените плащания.
+                                </p>
+                            </div>
+
+                            <div class="mb-3">
+                                <a th:href="@{/excel/export}" class="btn btn-success btn-lg">
+                                    <i class="bi bi-download me-2"></i>
+                                    Експортирай апартаменти
+                                </a>
+                            </div>
+                            
+                            <!-- Шаблони за изтегляне -->
+                            <div class="card bg-light mt-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="bi bi-file-earmark-arrow-down me-2"></i>Изтегли шаблони за импорт</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <a th:href="@{/excel/template?type=buildings}" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-building me-2"></i>Шаблон за Сгради
+                                        </a>
+                                        <a th:href="@{/excel/template?type=clients}" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-person me-2"></i>Шаблон за Клиенти
+                                        </a>
+                                        <a th:href="@{/excel/template?type=apartments}" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-house me-2"></i>Шаблон за Апартаменти
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card bg-light mt-3">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">
+                                        <i class="bi bi-list-check me-2"></i>
+                                        Съдържание на експорта
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled mb-0">
+                                        <li><strong>Апартаменти</strong> - основна информация за всички продадени апартаменти</li>
+                                        <li><strong>Планове за плащане</strong> - детайлен анализ на плановете</li>
+                                        <li><strong>Предстоящи плащания</strong> - справка за предстоящи плащания</li>
+                                        <li><strong>Забавени плащания</strong> - справка за забавени плащания</li>
+                                        <li><strong>Статистика</strong> - обща статистика</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Script -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarScript}"></th:block>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Update format info based on selected type
+            $('#importType').on('change', function() {
+                const type = $(this).val();
+                const formatInfo = $('#formatInfo');
+                
+                formatInfo.find('div').hide();
+                if (type === 'apartments') {
+                    formatInfo.find('.format-apartments').show();
+                } else if (type === 'buildings') {
+                    formatInfo.find('.format-buildings').show();
+                } else if (type === 'clients') {
+                    formatInfo.find('.format-clients').show();
+                }
+            });
+            
+            // Show initial format
+            $('#importType').trigger('change');
+            
+            $('#importForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData();
+                const fileInput = $('#excelFile')[0];
+                const importType = $('#importType').val();
+                
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert('Моля, изберете файл за импорт!');
+                    return;
+                }
+                
+                formData.append('file', fileInput.files[0]);
+                formData.append('type', importType);
+                
+                // Disable button and show loading
+                const importBtn = $('#importBtn');
+                const originalText = importBtn.html();
+                importBtn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-2"></i>Импортиране...');
+                
+                // Hide previous results
+                $('#importResults').hide();
+                
+                $.ajax({
+                    url: '/excel/import',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        importBtn.prop('disabled', false).html(originalText);
+                        
+                        const resultsDiv = $('#importResults');
+                        const alertDiv = $('#importAlert');
+                        const messageSpan = $('#importMessage');
+                        const iconSpan = $('#importIcon');
+                        const detailsDiv = $('#importDetails');
+                        
+                        if (response.success) {
+                            alertDiv.removeClass('alert-danger').addClass('alert-success');
+                            iconSpan.removeClass('bi-x-circle').addClass('bi-check-circle');
+                            messageSpan.text('Импортът е завършен успешно!');
+                            
+                            let details = '<ul class="mb-0 mt-2">';
+                            details += '<li><strong>Импортирани:</strong> ' + (response.imported || 0) + ' записа</li>';
+                            details += '<li><strong>Пропуснати:</strong> ' + (response.skipped || 0) + ' записа</li>';
+                            details += '</ul>';
+                            
+                            if (response.errors && response.errors.length > 0) {
+                                details += '<div class="mt-3"><strong>Грешки:</strong><ul class="mb-0">';
+                                response.errors.forEach(function(error) {
+                                    details += '<li class="text-danger small">' + error + '</li>';
+                                });
+                                details += '</ul></div>';
+                            }
+                            
+                            detailsDiv.html(details);
+                        } else {
+                            alertDiv.removeClass('alert-success').addClass('alert-danger');
+                            iconSpan.removeClass('bi-check-circle').addClass('bi-x-circle');
+                            messageSpan.text('Грешка при импорт: ' + (response.message || 'Неизвестна грешка'));
+                            detailsDiv.html('');
+                        }
+                        
+                        resultsDiv.show();
+                        
+                        // Scroll to results
+                        $('html, body').animate({
+                            scrollTop: resultsDiv.offset().top - 100
+                        }, 500);
+                    },
+                    error: function(xhr, status, error) {
+                        importBtn.prop('disabled', false).html(originalText);
+                        
+                        const resultsDiv = $('#importResults');
+                        const alertDiv = $('#importAlert');
+                        const messageSpan = $('#importMessage');
+                        const iconSpan = $('#importIcon');
+                        
+                        alertDiv.removeClass('alert-success').addClass('alert-danger');
+                        iconSpan.removeClass('bi-check-circle').addClass('bi-x-circle');
+                        
+                        let errorMessage = 'Грешка при импорт: ';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage += xhr.responseJSON.message;
+                        } else {
+                            errorMessage += error || 'Неизвестна грешка';
+                        }
+                        
+                        messageSpan.text(errorMessage);
+                        $('#importDetails').html('');
+                        resultsDiv.show();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

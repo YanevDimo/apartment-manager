@@ -20,9 +20,34 @@ public interface ExcelService {
     Map<String, Object> importApartmentsFromExcel(MultipartFile file);
     
     /**
+     * Import buildings from Excel file
+     */
+    Map<String, Object> importBuildingsFromExcel(MultipartFile file);
+    
+    /**
+     * Import clients from Excel file
+     */
+    Map<String, Object> importClientsFromExcel(MultipartFile file);
+    
+    /**
      * Validate Excel file structure
      */
     boolean validateExcelStructure(InputStream inputStream);
+    
+    /**
+     * Generate template Excel file for buildings
+     */
+    byte[] generateBuildingsTemplate();
+    
+    /**
+     * Generate template Excel file for clients
+     */
+    byte[] generateClientsTemplate();
+    
+    /**
+     * Generate template Excel file for apartments
+     */
+    byte[] generateApartmentsTemplate();
 }
 
 

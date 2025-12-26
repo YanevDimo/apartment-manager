@@ -1,7 +1,11 @@
 package apartmentsmanager.apartmentsmanager.service.impl;
 
 import apartmentsmanager.apartmentsmanager.entity.Apartment;
+import apartmentsmanager.apartmentsmanager.entity.Building;
+import apartmentsmanager.apartmentsmanager.entity.Client;
 import apartmentsmanager.apartmentsmanager.service.ApartmentService;
+import apartmentsmanager.apartmentsmanager.service.BuildingService;
+import apartmentsmanager.apartmentsmanager.service.ClientService;
 import apartmentsmanager.apartmentsmanager.service.ExcelService;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -18,10 +22,16 @@ import java.util.*;
 public class ExcelServiceImpl implements ExcelService {
     
     private final ApartmentService apartmentService;
+    private final BuildingService buildingService;
+    private final ClientService clientService;
     
     @Autowired
-    public ExcelServiceImpl(ApartmentService apartmentService) {
+    public ExcelServiceImpl(ApartmentService apartmentService, 
+                           BuildingService buildingService,
+                           ClientService clientService) {
         this.apartmentService = apartmentService;
+        this.buildingService = buildingService;
+        this.clientService = clientService;
     }
     
     @Override
@@ -228,6 +238,250 @@ public class ExcelServiceImpl implements ExcelService {
             default:
                 return 0.0;
         }
+    }
+    
+    @Override
+    public Map<String, Object> importBuildingsFromExcel(MultipartFile file) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        int imported = 0;
+        int skipped = 0;
+        
+        try (InputStream inputStream = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(inputStream)) {
+            
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<Row> rowIterator = sheet.iterator();
+            
+            // Skip header row
+            if (rowIterator.hasNext()) {
+                rowIterator.next();
+            }
+            
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                
+                try {
+                    Building building = new Building();
+                    
+                    // Expected columns: Име, Адрес, Статус, Етап, Бележки
+                    if (row.getCell(0) != null) {
+                        building.setName(getCellValueAsString(row.getCell(0)).trim());
+                    }
+                    if (row.getCell(1) != null) {
+                        building.setAddress(getCellValueAsString(row.getCell(1)));
+                    }
+                    if (row.getCell(2) != null) {
+                        building.setStatus(getCellValueAsString(row.getCell(2)));
+                    }
+                    if (row.getCell(3) != null) {
+                        building.setStage(getCellValueAsString(row.getCell(3)));
+                    }
+                    if (row.getCell(4) != null) {
+                        building.setNotes(getCellValueAsString(row.getCell(4)));
+                    }
+                    
+                    // Validate required fields
+                    if (building.getName() == null || building.getName().isEmpty()) {
+                        skipped++;
+                        errors.add("Ред " + (row.getRowNum() + 1) + ": Липсва име на сградата");
+                        continue;
+                    }
+                    
+                    // Check for duplicates
+                    if (buildingService.buildingExists(building.getName())) {
+                        skipped++;
+                        errors.add("Ред " + (row.getRowNum() + 1) + ": Сграда '" + building.getName() + "' вече съществува");
+                        continue;
+                    }
+                    
+                    // Set default status if not provided
+                    if (building.getStatus() == null || building.getStatus().isEmpty()) {
+                        building.setStatus("активна");
+                    }
+                    
+                    // Save building
+                    buildingService.saveBuilding(building);
+                    imported++;
+                    
+                } catch (Exception e) {
+                    skipped++;
+                    errors.add("Ред " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                }
+            }
+            
+        } catch (Exception e) {
+            errors.add("Грешка при четене на файла: " + e.getMessage());
+        }
+        
+        result.put("imported", imported);
+        result.put("skipped", skipped);
+        result.put("errors", errors);
+        
+        return result;
+    }
+    
+    @Override
+    public Map<String, Object> importClientsFromExcel(MultipartFile file) {
+        Map<String, Object> result = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        int imported = 0;
+        int skipped = 0;
+        
+        try (InputStream inputStream = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(inputStream)) {
+            
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<Row> rowIterator = sheet.iterator();
+            
+            // Skip header row
+            if (rowIterator.hasNext()) {
+                rowIterator.next();
+            }
+            
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                
+                try {
+                    Client client = new Client();
+                    
+                    // Expected columns: Име, Телефон, Email, Адрес, Бележки
+                    if (row.getCell(0) != null) {
+                        client.setName(getCellValueAsString(row.getCell(0)).trim());
+                    }
+                    if (row.getCell(1) != null) {
+                        client.setPhone(getCellValueAsString(row.getCell(1)));
+                    }
+                    if (row.getCell(2) != null) {
+                        client.setEmail(getCellValueAsString(row.getCell(2)));
+                    }
+                    if (row.getCell(3) != null) {
+                        client.setAddress(getCellValueAsString(row.getCell(3)));
+                    }
+                    if (row.getCell(4) != null) {
+                        client.setNotes(getCellValueAsString(row.getCell(4)));
+                    }
+                    
+                    // Validate required fields
+                    if (client.getName() == null || client.getName().isEmpty()) {
+                        skipped++;
+                        errors.add("Ред " + (row.getRowNum() + 1) + ": Липсва име на клиента");
+                        continue;
+                    }
+                    
+                    // Save client
+                    clientService.saveClient(client);
+                    imported++;
+                    
+                } catch (Exception e) {
+                    skipped++;
+                    errors.add("Ред " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                }
+            }
+            
+        } catch (Exception e) {
+            errors.add("Грешка при четене на файла: " + e.getMessage());
+        }
+        
+        result.put("imported", imported);
+        result.put("skipped", skipped);
+        result.put("errors", errors);
+        
+        return result;
+    }
+    
+    @Override
+    public byte[] generateBuildingsTemplate() {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Сгради");
+            
+            // Create header row
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Име", "Адрес", "Статус", "Етап", "Бележки"};
+            
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            
+            // Add example row
+            Row exampleRow = sheet.createRow(1);
+            exampleRow.createCell(0).setCellValue("Сграда А");
+            exampleRow.createCell(1).setCellValue("ул. Примерна 123, София");
+            exampleRow.createCell(2).setCellValue("активна");
+            exampleRow.createCell(3).setCellValue("Акт 14");
+            exampleRow.createCell(4).setCellValue("Примерни бележки");
+            
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Грешка при генериране на шаблон за сгради: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public byte[] generateClientsTemplate() {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Клиенти");
+            
+            // Create header row
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Име", "Телефон", "Email", "Адрес", "Бележки"};
+            
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            
+            // Add example row
+            Row exampleRow = sheet.createRow(1);
+            exampleRow.createCell(0).setCellValue("Иван Петров");
+            exampleRow.createCell(1).setCellValue("0888123456");
+            exampleRow.createCell(2).setCellValue("ivan@example.com");
+            exampleRow.createCell(3).setCellValue("София, ул. Примерна 1");
+            exampleRow.createCell(4).setCellValue("Примерни бележки");
+            
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Грешка при генериране на шаблон за клиенти: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public byte[] generateApartmentsTemplate() {
+        // Use the same format as export
+        return exportApartmentsToExcel(List.of());
     }
 }
 

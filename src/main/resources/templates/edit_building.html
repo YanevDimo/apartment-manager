@@ -1,105 +1,134 @@
 ﻿<!DOCTYPE html>
-<html lang="bg">
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link href="/static/css/app.css" rel="stylesheet" />
-<meta charset="UTF-8" />
-     <link href="/static/css/app.css" rel="stylesheet" />
-<title>Редактирай сграда - Анализ на апартаменти</title>
+    <meta charset="UTF-8" />
+    <title>Редактирай сграда - Анализ на апартаменти</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="/static/css/app.css" rel="stylesheet" />
+    <!-- Sidebar Styles -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
 </head>
 <body>
- <div>Редактирай сграда</div>
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarToggle}"></th:block>
+    
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
 
- <div>
-<div class="row">
- <div class="col-lg-8 mx-auto">
- <div class="card">
- <div class="card-header">
- <h6 class="m-0 font-weight-bold text-primary">
- <i class="bi bi-pencil me-2"></i>Редактирай сграда
- </h6>
- </div>
- <div class="card-body">
- <form method="POST" action="/buildings/edit(buildingId=)">
- <div class="row">
- <div class="col-md-6 mb-3">
- <label for="name" class="form-label">Име на сградата *</label>
- <input type="text" class="form-control" id="name" name="name"
- required />
- <div class="form-text">Въведете описателно име за сградата</div>
- </div>
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="bi bi-pencil me-2"></i>Редактирай сграда
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/buildings/edit/{id}(id=${building.id})}" 
+                                  th:object="${building}" 
+                                  method="POST">
+                                
+                                <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+                                    <ul class="mb-0">
+                                        <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+                                    </ul>
+                                </div>
+                                <div th:if="${error != null and !#strings.isEmpty(error)}" class="alert alert-danger" th:text="${error}"></div>
+                                <div th:if="${success != null and !#strings.isEmpty(success)}" class="alert alert-success" th:text="${success}"></div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">Име на сградата *</label>
+                                        <input type="text" class="form-control" id="name" th:field="*{name}"
+                                               placeholder="Например: Сграда А, ЖК Парк, и т.н." required />
+                                        <div class="form-text">Въведете описателно име за сградата</div>
+                                        <span th:if="${#fields.hasErrors('name')}" class="text-danger" th:errors="*{name}"></span>
+                                    </div>
 
- <div class="col-md-6 mb-3">
- <label for="address" class="form-label">Адрес</label>
- <input type="text" class="form-control" id="address" name="address"
- placeholder="Например: ул. Примерна 123, София" />
- <div class="form-text">Пълен адрес на сградата (по желание)</div>
- </div>
- </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="address" class="form-label">Адрес</label>
+                                        <input type="text" class="form-control" id="address" th:field="*{address}"
+                                               placeholder="Например: ул. Примерна 123, София" />
+                                        <div class="form-text">Пълен адрес на сградата (по желание)</div>
+                                    </div>
+                                </div>
 
- <div class="row">
- <div class="col-md-6 mb-3">
- <label for="status" class="form-label">Статус</label>
- <select class="form-select" id="status" name="status">
- <option value="активна">Активна</option>
- <option value="в разработка">В разработка</option>
- <option value="завършена">Завършена</option>
- <option value="на пауза">На пауза</option>
- </select>
- <div class="form-text">Текущият статус на сградата</div>
- </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="status" class="form-label">Статус</label>
+                                        <select class="form-select" id="status" th:field="*{status}">
+                                            <option value="активна">Активна</option>
+                                            <option value="в разработка">В разработка</option>
+                                            <option value="завършена">Завършена</option>
+                                            <option value="на пауза">На пауза</option>
+                                        </select>
+                                        <div class="form-text">Текущият статус на сградата</div>
+                                    </div>
 
- <div class="col-md-6 mb-3">
- <label class="form-label">Дата на създаване</label>
- <input type="text" class="form-control" readonly />
- <div class="form-text">Датата не може да се променя</div>
- </div>
- </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="stage" class="form-label">Етап</label>
+                                        <input type="text" class="form-control" id="stage" th:field="*{stage}"
+                                               placeholder="Например: Открита строителна площадка, Акт 14, и т.н." />
+                                        <div class="form-text">Текущият етап на сградата (по желание)</div>
+                                    </div>
+                                </div>
 
- <div class="alert alert-warning">
- <i class="bi bi-exclamation-triangle me-2"></i>
- <strong>Внимание:</strong> Промените ще се отразят веднага в системата.
- </div>
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Бележки</label>
+                                    <textarea class="form-control" id="notes" th:field="*{notes}" rows="3"
+                                              placeholder="Допълнителна информация за сградата..."></textarea>
+                                    <div class="form-text">Незадължително поле за допълнителна информация</div>
+                                </div>
 
- <div class="d-flex justify-content-between">
- <a href="/buildings" class="btn btn-secondary">
- <i class="bi bi-arrow-left me-2"></i>Назад
- </a>
- <button type="submit" class="btn btn-warning">
- <i class="bi bi-check-circle me-2"></i>Запази промените
- </button>
- </div>
- </form>
- </div>
- </div>
- </div>
-</div>
- </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Дата на създаване</label>
+                                        <input type="text" class="form-control" 
+                                               th:value="${building.createdAt != null ? #temporals.format(building.createdAt, 'dd.MM.yyyy HH:mm') : '-'}" 
+                                               readonly />
+                                        <div class="form-text">Датата не може да се променя</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Последна промяна</label>
+                                        <input type="text" class="form-control" 
+                                               th:value="${building.updatedAt != null ? #temporals.format(building.updatedAt, 'dd.MM.yyyy HH:mm') : '-'}" 
+                                               readonly />
+                                        <div class="form-text">Дата на последна промяна</div>
+                                    </div>
+                                </div>
 
- <div>
-<script>
-console.log('Edit building script loaded');
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Внимание:</strong> Промените ще се отразят веднага в системата.
+                                </div>
 
-document.addEventListener('DOMContentLoaded', function() {
- console.log('DOM loaded for edit building');
+                                <div class="d-flex justify-content-between">
+                                    <a th:href="@{/buildings}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left me-2"></i>Назад
+                                    </a>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="bi bi-check-circle me-2"></i>Запази промените
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
- // Временно премахваме всички JavaScript валидации
- console.log('JavaScript validation disabled for debugging');
-
- // Добавяме само debugging без валидация
- var form = document.querySelector('form');
- if (form) {
- form.addEventListener('submit', function(e) {
- console.log('Form submitted - NO VALIDATION');
- console.log('Form action:', this.action);
- console.log('Form method:', this.method);
-
- // Не предотвратяваме изпращането
- console.log('Allowing form submission...');
- });
- }
-});
-</script>
- </div>
+    <!-- Sidebar Script -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarScript}"></th:block>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 </body>
 </html>

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
+
 @RequestMapping("/excel")
 public class ExcelController {
     
@@ -72,7 +73,9 @@ public class ExcelController {
     
     @PostMapping("/import")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> importApartmentsFromExcel(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, Object>> importDataFromExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "type", defaultValue = "apartments") String importType) {
         Map<String, Object> response = new HashMap<>();
         
         if (file.isEmpty()) {
@@ -96,8 +99,20 @@ public class ExcelController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // Import apartments
-            Map<String, Object> importResult = excelService.importApartmentsFromExcel(file);
+            // Import based on type
+            Map<String, Object> importResult;
+            switch (importType.toLowerCase()) {
+                case "buildings":
+                    importResult = excelService.importBuildingsFromExcel(file);
+                    break;
+                case "clients":
+                    importResult = excelService.importClientsFromExcel(file);
+                    break;
+                case "apartments":
+                default:
+                    importResult = excelService.importApartmentsFromExcel(file);
+                    break;
+            }
             
             response.put("success", true);
             response.put("message", "Импортът е завършен успешно");
@@ -107,6 +122,7 @@ public class ExcelController {
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            e.printStackTrace();
             response.put("success", false);
             response.put("message", "Грешка при импорт: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
@@ -114,19 +130,35 @@ public class ExcelController {
     }
     
     @GetMapping("/template")
-    public ResponseEntity<byte[]> downloadTemplate() {
+    public ResponseEntity<byte[]> downloadTemplate(@RequestParam(value = "type", defaultValue = "apartments") String templateType) {
         try {
-            // Create empty template with headers
-            List<Apartment> emptyList = List.of();
-            byte[] templateData = excelService.exportApartmentsToExcel(emptyList);
+            byte[] templateData;
+            String filename;
+            
+            switch (templateType.toLowerCase()) {
+                case "buildings":
+                    templateData = excelService.generateBuildingsTemplate();
+                    filename = "buildings_template.xlsx";
+                    break;
+                case "clients":
+                    templateData = excelService.generateClientsTemplate();
+                    filename = "clients_template.xlsx";
+                    break;
+                case "apartments":
+                default:
+                    templateData = excelService.generateApartmentsTemplate();
+                    filename = "apartments_template.xlsx";
+                    break;
+            }
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentDispositionFormData("attachment", "apartments_template.xlsx");
+            headers.setContentDispositionFormData("attachment", filename);
             headers.setContentLength(templateData.length);
             
             return new ResponseEntity<>(templateData, headers, HttpStatus.OK);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

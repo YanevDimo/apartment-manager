@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <title>Преглед на сграда - <span th:text="${building.name}">Сграда</span></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="/static/css/app.css" rel="stylesheet" />
+    <!-- Sidebar Styles -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
+    <style>
+        .info-card {
+            border-left: 4px solid #4e73df;
+            transition: transform 0.2s;
+        }
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .stat-badge {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarToggle}"></th:block>
+    
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container-fluid py-4">
+            <!-- Flash Messages -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i><span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Header with Actions -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="bi bi-building me-2 text-primary"></i>
+                                <span th:text="${building.name}">Име на сграда</span>
+                            </h2>
+                            <p class="text-muted mb-0" th:if="${building.address != null and !building.address.isEmpty()}" 
+                               th:text="${building.address}">Адрес</p>
+                        </div>
+                        <div>
+                            <a th:href="@{/buildings/edit/{id}(id=${building.id})}" class="btn btn-warning me-2">
+                                <i class="bi bi-pencil me-2"></i>Редактирай
+                            </a>
+                            <a th:href="@{/buildings}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Назад
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card info-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-1">Апартаменти</h6>
+                                    <h3 class="mb-0 text-primary stat-badge" th:text="${apartmentsCount}">0</h3>
+                                </div>
+                                <div class="text-primary" style="font-size: 2.5rem; opacity: 0.3;">
+                                    <i class="bi bi-house-door"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card info-card h-100" style="border-left-color: #1cc88a;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-1">Гаражи</h6>
+                                    <h3 class="mb-0 text-success stat-badge" th:text="${garagesCount}">0</h3>
+                                </div>
+                                <div class="text-success" style="font-size: 2.5rem; opacity: 0.3;">
+                                    <i class="bi bi-car-front"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card info-card h-100" style="border-left-color: #f6c23e;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-1">Мазета</h6>
+                                    <h3 class="mb-0 text-warning stat-badge" th:text="${basementsCount}">0</h3>
+                                </div>
+                                <div class="text-warning" style="font-size: 2.5rem; opacity: 0.3;">
+                                    <i class="bi bi-box"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card info-card h-100" style="border-left-color: #36b9cc;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-1">Статус</h6>
+                                    <span class="badge" 
+                                          th:classappend="${building.status == 'активна'} ? 'bg-success' : 
+                                                          (${building.status == 'в разработка'} ? 'bg-warning' : 
+                                                          (${building.status == 'завършена'} ? 'bg-info' : 'bg-secondary'))"
+                                          th:text="${building.status != null ? building.status : 'неизвестен'}">
+                                        Статус
+                                    </span>
+                                </div>
+                                <div class="text-info" style="font-size: 2.5rem; opacity: 0.3;">
+                                    <i class="bi bi-info-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Building Details -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-info-circle me-2"></i>Детайлна информация
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <th width="30%">Име на сграда:</th>
+                                        <td><strong th:text="${building.name}">-</strong></td>
+                                    </tr>
+                                    <tr th:if="${building.address != null and !building.address.isEmpty()}">
+                                        <th>Адрес:</th>
+                                        <td th:text="${building.address}">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Статус:</th>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:classappend="${building.status == 'активна'} ? 'bg-success' : 
+                                                                  (${building.status == 'в разработка'} ? 'bg-warning' : 
+                                                                  (${building.status == 'завършена'} ? 'bg-info' : 'bg-secondary'))"
+                                                  th:text="${building.status != null ? building.status : 'неизвестен'}">
+                                                Статус
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${building.stage != null and !building.stage.isEmpty()}">
+                                        <th>Етап:</th>
+                                        <td th:text="${building.stage}">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Дата на създаване:</th>
+                                        <td th:text="${building.createdAt != null ? #temporals.format(building.createdAt, 'dd.MM.yyyy HH:mm') : '-'}">-</td>
+                                    </tr>
+                                    <tr th:if="${building.updatedAt != null}">
+                                        <th>Последна промяна:</th>
+                                        <td th:text="${#temporals.format(building.updatedAt, 'dd.MM.yyyy HH:mm')}">-</td>
+                                    </tr>
+                                    <tr th:if="${building.notes != null and !building.notes.isEmpty()}">
+                                        <th>Бележки:</th>
+                                        <td>
+                                            <div class="text-muted" style="white-space: pre-wrap;" th:text="${building.notes}">-</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Excel Import Section -->
+                <div class="col-md-4">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-file-earmark-excel me-2"></i>Импорт от Excel
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info mb-3">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <small>Импортирайте сгради от Excel файл</small>
+                            </div>
+                            
+                            <form id="excelImportForm" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="excelFileInput" class="form-label">Excel файл (.xlsx или .xls)</label>
+                                    <input type="file" class="form-control" id="excelFileInput" name="file" 
+                                           accept=".xlsx,.xls" required />
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-sm" id="excelImportBtn">
+                                        <i class="bi bi-upload me-2"></i>Импортирай
+                                    </button>
+                                    <a th:href="@{/excel/template?type=buildings}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-file-earmark-arrow-down me-2"></i>Изтегли шаблон
+                                    </a>
+                                </div>
+                            </form>
+                            
+                            <!-- Import Results -->
+                            <div id="excelImportResults" class="mt-3" style="display: none;">
+                                <div class="alert" id="excelImportAlert">
+                                    <h6><i class="bi me-2" id="excelImportIcon"></i><span id="excelImportMessage"></span></h6>
+                                    <div id="excelImportDetails"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Script -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarScript}"></th:block>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Excel Import Form Handler
+            $('#excelImportForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData();
+                const fileInput = $('#excelFileInput')[0];
+                
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert('Моля, изберете файл за импорт!');
+                    return;
+                }
+                
+                formData.append('file', fileInput.files[0]);
+                formData.append('type', 'buildings');
+                
+                // Disable button and show loading
+                const importBtn = $('#excelImportBtn');
+                const originalText = importBtn.html();
+                importBtn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-2"></i>Импортиране...');
+                
+                // Hide previous results
+                $('#excelImportResults').hide();
+                
+                $.ajax({
+                    url: '/excel/import',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        importBtn.prop('disabled', false).html(originalText);
+                        
+                        const resultsDiv = $('#excelImportResults');
+                        const alertDiv = $('#excelImportAlert');
+                        const messageSpan = $('#excelImportMessage');
+                        const iconSpan = $('#excelImportIcon');
+                        const detailsDiv = $('#excelImportDetails');
+                        
+                        if (response.success) {
+                            alertDiv.removeClass('alert-danger').addClass('alert-success');
+                            iconSpan.removeClass('bi-x-circle').addClass('bi-check-circle');
+                            messageSpan.text('Импортът е завършен успешно!');
+                            
+                            let details = '<ul class="mb-0 mt-2 small">';
+                            details += '<li><strong>Импортирани:</strong> ' + (response.imported || 0) + ' сгради</li>';
+                            details += '<li><strong>Пропуснати:</strong> ' + (response.skipped || 0) + ' сгради</li>';
+                            details += '</ul>';
+                            
+                            if (response.errors && response.errors.length > 0) {
+                                details += '<div class="mt-2"><strong>Грешки:</strong><ul class="mb-0 small">';
+                                response.errors.forEach(function(error) {
+                                    details += '<li class="text-danger">' + error + '</li>';
+                                });
+                                details += '</ul></div>';
+                            }
+                            
+                            detailsDiv.html(details);
+                            
+                            // Reload page after successful import
+                            if (response.imported > 0) {
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 2000);
+                            }
+                        } else {
+                            alertDiv.removeClass('alert-success').addClass('alert-danger');
+                            iconSpan.removeClass('bi-check-circle').addClass('bi-x-circle');
+                            messageSpan.text('Грешка при импорт: ' + (response.message || 'Неизвестна грешка'));
+                            detailsDiv.html('');
+                        }
+                        
+                        resultsDiv.show();
+                    },
+                    error: function(xhr, status, error) {
+                        importBtn.prop('disabled', false).html(originalText);
+                        
+                        const resultsDiv = $('#excelImportResults');
+                        const alertDiv = $('#excelImportAlert');
+                        const messageSpan = $('#excelImportMessage');
+                        const iconSpan = $('#excelImportIcon');
+                        
+                        alertDiv.removeClass('alert-success').addClass('alert-danger');
+                        iconSpan.removeClass('bi-check-circle').addClass('bi-x-circle');
+                        
+                        let errorMessage = 'Грешка при импорт: ';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage += xhr.responseJSON.message;
+                        } else {
+                            errorMessage += error || 'Неизвестна грешка';
+                        }
+                        
+                        messageSpan.text(errorMessage);
+                        $('#excelImportDetails').html('');
+                        resultsDiv.show();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
