@@ -21,3 +21,4 @@ public interface ParkingSpaceRepository extends JpaRepository<ParkingSpace, Long
 }
 
 
+

@@ -3,7 +3,6 @@ package apartmentsmanager.apartmentsmanager.controller;
 import apartmentsmanager.apartmentsmanager.entity.Building;
 import apartmentsmanager.apartmentsmanager.service.BuildingService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,7 +22,6 @@ public class BuildingController {
     
     private final BuildingService buildingService;
     
-    @Autowired
     public BuildingController(BuildingService buildingService) {
         this.buildingService = buildingService;
     }

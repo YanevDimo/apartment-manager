@@ -17,3 +17,4 @@ public interface PropertyImageRepository extends JpaRepository<PropertyImage, Lo
 
 
 
+

@@ -147,3 +147,4 @@ Check if Hibernate is creating/updating the table:
 5. **Validation error**: Name is blank (should show in form)
 
 
+

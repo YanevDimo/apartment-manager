@@ -3,7 +3,6 @@ package apartmentsmanager.apartmentsmanager.service.impl;
 import apartmentsmanager.apartmentsmanager.entity.Client;
 import apartmentsmanager.apartmentsmanager.repository.ClientRepository;
 import apartmentsmanager.apartmentsmanager.service.ClientService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +15,6 @@ public class ClientServiceImpl implements ClientService {
     
     private final ClientRepository clientRepository;
     
-    @Autowired
     public ClientServiceImpl(ClientRepository clientRepository) {
         this.clientRepository = clientRepository;
     }

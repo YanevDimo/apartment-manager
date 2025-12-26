@@ -21,3 +21,4 @@ public interface CommercialSpaceRepository extends JpaRepository<CommercialSpace
 }
 
 
+

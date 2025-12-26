@@ -378,3 +378,4 @@ Dashboard → Apartments → Edit/Delete → Clients → Add Client → Payments
    - Консистентни redirect пътища
 
 
+

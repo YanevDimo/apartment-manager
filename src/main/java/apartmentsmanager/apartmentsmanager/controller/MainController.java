@@ -7,7 +7,6 @@ import apartmentsmanager.apartmentsmanager.service.ClientService;
 import apartmentsmanager.apartmentsmanager.service.ApartmentService;
 import apartmentsmanager.apartmentsmanager.service.BuildingService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -27,7 +26,6 @@ public class MainController {
     private final ApartmentService apartmentService;
     private final BuildingService buildingService;
     
-    @Autowired
     public MainController(ClientService clientService, ApartmentService apartmentService, BuildingService buildingService) {
         this.clientService = clientService;
         this.apartmentService = apartmentService;

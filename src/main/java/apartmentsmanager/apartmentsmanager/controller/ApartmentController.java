@@ -5,7 +5,6 @@ import apartmentsmanager.apartmentsmanager.entity.Client;
 import apartmentsmanager.apartmentsmanager.service.ApartmentService;
 import apartmentsmanager.apartmentsmanager.service.ClientService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -25,7 +24,6 @@ public class ApartmentController {
     private final ApartmentService apartmentService;
     private final ClientService clientService;
     
-    @Autowired
     public ApartmentController(ApartmentService apartmentService, ClientService clientService) {
         this.apartmentService = apartmentService;
         this.clientService = clientService;
