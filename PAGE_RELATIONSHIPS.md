@@ -377,3 +377,4 @@ Dashboard → Apartments → Edit/Delete → Clients → Add Client → Payments
    - Използване на flash messages за feedback
    - Консистентни redirect пътища
 
+

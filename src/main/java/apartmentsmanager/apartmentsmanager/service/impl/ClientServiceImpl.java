@@ -34,6 +34,12 @@ public class ClientServiceImpl implements ClientService {
     }
     
     @Override
+    @Transactional(readOnly = true)
+    public Optional<Client> getClientByIdWithApartmentsAndPayments(Long id) {
+        return clientRepository.findByIdWithApartmentsAndPayments(id);
+    }
+    
+    @Override
     public Client saveClient(Client client) {
         return clientRepository.save(client);
     }
@@ -56,5 +62,11 @@ public class ClientServiceImpl implements ClientService {
     @Transactional(readOnly = true)
     public Optional<Client> findByEgn(String egn) {
         return clientRepository.findByEgn(egn);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Long getApartmentCountForClient(Long clientId) {
+        return clientRepository.countApartmentsByClientId(clientId);
     }
 }

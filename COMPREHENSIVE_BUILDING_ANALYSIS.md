@@ -85,3 +85,4 @@ User cannot add a building - getting 500 error or template parsing errors.
 3. Check console logs for specific error
 4. If still failing, check database directly
 
+

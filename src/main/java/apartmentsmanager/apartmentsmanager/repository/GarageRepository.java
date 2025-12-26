@@ -20,3 +20,4 @@ public interface GarageRepository extends JpaRepository<Garage, Long> {
     boolean existsByBuildingIdAndGarageNumber(Long buildingId, String garageNumber);
 }
 
+

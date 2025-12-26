@@ -80,3 +80,4 @@
 - Public pages (public/*) can have sidebar but it's optional
 - All authenticated pages should have sidebar
 
+

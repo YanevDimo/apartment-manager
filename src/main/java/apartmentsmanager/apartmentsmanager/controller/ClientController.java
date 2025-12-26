@@ -10,7 +10,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +56,11 @@ public class ClientController {
             data.put("egn", client.getEgn());
             data.put("address", client.getAddress());
             data.put("notes", client.getNotes());
-            data.put("apartmentsCount", client.getApartments() != null ? client.getApartments().size() : 0);
+            data.put("createdAt", client.getCreatedAt() != null ? client.getCreatedAt().toString() : null);
+            data.put("updatedAt", client.getUpdatedAt() != null ? client.getUpdatedAt().toString() : null);
+            // Get apartments count using repository query to avoid lazy loading
+            Long apartmentsCount = clientService.getApartmentCountForClient(client.getId());
+            data.put("apartmentsCount", apartmentsCount != null ? apartmentsCount : 0);
             return data;
         }).collect(Collectors.toList());
         
@@ -77,6 +83,13 @@ public class ClientController {
             data.put("phone", client.getPhone());
             data.put("email", client.getEmail());
             data.put("egn", client.getEgn());
+            data.put("address", client.getAddress());
+            data.put("notes", client.getNotes());
+            data.put("createdAt", client.getCreatedAt() != null ? client.getCreatedAt().toString() : null);
+            data.put("updatedAt", client.getUpdatedAt() != null ? client.getUpdatedAt().toString() : null);
+            // Get apartments count using repository query to avoid lazy loading
+            Long apartmentsCount = clientService.getApartmentCountForClient(client.getId());
+            data.put("apartmentsCount", apartmentsCount != null ? apartmentsCount : 0);
             return data;
         }).collect(Collectors.toList());
         
@@ -213,6 +226,119 @@ public class ClientController {
         return clientService.getClientById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/{id}")
+    public String clientDetailPage(@PathVariable Long id, Model model) {
+        Client client = clientService.getClientByIdWithApartmentsAndPayments(id).orElse(null);
+        if (client == null) {
+            return "redirect:/clients";
+        }
+        
+        // Calculate statistics
+        int apartmentsCount = client.getApartments() != null ? client.getApartments().size() : 0;
+        
+        BigDecimal totalValue = BigDecimal.ZERO;
+        BigDecimal totalPaid = BigDecimal.ZERO;
+        BigDecimal totalBankPayments = BigDecimal.ZERO;
+        BigDecimal totalCashPayments = BigDecimal.ZERO;
+        
+        if (client.getApartments() != null && !client.getApartments().isEmpty()) {
+            for (var apt : client.getApartments()) {
+                if (apt.getTotalPrice() != null) {
+                    totalValue = totalValue.add(apt.getTotalPrice());
+                }
+                BigDecimal aptPaid = apt.getTotalPaid();
+                if (aptPaid != null) {
+                    totalPaid = totalPaid.add(aptPaid);
+                }
+                
+                // Calculate payment methods breakdown
+                if (apt.getPayments() != null) {
+                    for (var payment : apt.getPayments()) {
+                        if (payment.getAmount() != null) {
+                            if ("Банка".equals(payment.getPaymentMethod()) || 
+                                "Bank Transfer".equals(payment.getPaymentMethod()) ||
+                                "Bank".equals(payment.getPaymentMethod())) {
+                                totalBankPayments = totalBankPayments.add(payment.getAmount());
+                            } else if ("В брой".equals(payment.getPaymentMethod()) || 
+                                      "Cash".equals(payment.getPaymentMethod())) {
+                                totalCashPayments = totalCashPayments.add(payment.getAmount());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        BigDecimal remaining = totalValue.subtract(totalPaid);
+        if (remaining.compareTo(BigDecimal.ZERO) < 0) {
+            remaining = BigDecimal.ZERO;
+        }
+        
+        model.addAttribute("client", client);
+        model.addAttribute("apartmentsCount", apartmentsCount);
+        model.addAttribute("totalValue", totalValue);
+        model.addAttribute("totalPaid", totalPaid);
+        model.addAttribute("remaining", remaining);
+        model.addAttribute("totalBankPayments", totalBankPayments);
+        model.addAttribute("totalCashPayments", totalCashPayments);
+        
+        return "client_detail";
+    }
+    
+    @GetMapping("/edit/{id}")
+    public String editClientPage(@PathVariable Long id, Model model) {
+        Client client = clientService.getClientById(id).orElse(null);
+        if (client == null) {
+            return "redirect:/clients";
+        }
+        model.addAttribute("client", client);
+        return "edit_client";
+    }
+    
+    @PostMapping("/edit/{id}")
+    public String updateClient(@PathVariable Long id,
+                              @Valid @ModelAttribute Client client,
+                              BindingResult bindingResult,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("client", client);
+            return "edit_client";
+        }
+        
+        Client existingClient = clientService.getClientById(id).orElse(null);
+        if (existingClient == null) {
+            redirectAttributes.addFlashAttribute("error", "Клиентът не е намерен");
+            return "redirect:/clients";
+        }
+        
+        // Check for duplicate EGN if provided (excluding current client)
+        if (client.getEgn() != null && !client.getEgn().trim().isEmpty()) {
+            clientService.findByEgn(client.getEgn()).ifPresent(found -> {
+                if (!found.getId().equals(id)) {
+                    bindingResult.rejectValue("egn", "error.egn", "Клиент с този ЕГН/ЕИК вече съществува");
+                }
+            });
+            
+            if (bindingResult.hasErrors()) {
+                model.addAttribute("client", client);
+                return "edit_client";
+            }
+        }
+        
+        client.setId(id);
+        
+        try {
+            clientService.saveClient(client);
+            redirectAttributes.addFlashAttribute("success", "Клиентът е обновен успешно!");
+            return "redirect:/clients/" + id;
+        } catch (Exception e) {
+            bindingResult.reject("error.client", "Грешка при обновяване на клиент: " + e.getMessage());
+            model.addAttribute("client", client);
+            return "edit_client";
+        }
     }
 }
 

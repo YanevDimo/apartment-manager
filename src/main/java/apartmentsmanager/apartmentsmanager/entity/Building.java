@@ -70,6 +70,20 @@ public class Building {
     @EqualsAndHashCode.Exclude
     private List<Basement> basements;
     
+    // One-to-Many relationship with Parking Spaces
+    @OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ParkingSpace> parkingSpaces;
+    
+    // One-to-Many relationship with Commercial Spaces
+    @OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<CommercialSpace> commercialSpaces;
+    
     // Getter methods that ensure lists are initialized
     public List<Apartment> getApartments() {
         if (apartments == null) {
@@ -92,6 +106,20 @@ public class Building {
         return basements;
     }
     
+    public List<ParkingSpace> getParkingSpaces() {
+        if (parkingSpaces == null) {
+            parkingSpaces = new ArrayList<>();
+        }
+        return parkingSpaces;
+    }
+    
+    public List<CommercialSpace> getCommercialSpaces() {
+        if (commercialSpaces == null) {
+            commercialSpaces = new ArrayList<>();
+        }
+        return commercialSpaces;
+    }
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -103,6 +131,8 @@ public class Building {
         getApartments();
         getGarages();
         getBasements();
+        getParkingSpaces();
+        getCommercialSpaces();
     }
     
     @PreUpdate

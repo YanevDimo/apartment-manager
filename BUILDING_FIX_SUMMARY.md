@@ -90,3 +90,4 @@ Check:
 3. **Table Existence** - Check if `buildings` table was created
 4. **Test Endpoint** - Use `/buildings/test` to verify service works
 
+

@@ -34,6 +34,30 @@ public class BuildingController {
             java.util.List<Building> buildings = buildingService.getAllBuildings();
             model.addAttribute("buildings", buildings);
             model.addAttribute("buildingsCount", buildings.size());
+            
+            // Select current building (first active building, or first building if no active)
+            Building currentBuilding = null;
+            if (buildings != null && !buildings.isEmpty()) {
+                // Try to find an active building first
+                currentBuilding = buildings.stream()
+                    .filter(b -> b.getStatus() != null && b.getStatus().equals("активна"))
+                    .findFirst()
+                    .orElse(buildings.get(0)); // If no active, use first building
+                
+                // Load statistics for current building
+                int apartmentsCount = currentBuilding.getApartments() != null ? currentBuilding.getApartments().size() : 0;
+                int garagesCount = currentBuilding.getGarages() != null ? currentBuilding.getGarages().size() : 0;
+                int basementsCount = currentBuilding.getBasements() != null ? currentBuilding.getBasements().size() : 0;
+                int parkingSpacesCount = currentBuilding.getParkingSpaces() != null ? currentBuilding.getParkingSpaces().size() : 0;
+                int commercialSpacesCount = currentBuilding.getCommercialSpaces() != null ? currentBuilding.getCommercialSpaces().size() : 0;
+                
+                model.addAttribute("currentBuilding", currentBuilding);
+                model.addAttribute("apartmentsCount", apartmentsCount);
+                model.addAttribute("garagesCount", garagesCount);
+                model.addAttribute("basementsCount", basementsCount);
+                model.addAttribute("parkingSpacesCount", parkingSpacesCount);
+                model.addAttribute("commercialSpacesCount", commercialSpacesCount);
+            }
         } catch (Exception e) {
             model.addAttribute("error", "Грешка при зареждане на сградите: " + e.getMessage());
             model.addAttribute("buildings", java.util.Collections.emptyList());
@@ -50,6 +74,8 @@ public class BuildingController {
             building.setApartments(new java.util.ArrayList<>());
             building.setGarages(new java.util.ArrayList<>());
             building.setBasements(new java.util.ArrayList<>());
+            building.setParkingSpaces(new java.util.ArrayList<>());
+            building.setCommercialSpaces(new java.util.ArrayList<>());
             model.addAttribute("building", building);
         }
         return "add_building";
@@ -98,6 +124,8 @@ public class BuildingController {
         building.setApartments(new java.util.ArrayList<>());
         building.setGarages(new java.util.ArrayList<>());
         building.setBasements(new java.util.ArrayList<>());
+        building.setParkingSpaces(new java.util.ArrayList<>());
+        building.setCommercialSpaces(new java.util.ArrayList<>());
         
         if (bindingResult.hasErrors()) {
             model.addAttribute("building", building);
@@ -151,11 +179,15 @@ public class BuildingController {
             int apartmentsCount = building.getApartments() != null ? building.getApartments().size() : 0;
             int garagesCount = building.getGarages() != null ? building.getGarages().size() : 0;
             int basementsCount = building.getBasements() != null ? building.getBasements().size() : 0;
+            int parkingSpacesCount = building.getParkingSpaces() != null ? building.getParkingSpaces().size() : 0;
+            int commercialSpacesCount = building.getCommercialSpaces() != null ? building.getCommercialSpaces().size() : 0;
             
             model.addAttribute("building", building);
             model.addAttribute("apartmentsCount", apartmentsCount);
             model.addAttribute("garagesCount", garagesCount);
             model.addAttribute("basementsCount", basementsCount);
+            model.addAttribute("parkingSpacesCount", parkingSpacesCount);
+            model.addAttribute("commercialSpacesCount", commercialSpacesCount);
             
             return "view_building";
         } catch (Exception e) {

@@ -1,6 +1,7 @@
 package apartmentsmanager.apartmentsmanager.repository;
 
 import apartmentsmanager.apartmentsmanager.entity.Client;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +25,13 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     
     // Find by EGN/EIK
     Optional<Client> findByEgn(String egn);
+    
+    // Find client with apartments and payments eagerly loaded
+    @EntityGraph(attributePaths = {"apartments", "apartments.payments"})
+    @Query("SELECT c FROM Client c WHERE c.id = :id")
+    Optional<Client> findByIdWithApartmentsAndPayments(@Param("id") Long id);
+    
+    // Get apartment count for a client
+    @Query("SELECT COUNT(a) FROM Apartment a WHERE a.client.id = :clientId")
+    Long countApartmentsByClientId(@Param("clientId") Long clientId);
 }

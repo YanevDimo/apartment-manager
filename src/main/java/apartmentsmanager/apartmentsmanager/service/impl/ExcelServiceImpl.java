@@ -113,6 +113,11 @@ public class ExcelServiceImpl implements ExcelService {
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
                 
+                // Skip empty rows
+                if (row == null || row.getPhysicalNumberOfCells() == 0) {
+                    continue;
+                }
+                
                 try {
                     Apartment apartment = new Apartment();
                     
@@ -123,12 +128,27 @@ public class ExcelServiceImpl implements ExcelService {
                     if (row.getCell(2) != null) {
                         apartment.setApartmentNumber(getCellValueAsString(row.getCell(2)));
                     }
+                    
+                    // Read area (column 3) - required field
+                    BigDecimal area = null;
                     if (row.getCell(3) != null) {
-                        apartment.setArea(BigDecimal.valueOf(getCellValueAsDouble(row.getCell(3))));
+                        double areaValue = getCellValueAsDouble(row.getCell(3));
+                        if (areaValue > 0) {
+                            area = BigDecimal.valueOf(areaValue);
+                        }
                     }
+                    apartment.setArea(area);
+                    
+                    // Read pricePerM2 (column 4) - required field
+                    BigDecimal pricePerM2 = null;
                     if (row.getCell(4) != null) {
-                        apartment.setPricePerM2(BigDecimal.valueOf(getCellValueAsDouble(row.getCell(4))));
+                        double priceValue = getCellValueAsDouble(row.getCell(4));
+                        if (priceValue > 0) {
+                            pricePerM2 = BigDecimal.valueOf(priceValue);
+                        }
                     }
+                    apartment.setPricePerM2(pricePerM2);
+                    
                     if (row.getCell(6) != null) {
                         apartment.setStage(getCellValueAsString(row.getCell(6)));
                     }
@@ -139,10 +159,24 @@ public class ExcelServiceImpl implements ExcelService {
                     apartment.setIsSold(true);
                     
                     // Validate required fields
-                    if (apartment.getBuildingName() == null || apartment.getBuildingName().isEmpty() ||
-                        apartment.getApartmentNumber() == null || apartment.getApartmentNumber().isEmpty()) {
+                    if (apartment.getBuildingName() == null || apartment.getBuildingName().trim().isEmpty() ||
+                        apartment.getApartmentNumber() == null || apartment.getApartmentNumber().trim().isEmpty()) {
                         skipped++;
                         errors.add("Ред " + (row.getRowNum() + 1) + ": Липсват задължителни полета");
+                        continue;
+                    }
+                    
+                    // Validate area
+                    if (apartment.getArea() == null || apartment.getArea().compareTo(BigDecimal.valueOf(0.01)) < 0) {
+                        skipped++;
+                        errors.add("Ред " + (row.getRowNum() + 1) + ": Площта трябва да е по-голяма от 0");
+                        continue;
+                    }
+                    
+                    // Validate pricePerM2
+                    if (apartment.getPricePerM2() == null || apartment.getPricePerM2().compareTo(BigDecimal.valueOf(0.01)) < 0) {
+                        skipped++;
+                        errors.add("Ред " + (row.getRowNum() + 1) + ": Цената трябва да е по-голяма от 0");
                         continue;
                     }
                     
@@ -160,7 +194,19 @@ public class ExcelServiceImpl implements ExcelService {
                     
                 } catch (Exception e) {
                     skipped++;
-                    errors.add("Ред " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    String errorMessage = e.getMessage();
+                    // Extract validation error message if it's a constraint violation
+                    if (errorMessage != null && errorMessage.contains("ConstraintViolationImpl")) {
+                        if (errorMessage.contains("pricePerM2")) {
+                            errors.add("Ред " + (row.getRowNum() + 1) + ": Цената трябва да е по-голяма от 0");
+                        } else if (errorMessage.contains("area")) {
+                            errors.add("Ред " + (row.getRowNum() + 1) + ": Площта трябва да е по-голяма от 0");
+                        } else {
+                            errors.add("Ред " + (row.getRowNum() + 1) + ": " + errorMessage);
+                        }
+                    } else {
+                        errors.add("Ред " + (row.getRowNum() + 1) + ": " + errorMessage);
+                    }
                 }
             }
             
@@ -203,21 +249,51 @@ public class ExcelServiceImpl implements ExcelService {
             return "";
         }
         
-        switch (cell.getCellType()) {
-            case STRING:
-                return cell.getStringCellValue().trim();
-            case NUMERIC:
-                if (DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getDateCellValue().toString();
-                } else {
-                    return String.valueOf((long) cell.getNumericCellValue());
-                }
-            case BOOLEAN:
-                return String.valueOf(cell.getBooleanCellValue());
-            case FORMULA:
-                return cell.getCellFormula();
-            default:
-                return "";
+        try {
+            switch (cell.getCellType()) {
+                case STRING:
+                    return cell.getStringCellValue().trim();
+                case NUMERIC:
+                    if (DateUtil.isCellDateFormatted(cell)) {
+                        return cell.getDateCellValue().toString();
+                    } else {
+                        // Check if it's a whole number or decimal
+                        double numericValue = cell.getNumericCellValue();
+                        if (numericValue == (long) numericValue) {
+                            return String.valueOf((long) numericValue);
+                        } else {
+                            return String.valueOf(numericValue);
+                        }
+                    }
+                case BOOLEAN:
+                    return String.valueOf(cell.getBooleanCellValue());
+                case FORMULA:
+                    // Try to get the formula result
+                    try {
+                        switch (cell.getCachedFormulaResultType()) {
+                            case STRING:
+                                return cell.getStringCellValue().trim();
+                            case NUMERIC:
+                                double formulaValue = cell.getNumericCellValue();
+                                if (formulaValue == (long) formulaValue) {
+                                    return String.valueOf((long) formulaValue);
+                                } else {
+                                    return String.valueOf(formulaValue);
+                                }
+                            default:
+                                return cell.getCellFormula();
+                        }
+                    } catch (Exception e) {
+                        return cell.getCellFormula();
+                    }
+                case BLANK:
+                    return "";
+                default:
+                    return "";
+            }
+        } catch (Exception e) {
+            System.err.println("Грешка при четене на клетка: " + e.getMessage());
+            return "";
         }
     }
     
@@ -230,9 +306,35 @@ public class ExcelServiceImpl implements ExcelService {
             case NUMERIC:
                 return cell.getNumericCellValue();
             case STRING:
+                String strValue = cell.getStringCellValue().trim();
+                if (strValue.isEmpty()) {
+                    return 0.0;
+                }
                 try {
-                    return Double.parseDouble(cell.getStringCellValue().trim());
+                    // Handle comma as decimal separator (Bulgarian format)
+                    strValue = strValue.replace(',', '.');
+                    return Double.parseDouble(strValue);
                 } catch (NumberFormatException e) {
+                    return 0.0;
+                }
+            case BLANK:
+                return 0.0;
+            case FORMULA:
+                try {
+                    switch (cell.getCachedFormulaResultType()) {
+                        case NUMERIC:
+                            return cell.getNumericCellValue();
+                        case STRING:
+                            String formulaStr = cell.getStringCellValue().trim();
+                            if (formulaStr.isEmpty()) {
+                                return 0.0;
+                            }
+                            formulaStr = formulaStr.replace(',', '.');
+                            return Double.parseDouble(formulaStr);
+                        default:
+                            return 0.0;
+                    }
+                } catch (Exception e) {
                     return 0.0;
                 }
             default:
@@ -261,24 +363,52 @@ public class ExcelServiceImpl implements ExcelService {
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
                 
+                // Skip empty rows
+                if (row == null || row.getPhysicalNumberOfCells() == 0) {
+                    continue;
+                }
+                
                 try {
                     Building building = new Building();
                     
                     // Expected columns: Име, Адрес, Статус, Етап, Бележки
+                    String name = "";
                     if (row.getCell(0) != null) {
-                        building.setName(getCellValueAsString(row.getCell(0)).trim());
+                        name = getCellValueAsString(row.getCell(0)).trim();
+                        building.setName(name);
                     }
+                    
                     if (row.getCell(1) != null) {
-                        building.setAddress(getCellValueAsString(row.getCell(1)));
+                        String address = getCellValueAsString(row.getCell(1)).trim();
+                        if (!address.isEmpty()) {
+                            building.setAddress(address);
+                        }
                     }
+                    
                     if (row.getCell(2) != null) {
-                        building.setStatus(getCellValueAsString(row.getCell(2)));
+                        String status = getCellValueAsString(row.getCell(2)).trim();
+                        if (!status.isEmpty()) {
+                            building.setStatus(status);
+                        }
                     }
+                    
                     if (row.getCell(3) != null) {
-                        building.setStage(getCellValueAsString(row.getCell(3)));
+                        String stage = getCellValueAsString(row.getCell(3)).trim();
+                        if (!stage.isEmpty()) {
+                            building.setStage(stage);
+                        }
                     }
+                    
                     if (row.getCell(4) != null) {
-                        building.setNotes(getCellValueAsString(row.getCell(4)));
+                        String notes = getCellValueAsString(row.getCell(4)).trim();
+                        if (!notes.isEmpty()) {
+                            building.setNotes(notes);
+                        }
+                    }
+                    
+                    // Skip rows with empty name (completely empty rows)
+                    if (name == null || name.isEmpty()) {
+                        continue; // Skip empty rows silently
                     }
                     
                     // Validate required fields
@@ -300,23 +430,42 @@ public class ExcelServiceImpl implements ExcelService {
                         building.setStatus("активна");
                     }
                     
+                    // Initialize lists before saving
+                    building.setApartments(new java.util.ArrayList<>());
+                    building.setGarages(new java.util.ArrayList<>());
+                    building.setBasements(new java.util.ArrayList<>());
+                    building.setParkingSpaces(new java.util.ArrayList<>());
+                    building.setCommercialSpaces(new java.util.ArrayList<>());
+                    
                     // Save building
-                    buildingService.saveBuilding(building);
+                    Building savedBuilding = buildingService.saveBuilding(building);
                     imported++;
+                    
+                    System.out.println("✓ Импортирана сграда: " + savedBuilding.getName() + " (ID: " + savedBuilding.getId() + ")");
                     
                 } catch (Exception e) {
                     skipped++;
-                    errors.add("Ред " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    String errorMsg = "Ред " + (row.getRowNum() + 1) + ": " + e.getMessage();
+                    errors.add(errorMsg);
+                    System.err.println("✗ Грешка при импорт на ред " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
             
+            System.out.println("=== Импорт на сгради завършен: " + imported + " импортирани, " + skipped + " пропуснати ===");
+            
         } catch (Exception e) {
-            errors.add("Грешка при четене на файла: " + e.getMessage());
+            String errorMsg = "Грешка при четене на файла: " + e.getMessage();
+            errors.add(errorMsg);
+            System.err.println("✗ " + errorMsg);
+            e.printStackTrace();
         }
         
         result.put("imported", imported);
         result.put("skipped", skipped);
         result.put("errors", errors);
+        
+        System.out.println("Резултат от импорт: " + result);
         
         return result;
     }

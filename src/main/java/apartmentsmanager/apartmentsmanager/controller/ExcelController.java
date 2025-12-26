@@ -91,12 +91,15 @@ public class ExcelController {
         }
         
         try {
-            // Validate file structure
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(file.getBytes());
-            if (!excelService.validateExcelStructure(inputStream)) {
-                response.put("success", false);
-                response.put("message", "Невалидна структура на Excel файла. Моля, използвайте предоставения шаблон.");
-                return ResponseEntity.badRequest().body(response);
+            // For buildings import, skip strict validation as format is simpler
+            if (!"buildings".equalsIgnoreCase(importType)) {
+                // Validate file structure for apartments and clients
+                ByteArrayInputStream inputStream = new ByteArrayInputStream(file.getBytes());
+                if (!excelService.validateExcelStructure(inputStream)) {
+                    response.put("success", false);
+                    response.put("message", "Невалидна структура на Excel файла. Моля, използвайте предоставения шаблон.");
+                    return ResponseEntity.badRequest().body(response);
+                }
             }
             
             // Import based on type

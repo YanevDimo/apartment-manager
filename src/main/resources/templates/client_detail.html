@@ -1,269 +1,335 @@
 ﻿<!DOCTYPE html>
-<html lang="bg">
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link href="/static/css/app.css" rel="stylesheet" />
-<meta charset="UTF-8" />
-     <link href="/static/css/app.css" rel="stylesheet" />
-<title>Детайли</title>
+    <title>Детайли за клиент</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link href="/static/css/app.css" rel="stylesheet" />
+    <!-- Sidebar Styles -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
+    <style>
+        .stat-card {
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .payment-badge {
+            font-size: 0.75rem;
+        }
+        .progress {
+            height: 20px;
+        }
+    </style>
 </head>
 <body>
- <div>Детайли</div>
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarToggle}"></th:block>
+    
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
 
- <div>
-<div class="container-fluid">
- <div class="row">
- <!-- Информация за клиента -->
- <div class="col-md-4">
- <div class="card">
- <div class="card-header">
- <h5 class="mb-0">
- <i class="bi bi-person"></i> Информация за клиента
- </h5>
- </div>
- <div class="card-body">
- <div class="mb-3">
- <h4 class="text-primary"></h4>
- <small class="text-muted">ID: <span></span></small>
- </div>
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container-fluid py-4">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/clients}">Клиенти</a></li>
+                    <li class="breadcrumb-item active" th:text="${client.name}">Клиент</li>
+                </ol>
+            </nav>
 
- <div class="mb-3">
- <h6><i class="bi bi-telephone text-success"></i> Телефон</h6>
- <a class="text-decoration-none"
->
- </a>
- <span class="text-muted">Не е посочен</span>
- </div>
+            <div class="row">
+                <!-- Left Sidebar - Client Information -->
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-person"></i> Информация за клиента
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h4 class="text-primary" th:text="${client.name}">Име на клиент</h4>
+                                <small class="text-muted">ID: <span th:text="${client.id}"></span></small>
+                            </div>
 
- <div class="mb-3">
- <h6><i class="bi bi-envelope text-primary"></i> Имейл</h6>
- <a class="text-decoration-none"
->
- </a>
- <span class="text-muted">Не е посочен</span>
- </div>
+                            <hr />
 
- <div class="mb-3">
- <h6><i class="bi bi-sticky text-warning"></i> Бележки</h6>
- <p class="text-muted"></p>
- </div>
+                            <div class="mb-3" th:if="${client.phone != null and !client.phone.isEmpty()}">
+                                <h6><i class="bi bi-telephone text-success"></i> Телефон</h6>
+                                <a th:href="@{'tel:' + ${client.phone}}" class="text-decoration-none" th:text="${client.phone}">+359 888 123 456</a>
+                            </div>
+                            <div class="mb-3" th:unless="${client.phone != null and !client.phone.isEmpty()}">
+                                <h6><i class="bi bi-telephone text-muted"></i> Телефон</h6>
+                                <span class="text-muted">Не е посочен</span>
+                            </div>
 
- <div class="mb-3">
- <small class="text-muted">
- <i class="bi bi-calendar-plus"></i> Създаден:
- <span></span>
- <span>
- <br /><i class="bi bi-calendar-check"></i> Последна промяна:
- <span></span>
- </span>
- </small>
- </div>
+                            <div class="mb-3" th:if="${client.email != null and !client.email.isEmpty()}">
+                                <h6><i class="bi bi-envelope text-primary"></i> Имейл</h6>
+                                <a th:href="@{'mailto:' + ${client.email}}" class="text-decoration-none" th:text="${client.email}">client@example.com</a>
+                            </div>
+                            <div class="mb-3" th:unless="${client.email != null and !client.email.isEmpty()}">
+                                <h6><i class="bi bi-envelope text-muted"></i> Имейл</h6>
+                                <span class="text-muted">Не е посочен</span>
+                            </div>
 
- <div class="d-grid gap-2">
- <a href="/clients/edit(clientId=)" class="btn btn-warning">
- <i class="bi bi-pencil"></i> Редактирай
- </a>
- <a href="/clients" class="btn btn-secondary">
- <i class="bi bi-arrow-left"></i> Назад към списъка
- </a>
- </div>
- </div>
- </div>
- </div>
+                            <div class="mb-3" th:if="${client.egn != null and !client.egn.isEmpty()}">
+                                <h6><i class="bi bi-card-text text-info"></i> ЕГН/ЕИК</h6>
+                                <span th:text="${client.egn}">1234567890</span>
+                            </div>
 
- <!-- Покупки и плащания -->
- <div class="col-md-8">
- <div>
- <!-- Обобщение -->
- <div class="row mb-4">
- <div class="col-md-3">
- <div class="card bg-primary text-white">
- <div class="card-body text-center">
- <h4></h4>
- <small>Имота</small>
- </div>
- </div>
- </div>
- <div class="col-md-3">
- <div class="card bg-info text-white">
- <div class="card-body text-center">
- <h4></h4>
- <small>Обща стойност</small>
- </div>
- </div>
- </div>
- <div class="col-md-3">
- <div class="card bg-success text-white">
- <div class="card-body text-center">
- <h4></h4>
- <small>Платено</small>
- </div>
- </div>
- </div>
- <div class="col-md-3">
- <div class="card text-white"
->
- <div class="card-body text-center">
- <h4></h4>
- <small>Остатък</small>
- </div>
- </div>
- </div>
- </div>
+                            <div class="mb-3" th:if="${client.address != null and !client.address.isEmpty()}">
+                                <h6><i class="bi bi-geo-alt text-warning"></i> Адрес</h6>
+                                <span th:text="${client.address}">Адрес</span>
+                            </div>
 
- <!-- Детайли по имоти -->
- <div class="card">
- <div class="card-header">
- <h5 class="mb-0">
- <i class="bi bi-building"></i> Покупени имоти
- </h5>
- </div>
- <div class="card-body">
- <div class="card mb-3">
- <div class="card-body">
- <div class="row">
- <div class="col-md-6">
- <h6 class="card-title">
- <i class="bi bi-house"></i> <span></span>
- </h6>
- <p class="card-text">
- <small class="text-muted">
- <i class="bi bi-rulers"></i> <span></span> кв.м |
- <i class="bi bi-currency-euro"></i> <span></span> |
- <i class="bi bi-box"></i> <span></span> |
- <i class="bi bi-gear"></i> <span></span>
- </small>
- </p>
- </div>
- <div class="col-md-6">
- <div class="text-end">
- <h5 class="text-primary"></h5>
- <div class="progress mb-2" style="height: 15px;">
- <div class="progress-bar">
- <span></span>
- </div>
- </div>
- <small class="text-muted">
- Платено: <span></span> |
- Остатък: <span></span>
- </small>
- </div>
- </div>
- </div>
+                            <div class="mb-3" th:if="${client.notes != null and !client.notes.isEmpty()}">
+                                <h6><i class="bi bi-sticky text-warning"></i> Бележки</h6>
+                                <p class="text-muted" th:text="${client.notes}">Бележки</p>
+                            </div>
 
- <!-- Методи на плащане за този имот -->
- <div class="row mt-3">
- <div class="col-12">
- <div class="card border-light">
- <div class="card-body py-2">
- <h6 class="card-title mb-2">
- <i class="bi bi-cash-stack me-2"></i>Методи на плащане за този имот
- </h6>
- <div class="row text-center">
- <div class="col-md-6">
- <div class="d-flex align-items-center justify-content-center">
- <i class="bi bi-bank text-primary me-2"></i>
- <span class="fw-bold text-primary"></span>
- <small class="text-muted ms-2">по банка</small>
- </div>
- </div>
- <div class="col-md-6">
- <div class="d-flex align-items-center justify-content-center">
- <i class="bi bi-cash text-success me-2"></i>
- <span class="fw-bold text-success"></span>
- <small class="text-muted ms-2">в брой</small>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
+                            <hr />
 
- <!-- История на плащанията за този имот -->
- <div class="row mt-3">
- <div class="col-12">
- <div class="card border-light">
- <div class="card-header py-2">
- <h6 class="mb-0">
- <i class="bi bi-clock-history me-2"></i>История на плащанията за <span></span>
- </h6>
- </div>
- <div class="card-body py-2">
- <div>
- <div class="card border-light mb-2">
- <div class="card-body py-2">
- <div class="d-flex justify-content-between align-items-start mb-1">
- <div>
- <small class="fw-bold text-primary"></small>
- <br />
- <small class="text-muted"></small>
- </div>
- <div class="text-end">
- <small class="fw-bold"></small>
- <br />
- <span class="badge"
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar-plus"></i> Създаден:
+                                    <span th:text="${#temporals.format(client.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                                    <span th:if="${client.updatedAt != null}">
+                                        <br /><i class="bi bi-calendar-check"></i> Последна промяна:
+                                        <span th:text="${#temporals.format(client.updatedAt, 'dd.MM.yyyy HH:mm')}"></span>
+                                    </span>
+                                </small>
+                            </div>
 
- style="font-size: 0.7em;">
- <i></i>
- <span></span>
- </span>
- </div>
- </div>
- <div class="mt-1">
- <small class="text-muted">
- <i class="bi bi-receipt"></i> <span></span>
- </small>
- </div>
- <div class="mt-1">
- <span class="badge bg-warning" style="font-size: 0.7em;">
- <i class="bi bi-cash-stack"></i> Капаро
- </span>
- </div>
- </div>
- </div>
- </div>
- <div class="text-center mt-2">
- <small class="text-muted">
- И още <span></span> плащания...
- </small>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
- <div>
- <!-- Няма покупки -->
- <div class="card">
- <div class="card-body text-center">
- <div class="py-5">
- <i class="bi bi-cart text-muted" style="font-size: 4rem;"></i>
- <h4 class="text-muted mt-3">Няма покупки</h4>
- <p class="text-muted">Клиентът все още няма покупки.</p>
- <a href="/add-apartment" class="btn btn-primary">
- <i class="bi bi-plus-circle"></i> Добави покупка
- </a>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
-</div>
+                            <div class="d-grid gap-2">
+                                <a th:href="@{/clients/edit/{id}(id=${client.id})}" class="btn btn-warning">
+                                    <i class="bi bi-pencil"></i> Редактирай
+                                </a>
+                                <a th:href="@{/clients}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Назад към списъка
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<style>
-.opacity-75 {
- opacity: 0.75;
-}
-</style>
- </div>
+                <!-- Main Content - Apartments and Payments -->
+                <div class="col-md-8">
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h4 th:text="${apartmentsCount}">0</h4>
+                                    <small>Имота</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4 th:text="${#numbers.formatDecimal(totalValue, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</h4>
+                                    <small>Обща стойност</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4 th:text="${#numbers.formatDecimal(totalPaid, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</h4>
+                                    <small>Платено</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card text-white" th:classappend="${remaining.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'bg-warning' : 'bg-secondary'">
+                                <div class="card-body text-center">
+                                    <h4 th:text="${#numbers.formatDecimal(remaining, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</h4>
+                                    <small>Остатък</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
- <div>
- </div>
+                    <!-- Payment Methods Breakdown -->
+                    <div class="row mb-4" th:if="${totalBankPayments.compareTo(T(java.math.BigDecimal).ZERO) > 0 or totalCashPayments.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                        <div class="col-12">
+                            <div class="card border-light">
+                                <div class="card-body py-2">
+                                    <h6 class="card-title mb-2">
+                                        <i class="bi bi-cash-stack me-2"></i>Методи на плащане
+                                    </h6>
+                                    <div class="row text-center">
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-bank text-primary me-2"></i>
+                                                <span class="fw-bold text-primary" th:text="${#numbers.formatDecimal(totalBankPayments, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
+                                                <small class="text-muted ms-2">по банка</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-cash text-success me-2"></i>
+                                                <span class="fw-bold text-success" th:text="${#numbers.formatDecimal(totalCashPayments, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
+                                                <small class="text-muted ms-2">в брой</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Apartments List -->
+                    <div th:if="${client.apartments != null and !client.apartments.isEmpty()}">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-dark text-white">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-building"></i> Покупени имоти
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div th:each="apt : ${client.apartments}" class="card mb-3 border">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6 class="card-title">
+                                                    <i class="bi bi-house text-primary"></i> 
+                                                    <span th:text="${apt.buildingName != null ? apt.buildingName : (apt.building != null ? apt.building.name : 'Неизвестна сграда')} + ' - Ап. ' + ${apt.apartmentNumber}">Сграда - Ап. 1</span>
+                                                </h6>
+                                                <p class="card-text">
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-rulers"></i> 
+                                                        <span th:text="${#numbers.formatDecimal(apt.area, 0, 'COMMA', 2, 'POINT')}">0.00</span> кв.м |
+                                                        <i class="bi bi-currency-euro"></i> 
+                                                        <span th:text="${#numbers.formatDecimal(apt.pricePerM2, 0, 'COMMA', 2, 'POINT')}">0.00</span> €/кв.м |
+                                                        <i class="bi bi-box"></i> 
+                                                        <span th:text="${apt.stage != null ? apt.stage : 'Не посочен'}">Етап</span>
+                                                    </small>
+                                                </p>
+                                                <div th:if="${apt.notes != null and !apt.notes.isEmpty()}">
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-sticky"></i> <span th:text="${apt.notes}">Бележки</span>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="text-end">
+                                                    <h5 class="text-primary" th:text="${#numbers.formatDecimal(apt.totalPrice, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</h5>
+                                                    <div class="progress mb-2" style="height: 20px;">
+                                                        <div class="progress-bar" 
+                                                             th:classappend="${apt.totalPrice != null and apt.totalPrice.compareTo(T(java.math.BigDecimal).ZERO) > 0 and apt.getTotalPaid().compareTo(apt.totalPrice) >= 0} ? 'bg-success' : 
+                                                                              (${apt.totalPrice != null and apt.totalPrice.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'bg-info' : 'bg-secondary')"
+                                                             th:with="paidAmount=${apt.getTotalPaid() != null ? apt.getTotalPaid() : T(java.math.BigDecimal).ZERO},
+                                                                      totalAmount=${apt.totalPrice != null ? apt.totalPrice : T(java.math.BigDecimal).ZERO},
+                                                                      percentage=${totalAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? 
+                                                                                  paidAmount.divide(totalAmount, 2, T(java.math.RoundingMode).HALF_UP).multiply(T(java.math.BigDecimal).valueOf(100)) : 
+                                                                                  T(java.math.BigDecimal).ZERO}"
+                                                             th:style="${totalAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 
+                                                                        ('width: ' + ${#numbers.formatDecimal(percentage, 0, 'POINT', 0, 'POINT')} + '%;') : 
+                                                                        'width: 0%;'">
+                                                            <span th:text="${totalAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 
+                                                                          (#numbers.formatDecimal(percentage, 0, 'POINT', 0, 'POINT') + '%') : '0%'">0%</span>
+                                                        </div>
+                                                    </div>
+                                                    <small class="text-muted">
+                                                        Платено: <span class="text-success fw-bold" th:text="${#numbers.formatDecimal(apt.getTotalPaid(), 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span> |
+                                                        Остатък: <span class="text-warning fw-bold" th:text="${#numbers.formatDecimal(apt.getRemainingPayment(), 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Payment History for this Apartment -->
+                                        <div class="row mt-3" th:if="${apt.payments != null and !apt.payments.isEmpty()}">
+                                            <div class="col-12">
+                                                <div class="card border-light">
+                                                    <div class="card-header py-2 bg-light">
+                                                        <h6 class="mb-0">
+                                                            <i class="bi bi-clock-history me-2"></i>История на плащанията
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body py-2">
+                                                        <div th:each="payment, iterStat : ${apt.payments}" th:if="${iterStat.index < 5}" class="card border-light mb-2">
+                                                            <div class="card-body py-2">
+                                                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                                                    <div>
+                                                                        <small class="fw-bold text-primary" th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</small>
+                                                                        <br />
+                                                                        <small class="text-muted" th:text="${#temporals.format(payment.paymentDate, 'dd.MM.yyyy')}">Дата</small>
+                                                                    </div>
+                                                                    <div class="text-end">
+                                                                        <span class="badge" 
+                                                                              th:classappend="${payment.paymentMethod == 'Банка' or payment.paymentMethod == 'Bank Transfer' or payment.paymentMethod == 'Bank'} ? 'bg-primary' : 'bg-success'"
+                                                                              style="font-size: 0.7em;">
+                                                                            <i th:classappend="${payment.paymentMethod == 'Банка' or payment.paymentMethod == 'Bank Transfer' or payment.paymentMethod == 'Bank'} ? 'bi bi-bank' : 'bi bi-cash'"></i>
+                                                                            <span th:text="${payment.paymentMethod != null ? payment.paymentMethod : 'Не посочен'}">Метод</span>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mt-1" th:if="${payment.invoiceNumber != null and !payment.invoiceNumber.isEmpty()}">
+                                                                    <small class="text-muted">
+                                                                        <i class="bi bi-receipt"></i> <span th:text="'Фактура: ' + ${payment.invoiceNumber}">Фактура</span>
+                                                                    </small>
+                                                                </div>
+                                                                <div class="mt-1" th:if="${payment.paymentStage != null and !payment.paymentStage.isEmpty()}">
+                                                                    <span class="badge bg-info" style="font-size: 0.7em;">
+                                                                        <i class="bi bi-tag"></i> <span th:text="${payment.paymentStage}">Етап</span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="mt-1" th:if="${payment.isDeposit != null and payment.isDeposit}">
+                                                                    <span class="badge bg-warning" style="font-size: 0.7em;">
+                                                                        <i class="bi bi-cash-stack"></i> Капаро
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-center mt-2" th:if="${apt.payments.size() > 5}">
+                                                            <small class="text-muted">
+                                                                И още <span th:text="${apt.payments.size() - 5}">0</span> плащания...
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div th:unless="${client.apartments != null and !client.apartments.isEmpty()}">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center">
+                                <div class="py-5">
+                                    <i class="bi bi-cart text-muted" style="font-size: 4rem;"></i>
+                                    <h4 class="text-muted mt-3">Няма покупки</h4>
+                                    <p class="text-muted">Клиентът все още няма покупки.</p>
+                                    <a th:href="@{/add-apartment}" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle"></i> Добави покупка
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <!-- Sidebar Script -->
+        <th:block th:replace="~{fragments/sidebar :: sidebarScript}"></th:block>
+    </div> <!-- End main-content -->
 </body>
 </html>

@@ -1,181 +1,242 @@
 ﻿<!DOCTYPE html>
-<html lang="bg">
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link href="/static/css/app.css" rel="stylesheet" />
-<meta charset="UTF-8" />
-     <link href="/static/css/app.css" rel="stylesheet" />
-<title>Редактиране на клиент</title>
+    <title>Редактиране на клиент</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link href="/static/css/app.css" rel="stylesheet" />
+    <!-- Sidebar Styles -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
 </head>
 <body>
- <div>Редактиране на клиент</div>
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarToggle}"></th:block>
+    
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
 
- <div>
-<div class="container">
- <div class="row justify-content-center">
- <div class="col-md-8">
- <div class="card">
- <div class="card-header">
- <h4 class="mb-0">
- <i class="bi bi-person-edit"></i> Редактиране на клиент
- </h4>
- <small class="text-muted">ID: <span></span></small>
- </div>
- <div class="card-body">
- <form method="POST" action="/clients/edit(clientId=)">
- <div class="mb-3">
- <label for="name" class="form-label">
- Име <span class="text-danger">*</span>
- </label>
- <input type="text" class="form-control" id="name" name="name"
- required maxlength="255"
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container-fluid py-4">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="mb-0">
+                                    <i class="bi bi-person-edit"></i> Редактиране на клиент
+                                </h4>
+                                <small class="text-muted">ID: <span th:text="${client.id}"></span></small>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" th:action="@{/clients/edit/{id}(id=${client.id})}" th:object="${client}">
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">
+                                            Име <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="name" name="name"
+                                               th:field="*{name}" required maxlength="255"
+                                               placeholder="Въведете пълното име на клиента" />
+                                        <div class="form-text">Задължително поле</div>
+                                        <div th:if="${#fields.hasErrors('name')}" class="text-danger" th:errors="*{name}"></div>
+                                    </div>
 
- placeholder="Въведете пълното име на клиента" />
- <div class="form-text">Задължително поле</div>
- </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="phone" class="form-label">
+                                                    <i class="bi bi-telephone"></i> Телефон
+                                                </label>
+                                                <input type="tel" class="form-control" id="phone" name="phone"
+                                                       th:field="*{phone}" maxlength="50"
+                                                       placeholder="Например: +359 888 123 456" />
+                                                <div class="form-text">Незадължително поле</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label">
+                                                    <i class="bi bi-envelope"></i> Имейл
+                                                </label>
+                                                <input type="email" class="form-control" id="email" name="email"
+                                                       th:field="*{email}" maxlength="255"
+                                                       placeholder="Например: client@example.com" />
+                                                <div class="form-text">Незадължително поле</div>
+                                                <div th:if="${#fields.hasErrors('email')}" class="text-danger" th:errors="*{email}"></div>
+                                            </div>
+                                        </div>
+                                    </div>
 
- <div class="row">
- <div class="col-md-6">
- <div class="mb-3">
- <label for="phone" class="form-label">
- <i class="bi bi-telephone"></i> Телефон
- </label>
- <input type="tel" class="form-control" id="phone" name="phone"
- maxlength="50"
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="egn" class="form-label">
+                                                    <i class="bi bi-card-text"></i> ЕГН/ЕИК
+                                                </label>
+                                                <input type="text" class="form-control" id="egn" name="egn"
+                                                       th:field="*{egn}" maxlength="100"
+                                                       placeholder="Например: 1234567890" />
+                                                <div class="form-text">Незадължително поле</div>
+                                                <div th:if="${#fields.hasErrors('egn')}" class="text-danger" th:errors="*{egn}"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="address" class="form-label">
+                                                    <i class="bi bi-geo-alt"></i> Адрес
+                                                </label>
+                                                <input type="text" class="form-control" id="address" name="address"
+                                                       th:field="*{address}"
+                                                       placeholder="Например: София, ул. Примерна 1" />
+                                                <div class="form-text">Незадължително поле</div>
+                                            </div>
+                                        </div>
+                                    </div>
 
- placeholder="Например: +359 888 123 456" />
- <div class="form-text">Незадължително поле</div>
- </div>
- </div>
- <div class="col-md-6">
- <div class="mb-3">
- <label for="email" class="form-label">
- <i class="bi bi-envelope"></i> Имейл
- </label>
- <input type="email" class="form-control" id="email" name="email"
- maxlength="255"
+                                    <div class="mb-3">
+                                        <label for="notes" class="form-label">
+                                            <i class="bi bi-sticky"></i> Бележки
+                                        </label>
+                                        <textarea class="form-control" id="notes" name="notes" rows="3"
+                                                  th:field="*{notes}"
+                                                  placeholder="Допълнителна информация за клиента..."></textarea>
+                                        <div class="form-text">Незадължително поле за допълнителна информация</div>
+                                    </div>
 
- placeholder="Например: client@example.com" />
- <div class="form-text">Незадължително поле</div>
- </div>
- </div>
- </div>
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar-plus"></i> Създаден:
+                                            <span th:text="${#temporals.format(client.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                                            <span th:if="${client.updatedAt != null}">
+                                                <br /><i class="bi bi-calendar-check"></i> Последна промяна:
+                                                <span th:text="${#temporals.format(client.updatedAt, 'dd.MM.yyyy HH:mm')}"></span>
+                                            </span>
+                                        </small>
+                                    </div>
 
- <div class="mb-3">
- <label for="notes" class="form-label">
- <i class="bi bi-sticky"></i> Бележки
- </label>
- <textarea class="form-control" id="notes" name="notes" rows="3"
- placeholder="Допълнителна информация за клиента..."
-></textarea>
- <div class="form-text">Незадължително поле за допълнителна информация</div>
- </div>
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <a th:href="@{/clients}" class="btn btn-secondary">
+                                            <i class="bi bi-x"></i> Отказ
+                                        </a>
+                                        <a th:href="@{/clients/{id}(id=${client.id})}" class="btn btn-info">
+                                            <i class="bi bi-eye"></i> Детайли
+                                        </a>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="bi bi-save"></i> Запази промени
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
 
- <div class="mb-3">
- <small class="text-muted">
- <i class="bi bi-calendar-plus"></i> Създаден:
- <span></span>
- <span>
- <br /><i class="bi bi-calendar-check"></i> Последна промяна:
- <span></span>
- </span>
- </small>
- </div>
+                        <!-- Опасна зона -->
+                        <div class="card mt-3 border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-exclamation-triangle"></i> Опасна зона
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">
+                                    Изтриването на клиент ще премахне всичките му данни и връзки с покупки.
+                                    Това действие не може да бъде отменено!
+                                </p>
+                                <button type="button" class="btn btn-outline-danger" onclick="deleteClient()">
+                                    <i class="bi bi-trash"></i> Изтрий клиент
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
- <div class="d-grid gap-2 d-md-flex justify-content-md-end">
- <a href="/clients" class="btn btn-secondary">
- <i class="bi bi-x"></i> Отказ
- </a>
- <a href="/clients/detail(clientId=)" class="btn btn-info">
- <i class="bi bi-eye"></i> Детайли
- </a>
- <button type="submit" class="btn btn-warning">
- <i class="bi bi-save"></i> Запази промени
- </button>
- </div>
- </form>
- </div>
- </div>
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Валидация на формата
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.querySelector('form');
+                const nameInput = document.getElementById('name');
+                const phoneInput = document.getElementById('phone');
+                const emailInput = document.getElementById('email');
 
- <!-- Опасна зона -->
- <div class="card mt-3 border-danger">
- <div class="card-header bg-danger text-white">
- <h6 class="mb-0">
- <i class="bi bi-exclamation-triangle"></i> Опасна зона
- </h6>
- </div>
- <div class="card-body">
- <p class="text-muted mb-3">
- Изтриването на клиент ще премахне всичките му данни и връзки с покупки.
- Това действие не може да бъде отменено!
- </p>
- <form action="/clients/delete" method="POST" class="d-inline">
- <input type="hidden" name="clientId" />
- <button type="submit" class="btn btn-outline-danger"
- onclick="return confirm('Сигурни ли сте, че искате да изтриете клиента?')">
- <i class="bi bi-trash"></i> Изтрий клиент
- </button>
- </form>
- </div>
- </div>
- </div>
- </div>
-</div>
- </div>
+                // Валидация на име
+                nameInput.addEventListener('blur', function() {
+                    if (this.value.trim().length < 2) {
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                });
 
- <div>
-<script>
-// Валидация на формата
-document.addEventListener('DOMContentLoaded', function() {
- const form = document.querySelector('form');
- const nameInput = document.getElementById('name');
- const phoneInput = document.getElementById('phone');
- const emailInput = document.getElementById('email');
+                // Валидация на телефон
+                phoneInput.addEventListener('blur', function() {
+                    if (this.value && this.value.trim().length < 6) {
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        if (this.value) this.classList.add('is-valid');
+                    }
+                });
 
- // Валидация на име
- nameInput.addEventListener('blur', function() {
- if (this.value.trim().length < 2) {
- this.classList.add('is-invalid');
- } else {
- this.classList.remove('is-invalid');
- this.classList.add('is-valid');
- }
- });
+                // Валидация на имейл
+                emailInput.addEventListener('blur', function() {
+                    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (this.value && !emailPattern.test(this.value)) {
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        if (this.value) this.classList.add('is-valid');
+                    }
+                });
 
- // Валидация на телефон
- phoneInput.addEventListener('blur', function() {
- if (this.value && this.value.trim().length < 6) {
- this.classList.add('is-invalid');
- } else {
- this.classList.remove('is-invalid');
- if (this.value) this.classList.add('is-valid');
- }
- });
+                // Валидация при изпращане
+                form.addEventListener('submit', function(e) {
+                    const name = nameInput.value.trim();
 
- // Валидация на имейл
- emailInput.addEventListener('blur', function() {
- const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
- if (this.value && !emailPattern.test(this.value)) {
- this.classList.add('is-invalid');
- } else {
- this.classList.remove('is-invalid');
- if (this.value) this.classList.add('is-valid');
- }
- });
+                    if (name.length < 2) {
+                        e.preventDefault();
+                        nameInput.classList.add('is-invalid');
+                        nameInput.focus();
+                        alert('Моля въведете валидно име (минимум 2 символа)');
+                    }
+                });
+            });
 
- // Валидация при изпращане
- form.addEventListener('submit', function(e) {
- const name = nameInput.value.trim();
-
- if (name.length < 2) {
- e.preventDefault();
- nameInput.classList.add('is-invalid');
- nameInput.focus();
- alert('Моля въведете валидно име (минимум 2 символа)');
- }
- });
-});
-</script>
- </div>
+            function deleteClient() {
+                if (confirm('Сигурни ли сте, че искате да изтриете клиента? Това действие не може да бъде отменено!')) {
+                    const clientId = [[${client.id}]];
+                    $.ajax({
+                        url: '/clients/api/delete/' + clientId,
+                        method: 'DELETE',
+                        success: function(response) {
+                            if (response.success) {
+                                window.location.href = '/clients';
+                            } else {
+                                alert('Грешка: ' + (response.message || 'Неуспешно изтриване'));
+                            }
+                        },
+                        error: function(xhr) {
+                            let errorMessage = 'Грешка при изтриване';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                            alert(errorMessage);
+                        }
+                    });
+                }
+            }
+        </script>
+        
+        <!-- Sidebar Script -->
+        <th:block th:replace="~{fragments/sidebar :: sidebarScript}"></th:block>
+    </div> <!-- End main-content -->
 </body>
 </html>

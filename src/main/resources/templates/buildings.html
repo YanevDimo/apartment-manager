@@ -52,23 +52,138 @@
         </div>
 
 <!-- Информация за текущата сграда -->
-<div class="row mb-4">
+<div class="row mb-4" th:if="${currentBuilding != null}">
  <div class="col-12">
- <div class="card border-left-primary">
- <div class="card-body">
+ <div class="card border-left-primary shadow-sm">
+ <div class="card-header bg-primary text-white">
  <div class="d-flex justify-content-between align-items-center">
- <div>
- <h5 class="card-title text-primary">
- <i class="bi bi-building me-2"></i>Текуща сграда
+ <h5 class="mb-0">
+ <i class="bi bi-building me-2"></i>Текуща сграда: <span th:text="${currentBuilding.name}">Име</span>
  </h5>
- <h4 class="mb-1"></h4>
- <p class="text-muted mb-0"></p>
- <small class="text-muted">Създадена: <span></span></small>
+ <a th:href="@{/buildings/{id}(id=${currentBuilding.id})}" class="btn btn-light btn-sm">
+ <i class="bi bi-eye me-2"></i>Преглед
+ </a>
  </div>
- <div class="text-end">
- <span class="badge bg-success fs-6"></span>
- <div class="mt-2">
- <a href="/" class="btn btn-primary">
+ </div>
+ <div class="card-body">
+ <div class="row">
+ <!-- Основна информация -->
+ <div class="col-md-8">
+ <table class="table table-borderless mb-0">
+ <tbody>
+ <tr>
+ <th width="30%">Име:</th>
+ <td><strong th:text="${currentBuilding.name}">-</strong></td>
+ </tr>
+ <tr th:if="${currentBuilding.address != null and !currentBuilding.address.isEmpty()}">
+ <th>Адрес:</th>
+ <td th:text="${currentBuilding.address}">-</td>
+ </tr>
+ <tr>
+ <th>Статус:</th>
+ <td>
+ <span class="badge" 
+       th:classappend="${currentBuilding.status == 'активна'} ? 'bg-success' : 
+                       (${currentBuilding.status == 'в разработка'} ? 'bg-warning' : 
+                       (${currentBuilding.status == 'завършена'} ? 'bg-info' : 'bg-secondary'))"
+       th:text="${currentBuilding.status != null ? currentBuilding.status : 'неизвестен'}">
+ Статус
+ </span>
+ </td>
+ </tr>
+ <tr th:if="${currentBuilding.stage != null and !currentBuilding.stage.isEmpty()}">
+ <th>Етап:</th>
+ <td th:text="${currentBuilding.stage}">-</td>
+ </tr>
+ <tr>
+ <th>Дата на създаване:</th>
+ <td th:text="${currentBuilding.createdAt != null ? #temporals.format(currentBuilding.createdAt, 'dd.MM.yyyy HH:mm') : '-'}">-</td>
+ </tr>
+ <tr th:if="${currentBuilding.updatedAt != null}">
+ <th>Последна промяна:</th>
+ <td th:text="${#temporals.format(currentBuilding.updatedAt, 'dd.MM.yyyy HH:mm')}">-</td>
+ </tr>
+ <tr th:if="${currentBuilding.notes != null and !currentBuilding.notes.isEmpty()}">
+ <th>Бележки:</th>
+ <td>
+ <div class="text-muted small" style="white-space: pre-wrap;" th:text="${currentBuilding.notes}">-</div>
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ 
+ <!-- Статистики -->
+ <div class="col-md-4">
+ <div class="row g-2">
+ <div class="col-6">
+ <div class="card bg-light text-center p-2">
+ <div class="text-primary">
+ <i class="bi bi-house-door fs-4"></i>
+ </div>
+ <div class="fw-bold" th:text="${apartmentsCount}">0</div>
+ <div class="small text-muted">Апартаменти</div>
+ </div>
+ </div>
+ <div class="col-6">
+ <div class="card bg-light text-center p-2">
+ <div class="text-success">
+ <i class="bi bi-car-front fs-4"></i>
+ </div>
+ <div class="fw-bold" th:text="${garagesCount}">0</div>
+ <div class="small text-muted">Гаражи</div>
+ </div>
+ </div>
+ <div class="col-6">
+ <div class="card bg-light text-center p-2">
+ <div class="text-warning">
+ <i class="bi bi-box fs-4"></i>
+ </div>
+ <div class="fw-bold" th:text="${basementsCount}">0</div>
+ <div class="small text-muted">Мазета</div>
+ </div>
+ </div>
+ <div class="col-6">
+ <div class="card bg-light text-center p-2">
+ <div class="text-danger">
+ <i class="bi bi-p-square fs-4"></i>
+ </div>
+ <div class="fw-bold" th:text="${parkingSpacesCount}">0</div>
+ <div class="small text-muted">Паркоместа</div>
+ </div>
+ </div>
+ <div class="col-6">
+ <div class="card bg-light text-center p-2">
+ <div class="text-secondary">
+ <i class="bi bi-shop fs-4"></i>
+ </div>
+ <div class="fw-bold" th:text="${commercialSpacesCount}">0</div>
+ <div class="small text-muted">Търговски</div>
+ </div>
+ </div>
+ <div class="col-6">
+ <div class="card bg-light text-center p-2">
+ <div class="text-info">
+ <i class="bi bi-info-circle fs-4"></i>
+ </div>
+ <div class="fw-bold" th:text="${(apartmentsCount ?: 0) + (garagesCount ?: 0) + (basementsCount ?: 0) + (parkingSpacesCount ?: 0) + (commercialSpacesCount ?: 0)}">0</div>
+ <div class="small text-muted">Общо</div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ 
+ <div class="row mt-3">
+ <div class="col-12">
+ <div class="d-flex gap-2">
+ <a th:href="@{/buildings/{id}(id=${currentBuilding.id})}" class="btn btn-primary btn-sm">
+ <i class="bi bi-eye me-2"></i>Преглед с детайли
+ </a>
+ <a th:href="@{/buildings/edit/{id}(id=${currentBuilding.id})}" class="btn btn-warning btn-sm">
+ <i class="bi bi-pencil me-2"></i>Редактирай
+ </a>
+ <a href="/" class="btn btn-secondary btn-sm">
  <i class="bi bi-arrow-right me-2"></i>Към апартаментите
  </a>
  </div>
@@ -78,7 +193,8 @@
  </div>
  </div>
 </div>
-<div class="row mb-4">
+
+<div class="row mb-4" th:if="${currentBuilding == null}">
  <div class="col-12">
  <div class="alert alert-info">
  <i class="bi bi-info-circle me-2"></i>
@@ -105,10 +221,10 @@
  <table class="table table-bordered table-hover" id="buildingsTable">
  <thead class="table-light">
  <tr>
- <th>Име на сграда</th>
- <th>Адрес</th>
+ <th>Обект</th>
+ <th>Площ</th>
  <th>Дата на създаване</th>
- <th>Статус / Етап</th>
+ <th>Клиент / Цена кв.м.</th>
  <th>Действия</th>
  </tr>
  </thead>

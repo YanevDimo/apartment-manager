@@ -192,12 +192,11 @@
  </a>
  </form>
  </div>
- <div class="col-md-6 text-end">
- <small class="text-muted">
- <span' + + '\"'"></span>
- <span></span>
- </small>
- </div>
+                <div class="col-md-6 text-end">
+                <small class="text-muted" id="client-count">
+                Показани: <span id="client-count-value">0</span> клиента
+                </small>
+                </div>
  </div>
 
  <!-- Таблица с клиенти -->
@@ -284,6 +283,8 @@ function loadClients() {
             const clients = response.clients || [];
             populateTable(clients);
             updateStatistics(clients);
+            // Update client count
+            $('#client-count-value').text(clients.length);
         },
         error: function(xhr) {
             console.error('Error loading clients:', xhr);
@@ -319,10 +320,12 @@ function populateTable(clients) {
                         '<a href="mailto:' + escapeHtml(client.email) + '" class="text-decoration-none"><i class="bi bi-envelope text-primary"></i> ' + escapeHtml(client.email) + '</a>' : 
                         '<span class="text-muted">-</span>'}
                 </td>
-                <td><small class="text-muted">-</small></td>
+                <td>
+                    <small class="text-muted">${client.createdAt ? formatDate(client.createdAt) : '-'}</small>
+                </td>
                 <td>
                     <div class="d-flex gap-2 justify-content-center">
-                        <a href="/clients/api/${client.id}" class="action-icon icon-blue" title="Преглед на детайли">
+                        <a href="/clients/${client.id}" class="action-icon icon-blue" title="Преглед на детайли">
                             <i class="bi bi-file-text"></i>
                         </a>
                         <a href="#" class="action-icon icon-green" title="Редактиране на клиент" onclick="editClient(${client.id}); return false;">
@@ -369,9 +372,25 @@ function escapeHtml(text) {
     return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    try {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return day + '.' + month + '.' + year;
+    } catch (e) {
+        // If date parsing fails, try to extract date part from ISO string
+        if (dateString.includes('T')) {
+            return dateString.split('T')[0].split('-').reverse().join('.');
+        }
+        return dateString;
+    }
+}
+
 function editClient(clientId) {
-    // TODO: Implement edit functionality
-    alert('Редактиране на клиент ' + clientId + ' - функционалността ще бъде добавена');
+    window.location.href = '/clients/edit/' + clientId;
 }
 
 function confirmDelete(clientId, clientName) {

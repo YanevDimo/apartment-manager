@@ -20,3 +20,4 @@ public interface BasementRepository extends JpaRepository<Basement, Long> {
     boolean existsByBuildingIdAndBasementNumber(Long buildingId, String basementNumber);
 }
 
+

@@ -146,3 +146,4 @@ Check if Hibernate is creating/updating the table:
 4. **Null pointer**: If lists are not initialized (should be handled)
 5. **Validation error**: Name is blank (should show in form)
 
+

@@ -11,6 +11,8 @@ public interface ClientService {
     
     Optional<Client> getClientById(Long id);
     
+    Optional<Client> getClientByIdWithApartmentsAndPayments(Long id);
+    
     Client saveClient(Client client);
     
     void deleteClient(Long id);
@@ -18,4 +20,6 @@ public interface ClientService {
     List<Client> searchClients(String searchTerm);
     
     Optional<Client> findByEgn(String egn);
+    
+    Long getApartmentCountForClient(Long clientId);
 }
