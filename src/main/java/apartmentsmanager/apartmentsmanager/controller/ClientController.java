@@ -20,9 +20,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/clients")
 public class ClientController {
     
-    // Separate controller method for /add-client (outside /clients context)
-    // This will be handled by a separate method or we'll add it to MainController
-    
     private final ClientService clientService;
     
     @Autowired

@@ -1,588 +1,584 @@
 ﻿<!DOCTYPE html>
 <html lang="bg">
 <head>
- <meta charset="UTF-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1.0" />
- <title>Dashboard - Анализ на апартаменти</title>
- <!-- Bootstrap 5 CSS -->
- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
- <!-- Bootstrap Icons -->
- <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
- <!-- DataTables CSS -->
- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
- <style>
- :root {
- --primary: #4e73df;
- --success: #1cc88a;
- --info: #36b9cc;
- --warning: #f6c23e;
- --danger: #e74a3b;
- --secondary: #858796;
- --light: #f8f9fc;
- --dark: #5a5c69;
- }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Управление на апартаменти</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <!-- Custom CSS -->
+    <link href="/static/css/app.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #4e73df;
+            --success: #1cc88a;
+            --info: #36b9cc;
+            --warning: #f6c23e;
+            --danger: #e74a3b;
+            --secondary: #858796;
+            --light: #f8f9fc;
+            --dark: #5a5c69;
+        }
 
- body {
- background-color: #f8f9fc;
- font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
- }
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
 
- .stats-card {
- border: none;
- border-radius: 10px;
- box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
- color: white;
- transition: transform 0.2s;
- }
+        .stats-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            color: white;
+            transition: transform 0.2s;
+        }
 
- .stats-card:hover {
- transform: translateY(-5px);
- }
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
 
- .stats-label {
- font-size: 0.9rem;
- font-weight: 700;
- text-transform: uppercase;
- }
+        .stats-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
 
- .stats-number {
- font-size: 1.8rem;
- font-weight: 700;
- }
+        .stats-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
 
- .stats-icon {
- font-size: 2.5rem;
- opacity: 0.8;
- }
+        .stats-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
 
- .card {
- border: none;
- border-radius: 10px;
- box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
- margin-bottom: 1.5rem;
- }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 1.5rem;
+        }
 
- .card-header {
- background-color: #f8f9fc;
- border-bottom: 1px solid #e3e6f0;
- padding: 1rem 1.35rem;
- }
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.35rem;
+        }
 
- .progress {
- height: 10px;
- border-radius: 5px;
- }
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+        }
 
- .btn {
- border-radius: 8px;
- font-weight: 600;
- padding: 0.5rem 1rem;
- }
+        .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+        }
 
- .table th {
- font-weight: 700;
- text-transform: uppercase;
- font-size: 0.8rem;
- color: var(--secondary);
- }
+        .table th {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            color: var(--secondary);
+        }
 
- .chart-container {
- position: relative;
- height: 300px;
- }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
 
- .badge {
- font-weight: 600;
- padding: 0.5rem 0.8rem;
- border-radius: 5px;
- }
+        .badge {
+            font-weight: 600;
+            padding: 0.5rem 0.8rem;
+            border-radius: 5px;
+        }
 
- .section-title {
- font-size: 1.2rem;
- font-weight: 700;
- color: var(--dark);
- margin-bottom: 1.5rem;
- padding-bottom: 0.5rem;
- border-bottom: 2px solid #e3e6f0;
- }
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e3e6f0;
+        }
 
- @media (max-width: 768px) {
- .stats-number {
- font-size: 1.5rem;
- }
+        @media (max-width: 768px) {
+            .stats-number {
+                font-size: 1.5rem;
+            }
 
- .stats-icon {
- font-size: 2rem;
- }
- }
- </style>
+            .stats-icon {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
- <div class="container-fluid py-4">
- <!-- Основни статистики -->
- <div class="row mb-4">
- <div class="col-xl-3 col-md-6 mb-4">
- <div class="card stats-card" style="background: linear-gradient(135deg, #4e73df, #224abe);">
- <div class="card-body">
- <div class="d-flex justify-content-between align-items-center">
- <div>
- <div class="stats-label">Общ брой апартаменти</div>
- <div class="stats-number">
- 42
- </div>
- </div>
- <div class="stats-icon">
- <i class="bi bi-building"></i>
- </div>
- </div>
- </div>
- </div>
- </div>
+    <div class="container-fluid py-4">
+        <!-- Основни статистики -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stats-card" style="background: linear-gradient(135deg, #4e73df, #224abe);">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="stats-label">Общ брой апартаменти</div>
+                                <div class="stats-number" id="total-apartments">0</div>
+                            </div>
+                            <div class="stats-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
- <div class="col-xl-3 col-md-6 mb-4">
- <div class="card stats-card" style="background: linear-gradient(135deg, #1cc88a, #13855c);">
- <div class="card-body">
- <div class="d-flex justify-content-between align-items-center">
- <div>
- <div class="stats-label">Събрани приходи</div>
- <div class="stats-number">
- 1,250,000 €
- </div>
- </div>
- <div class="stats-icon">
- <i class="bi bi-cash-stack"></i>
- </div>
- </div>
- </div>
- </div>
- </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stats-card" style="background: linear-gradient(135deg, #1cc88a, #13855c);">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="stats-label">Събрани приходи</div>
+                                <div class="stats-number" id="total-collected">0 €</div>
+                            </div>
+                            <div class="stats-icon">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
- <div class="col-xl-3 col-md-6 mb-4">
- <div class="card stats-card" style="background: linear-gradient(135deg, #36b9cc, #258391);">
- <div class="card-body">
- <div class="d-flex justify-content-between align-items-center">
- <div>
- <div class="stats-label">Очаквани приходи</div>
- <div class="stats-number">
- 2,500,000 €
- </div>
- </div>
- <div class="stats-icon">
- <i class="bi bi-graph-up"></i>
- </div>
- </div>
- </div>
- </div>
- </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stats-card" style="background: linear-gradient(135deg, #36b9cc, #258391);">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="stats-label">Очаквани приходи</div>
+                                <div class="stats-number" id="total-expected">0 €</div>
+                            </div>
+                            <div class="stats-icon">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
- <div class="col-xl-3 col-md-6 mb-4">
- <div class="card stats-card" style="background: linear-gradient(135deg, #f6c23e, #dda20a);">
- <div class="card-body">
- <div class="d-flex justify-content-between align-items-center">
- <div>
- <div class="stats-label">Забавени плащания</div>
- <div class="stats-number">
- 5
- </div>
- </div>
- <div class="stats-icon">
- <i class="bi bi-exclamation-triangle"></i>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stats-card" style="background: linear-gradient(135deg, #f6c23e, #dda20a);">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="stats-label">Забавени плащания</div>
+                                <div class="stats-number" id="delayed-count">0</div>
+                            </div>
+                            <div class="stats-icon">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
- <!-- Бързи действия -->
- <div class="row mb-4">
- <div class="col-12">
- <div class="card">
- <div class="card-header d-flex justify-content-between align-items-center">
- <h6 class="m-0 font-weight-bold text-primary">
- <i class="bi bi-lightning me-2"></i>Бързи действия
- </h6>
- <i class="bi bi-three-dots-vertical text-gray-400"></i>
- </div>
- <div class="card-body">
- <div class="row">
- <div class="col-md-3 mb-3">
- <a href="#" class="btn btn-primary w-100 d-flex align-items-center justify-content-center">
- <i class="bi bi-calendar-check me-2"></i>Планове за плащане
- </a>
- </div>
- <div class="col-md-3 mb-3">
- <a href="#" class="btn btn-info w-100 d-flex align-items-center justify-content-center">
- <i class="bi bi-arrow-left me-2"></i>Назад към списъка
- </a>
- </div>
- <div class="col-md-3 mb-3">
- <a href="#" class="btn btn-success w-100 d-flex align-items-center justify-content-center">
- <i class="bi bi-plus-circle me-2"></i>Добави апартамент
- </a>
- </div>
- <div class="col-md-3 mb-3">
- <a href="#" class="btn btn-warning w-100 d-flex align-items-center justify-content-center">
- <i class="bi bi-file-earmark-excel me-2"></i>Експорт на данни
- </a>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
+        <!-- Бързи действия -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-lightning me-2"></i>Бързи действия
+                        </h6>
+                        <i class="bi bi-three-dots-vertical text-gray-400"></i>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="/apartments" class="btn btn-primary w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-list-ul me-2"></i>Списък с апартаменти
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/add-apartment" class="btn btn-success w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-plus-circle me-2"></i>Добави апартамент
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/clients" class="btn btn-info w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-people me-2"></i>Клиенти
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/add-apartment" class="btn btn-success w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-building-add me-2"></i>Продажба на обекти
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/add-building" class="btn btn-secondary w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-building me-2"></i>Добави сграда
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/excel/export" class="btn btn-warning w-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-file-earmark-excel me-2"></i>Експорт на данни
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
- <!-- Графики и анализ -->
- <div class="row mb-4">
- <!-- Анализ по етапи -->
- <div class="col-lg-6 mb-4">
- <div class="card">
- <div class="card-header d-flex justify-content-between align-items-center">
- <h6 class="m-0 font-weight-bold text-primary">
- <i class="bi bi-pie-chart me-2"></i> Анализ по етапи на завършване
- </h6>
- <i class="bi bi-three-dots-vertical text-gray-400"></i>
- </div>
- <div class="card-body">
- <div class="chart-container">
- <canvas id="stageChart"></canvas>
- </div>
- <div class="row mt-4">
- <div class="col-4 mb-3">
- <div class="text-center">
- <div class="h4 mb-2 text-success">25</div>
- <div class="text-muted small">Завършен</div>
- </div>
- </div>
- <div class="col-4 mb-3">
- <div class="text-center">
- <div class="h4 mb-2 text-warning">12</div>
- <div class="text-muted small">В процес</div>
- </div>
- </div>
- <div class="col-4 mb-3">
- <div class="text-center">
- <div class="h4 mb-2 text-secondary">5</div>
- <div class="text-muted small">Незапочнат</div>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
+        <!-- Графики и анализ -->
+        <div class="row mb-4">
+            <!-- Анализ по етапи -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-pie-chart me-2"></i> Анализ по етапи на завършване
+                        </h6>
+                        <i class="bi bi-three-dots-vertical text-gray-400"></i>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="stageChart"></canvas>
+                        </div>
+                        <div class="row mt-4" id="stage-breakdown">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
 
- <!-- Анализ на плащанията -->
- <div class="col-lg-6 mb-4">
- <div class="card">
- <div class="card-header d-flex justify-content-between align-items-center">
- <h6 class="m-0 font-weight-bold text-primary">
- <i class="bi bi-bar-chart me-2"></i> Анализ на плащанията по етапи
- </h6>
- <i class="bi bi-three-dots-vertical text-gray-400"></i>
- </div>
- <div class="card-body">
- <div class="chart-container">
- <canvas id="paymentChart"></canvas>
- </div>
- <div class="mt-4">
- <div class="mb-3">
- <div class="d-flex justify-content-between mb-1">
- <span class="small text-muted">Авансово плащане</span>
- <span class="small text-muted">500,000 € / 500,000 €</span>
- </div>
- <div class="progress" style="height: 10px;">
- <div class="progress-bar bg-success" style="width: 100%"></div>
- </div>
- <div class="small text-muted mt-1 text-end">100.0% завършено</div>
- </div>
- <div class="mb-3">
- <div class="d-flex justify-content-between mb-1">
- <span class="small text-muted">При ключ</span>
- <span class="small text-muted">750,000 € / 1,000,000 €</span>
- </div>
- <div class="progress" style="height: 10px;">
- <div class="progress-bar bg-warning" style="width: 75%"></div>
- </div>
- <div class="small text-muted mt-1 text-end">75.0% завършено</div>
- </div>
- <div class="mb-3">
- <div class="d-flex justify-content-between mb-1">
- <span class="small text-muted">При завършване</span>
- <span class="small text-muted">0 € / 1,000,000 €</span>
- </div>
- <div class="progress" style="height: 10px;">
- <div class="progress-bar bg-warning" style="width: 0"></div>
- </div>
- <div class="small text-muted mt-1 text-end">0.0% завършено</div>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
+            <!-- Анализ на плащанията -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-bar-chart me-2"></i> Анализ на плащанията по етапи
+                        </h6>
+                        <i class="bi bi-three-dots-vertical text-gray-400"></i>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="paymentChart"></canvas>
+                        </div>
+                        <div class="mt-4" id="payment-analysis">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
- <!-- Предстоящи плащания -->
- <div class="row mb-4">
- <div class="col-12">
- <div class="card">
- <div class="card-header d-flex justify-content-between align-items-center">
- <h6 class="m-0 font-weight-bold text-primary">
- <i class="bi bi-calendar-event me-2"></i> Предстоящи плащания
- </h6>
- <span class="badge bg-primary">3</span>
- </div>
- <div class="card-body">
- <div class="table-responsive">
- <table class="table table-bordered table-hover" id="upcomingTable" width="100%" cellspacing="0">
- <thead class="thead-light">
- <tr>
- <th>Апартамент</th>
- <th>Купувач</th>
- <th>Етап</th>
- <th>Очаквана сума</th>
- <th>Дата</th>
- <th>Действия</th>
- </tr>
- </thead>
- <tbody>
- <tr>
- <td><strong>Апартамент 101</strong></td>
- <td>Иван Петров</td>
- <td>
- <span class="badge bg-info">При ключ</span>
- </td>
- <td>
- <span class="text-success">50,000 €</span>
- </td>
- <td>15.06.2023</td>
- <td>
- <a href="#" class="btn btn-sm btn-success">
- <i class="bi bi-plus-circle me-1"></i> Добави плащане
- </a>
- </td>
- </tr>
- <tr>
- <td><strong>Апартамент 205</strong></td>
- <td>Мария Иванова</td>
- <td>
- <span class="badge bg-info">При ключ</span>
- </td>
- <td>
- <span class="text-success">75,000 €</span>
- </td>
- <td>20.06.2023</td>
- <td>
- <a href="#" class="btn btn-sm btn-success">
- <i class="bi bi-plus-circle me-1"></i> Добави плащане
- </a>
- </td>
- </tr>
- <tr>
- <td><strong>Апартамент 310</strong></td>
- <td>Георги Димитров</td>
- <td>
- <span class="badge bg-info">При завършване</span>
- </td>
- <td>
- <span class="text-success">100,000 €</span>
- </td>
- <td>30.06.2023</td>
- <td>
- <a href="#" class="btn btn-sm btn-success">
- <i class="bi bi-plus-circle me-1"></i> Добави плащане
- </a>
- </td>
- </tr>
- </tbody>
- </table>
- </div>
- </div>
- </div>
- </div>
- </div>
+        <!-- Предстоящи плащания -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-calendar-event me-2"></i> Предстоящи плащания
+                        </h6>
+                        <span class="badge bg-primary" id="upcoming-badge">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="upcomingTable" width="100%" cellspacing="0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Апартамент</th>
+                                        <th>Купувач</th>
+                                        <th>Етап</th>
+                                        <th>Очаквана сума</th>
+                                        <th>Дата</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="upcoming-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
- <!-- Забавени плащания -->
- <div class="row mb-4">
- <div class="col-12">
- <div class="card">
- <div class="card-header d-flex justify-content-between align-items-center">
- <h6 class="m-0 font-weight-bold text-warning">
- <i class="bi bi-exclamation-triangle me-2"></i> Забавени плащания
- </h6>
- <span class="badge bg-warning">2</span>
- </div>
- <div class="card-body">
- <div class="table-responsive">
- <table class="table table-bordered table-hover" id="delayedTable" width="100%" cellspacing="0">
- <thead class="thead-light">
- <tr>
- <th>Апартамент</th>
- <th>Купувач</th>
- <th>Етап</th>
- <th>Забавена сума</th>
- <th>Дни закъснение</th>
- <th>Действия</th>
- </tr>
- </thead>
- <tbody>
- <tr>
- <td><strong>Апартамент 105</strong></td>
- <td>Петър Стоянов</td>
- <td>
- <span class="badge bg-warning">При ключ</span>
- </td>
- <td>
- <span class="text-danger">25,000 €</span>
- </td>
- <td>
- <span class="badge bg-danger">15</span>
- </td>
- <td>
- <a href="#" class="btn btn-sm btn-warning">
- <i class="bi bi-plus-circle me-1"></i> Добави плащане
- </a>
- </td>
- </tr>
- <tr>
- <td><strong>Апартамент 208</strong></td>
- <td>Елена Николова</td>
- <td>
- <span class="badge bg-warning">Авансово</span>
- </td>
- <td>
- <span class="text-danger">10,000 €</span>
- </td>
- <td>
- <span class="badge bg-danger">30</span>
- </td>
- <td>
- <a href="#" class="btn btn-sm btn-warning">
- <i class="bi bi-plus-circle me-1"></i> Добави плащане
- </a>
- </td>
- </tr>
- </tbody>
- </table>
- </div>
- </div>
- </div>
- </div>
- </div>
- </div>
+        <!-- Забавени плащания -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i> Забавени плащания
+                        </h6>
+                        <span class="badge bg-warning" id="delayed-badge">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="delayedTable" width="100%" cellspacing="0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Апартамент</th>
+                                        <th>Купувач</th>
+                                        <th>Етап</th>
+                                        <th>Забавена сума</th>
+                                        <th>Дни закъснение</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="delayed-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
- <!-- JavaScript -->
- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
- <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
- <script>
- $(document).ready(function() {
- // Инициализация на DataTables
- if ($('#upcomingTable').length) {
- $('#upcomingTable').DataTable({
- language: {
- url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/bg.json'
- },
- order:'' ,
- pageLength: 10,
- responsive: true,
- dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
- });
- }
+    <script>
+        // Statistics will be loaded from backend
+        window.statistics = window.statistics || {
+            totalApartments: 0,
+            totalCollected: 0,
+            totalExpected: 0,
+            delayedCount: 0,
+            collectionRate: 0
+        };
+        
+        $(document).ready(function() {
+            // Load statistics
+            loadStatistics();
+            
+            // Load overdue apartments
+            loadOverdueApartments();
+            
+            // Initialize DataTables
+            initializeDataTables();
+            
+            // Initialize charts
+            initializeCharts();
+        });
 
- if ($('#delayedTable').length) {
- $('#delayedTable').DataTable({
- language: {
- url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/bg.json'
- },
- order:'' ,
- pageLength: 10,
- responsive: true,
- dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
- });
- }
+        function loadStatistics() {
+            // Fetch statistics from API
+            fetch('/api/statistics')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('HTTP error! status: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const stats = {
+                        totalApartments: data.totalApartments || 0,
+                        totalCollected: data.totalCollected || 0,
+                        totalExpected: data.totalExpected || 0,
+                        delayedCount: data.overdueCount || 0,
+                        collectionRate: data.collectionRate || 0
+                    };
+                    updateStatisticsDisplay(stats);
+                    updateCharts(data);
+                })
+                .catch(error => {
+                    console.error('Error loading statistics:', error);
+                    // Use default values on error
+                    updateStatisticsDisplay({
+                        totalApartments: 0,
+                        totalCollected: 0,
+                        totalExpected: 0,
+                        delayedCount: 0,
+                        collectionRate: 0
+                    });
+                });
+        }
+        
+        function updateCharts(data) {
+            // Update stage chart if available
+            // This would need stage breakdown data from backend
+        }
+        
+        function updateStatisticsDisplay(stats) {
+            $('#total-apartments').text(stats.totalApartments || 0);
+            $('#total-collected').text(formatCurrency(stats.totalCollected || 0));
+            $('#total-expected').text(formatCurrency(stats.totalExpected || 0));
+            $('#delayed-count').text(stats.delayedCount || stats.overdueCount || 0);
+        }
 
- // Графика за етапи на завършване
- const stageCtx = document.getElementById('stageChart').getContext('2d');
- const stageChart = new Chart(stageCtx, {
- type: 'doughnut',
- data: {
- labels: ['Завършен', 'В процес', 'Незапочнат'],
- datasets: [{
- data: [25, 12, 5],
- backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
- hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
- hoverBorderColor: "rgba(234, 236, 244, 1)",
- }]
- },
- options: {
- maintainAspectRatio: false,
- plugins: {
- legend: {
- display: true,
- position: 'bottom'
- }
- },
- cutout: '70%'
- }
- });
+        function loadOverdueApartments() {
+            fetch('/apartments/api/overdue')
+                .then(response => response.json())
+                .then(data => {
+                    populateDelayedTable(data);
+                    $('#delayed-badge').text(data.length || 0);
+                })
+                .catch(error => {
+                    console.error('Error loading overdue apartments:', error);
+                });
+        }
 
- // Графика за плащания по етапи
- const paymentCtx = document.getElementById('paymentChart').getContext('2d');
- const paymentChart = new Chart(paymentCtx, {
- type: 'bar',
- data: {
- labels: ['Авансово плащане', 'При ключ', 'При завършване'],
- datasets: [
- {
- label: 'Събрани',
- backgroundColor: '#1cc88a',
- hoverBackgroundColor: '#17a673',
- borderColor: '#1cc88a',
- data: [500000, 750000, 0]
- },
- {
- label: 'Очаквани',
- backgroundColor: '#4e73df',
- hoverBackgroundColor: '#2e59d9',
- borderColor: '#4e73df',
- data: [500000, 1000000, 1000000]
- }
- ]
- },
- options: {
- maintainAspectRatio: false,
- scales: {
- x: {
- grid: {
- display: false,
- drawBorder: false
- }
- },
- y: {
- ticks: {
- beginAtZero: true,
- callback: function(value) {
- return value.toLocaleString() + ' €';
- }
- },
- grid: {
- borderDash: [2],
- drawBorder: false
- }
- }
- },
- plugins: {
- legend: {
- display: true,
- position: 'top'
- }
- }
- }
- });
- });
- </script>
+        function populateDelayedTable(apartments) {
+            const tbody = $('#delayed-tbody');
+            tbody.empty();
+            
+            if (apartments.length === 0) {
+                tbody.append('<tr><td colspan="6" class="text-center text-muted">Няма забавени плащания</td></tr>');
+                return;
+            }
+            
+            apartments.forEach(apt => {
+                const row = `
+                    <tr>
+                        <td><strong>${apt.buildingName} - ${apt.apartmentNumber}</strong></td>
+                        <td>${apt.client ? apt.client.name : '-'}</td>
+                        <td><span class="badge bg-warning">${apt.stage || '-'}</span></td>
+                        <td><span class="text-danger">${formatCurrency(apt.remainingPayment || 0)}</span></td>
+                        <td><span class="badge bg-danger">-</span></td>
+                        <td>
+                            <a href="/apartments" class="btn btn-sm btn-warning">
+                                <i class="bi bi-plus-circle me-1"></i> Добави плащане
+                            </a>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+        }
+
+        function initializeDataTables() {
+            if ($('#upcomingTable').length) {
+                $('#upcomingTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/bg.json'
+                    },
+                    pageLength: 10,
+                    responsive: true,
+                    dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
+                });
+            }
+
+            if ($('#delayedTable').length) {
+                $('#delayedTable').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/bg.json'
+                    },
+                    pageLength: 10,
+                    responsive: true,
+                    dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
+                });
+            }
+        }
+
+        function initializeCharts() {
+            // Stage Chart
+            const stageCtx = document.getElementById('stageChart');
+            if (stageCtx) {
+                const stageChart = new Chart(stageCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Завършен', 'В процес', 'Незапочнат'],
+                        datasets: [{
+                            data: [0, 0, 0],
+                            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
+                            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+                            hoverBorderColor: "rgba(234, 236, 244, 1)",
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+
+            // Payment Chart
+            const paymentCtx = document.getElementById('paymentChart');
+            if (paymentCtx) {
+                const paymentChart = new Chart(paymentCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Авансово плащане', 'При ключ', 'При завършване'],
+                        datasets: [
+                            {
+                                label: 'Събрани',
+                                backgroundColor: '#1cc88a',
+                                hoverBackgroundColor: '#17a673',
+                                borderColor: '#1cc88a',
+                                data: [0, 0, 0]
+                            },
+                            {
+                                label: 'Очаквани',
+                                backgroundColor: '#4e73df',
+                                hoverBackgroundColor: '#2e59d9',
+                                borderColor: '#4e73df',
+                                data: [0, 0, 0]
+                            }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false,
+                                    drawBorder: false
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    beginAtZero: true,
+                                    callback: function(value) {
+                                        return value.toLocaleString() + ' €';
+                                    }
+                                },
+                                grid: {
+                                    borderDash: [2],
+                                    drawBorder: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('bg-BG', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+    </script>
 </body>
 </html>

@@ -19,3 +19,4 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 }
 
 
+

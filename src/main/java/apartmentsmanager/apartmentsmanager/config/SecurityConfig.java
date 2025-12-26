@@ -38,9 +38,11 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
-                .requestMatchers("/", "/home", "/index", "/public/**", "/properties", "/properties/**", 
+                .requestMatchers("/", "/home", "/public/**", "/properties", "/properties/**", 
                                "/about", "/contact", "/auth/register", "/auth/login", "/login", "/register",
                                "/api/properties/**", "/static/**", "/css/**", "/js/**", "/images/**").permitAll()
+                // Dashboard - requires authentication (any role)
+                .requestMatchers("/index", "/api/statistics").authenticated()
                 // User endpoints
                 .requestMatchers("/user/**", "/profile", "/inquiries/my").hasAnyRole("USER", "AGENT", "ADMIN")
                 // Agent endpoints
@@ -48,9 +50,10 @@ public class SecurityConfig {
                                "/properties/delete/**", "/inquiries/agent/**").hasAnyRole("AGENT", "ADMIN")
                 // Admin endpoints
                 .requestMatchers("/admin/**", "/users/**", "/system/**").hasRole("ADMIN")
-                // Legacy endpoints (keep for backward compatibility)
+                // Legacy endpoints (keep for backward compatibility) - ADMIN only
                 .requestMatchers("/apartments/**", "/clients/**", "/payments/**", 
-                               "/excel/**", "/contract/**").hasAnyRole("ADMIN")
+                               "/excel/**", "/contract/**", "/add-apartment", "/add-building", 
+                               "/add-client", "/buildings/**").hasAnyRole("USER", "AGENT", "ADMIN")
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )
