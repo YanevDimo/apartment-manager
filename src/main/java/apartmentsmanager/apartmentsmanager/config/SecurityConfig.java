@@ -42,7 +42,7 @@ public class SecurityConfig {
                                "/about", "/contact", "/auth/register", "/auth/login", "/login", "/register",
                                "/api/properties/**", "/static/**", "/css/**", "/js/**", "/images/**").permitAll()
                 // Dashboard - requires authentication (any role)
-                .requestMatchers("/index", "/api/statistics").authenticated()
+                .requestMatchers("/index", "/dashboard", "/api/statistics").authenticated()
                 // User endpoints
                 .requestMatchers("/user/**", "/profile", "/inquiries/my").hasAnyRole("USER", "AGENT", "ADMIN")
                 // Agent endpoints

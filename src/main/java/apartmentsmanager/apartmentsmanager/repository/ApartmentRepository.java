@@ -1,6 +1,7 @@
 package apartmentsmanager.apartmentsmanager.repository;
 
 import apartmentsmanager.apartmentsmanager.entity.Apartment;
+import apartmentsmanager.apartmentsmanager.entity.Building;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,8 +13,17 @@ import java.util.Optional;
 @Repository
 public interface ApartmentRepository extends JpaRepository<Apartment, Long> {
     
-    // Find by building name and apartment number (for duplicate check)
+    // Find by building and apartment number (for duplicate check)
+    Optional<Apartment> findByBuildingAndApartmentNumber(Building building, String apartmentNumber);
+    
+    // Find by building name and apartment number (for backward compatibility)
     Optional<Apartment> findByBuildingNameAndApartmentNumber(String buildingName, String apartmentNumber);
+    
+    // Find by building
+    List<Apartment> findByBuilding(Building building);
+    
+    // Find by building ID
+    List<Apartment> findByBuildingId(Long buildingId);
     
     // Find all sold apartments
     List<Apartment> findByIsSoldTrue();

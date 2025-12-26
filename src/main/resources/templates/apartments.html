@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
     <!-- Custom CSS -->
     <link href="/static/css/app.css" rel="stylesheet" />
+    <!-- Sidebar Styles -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
     <style>
         :root {
             --primary: #4e73df;
@@ -145,6 +147,14 @@
     </style>
 </head>
 <body>
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarToggle}"></th:block>
+    
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
     <div class="container-fluid py-4">
         <!-- Page Header -->
         <div class="page-header">
@@ -520,6 +530,10 @@
     <!-- Custom JavaScript -->
     <script src="/static/js/apartments.js"></script>
     <script src="/static/js/payments.js"></script>
+    
+    <!-- Sidebar Script -->
+    <th:block th:replace="~{fragments/sidebar :: sidebarScript}"></th:block>
+    </div> <!-- End main-content -->
 </body>
 </html>
 

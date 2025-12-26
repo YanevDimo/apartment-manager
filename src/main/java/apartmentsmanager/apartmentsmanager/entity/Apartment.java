@@ -18,7 +18,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "apartments", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"building_name", "apartment_number"})
+    @UniqueConstraint(columnNames = {"building_id", "apartment_number"})
 })
 @Data
 @NoArgsConstructor
@@ -29,8 +29,12 @@ public class Apartment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotBlank(message = "Името на сградата е задължително")
-    @Column(name = "building_name", nullable = false, length = 255)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "building_id", nullable = false)
+    private Building building;
+    
+    // Keep buildingName for backward compatibility (can be removed later)
+    @Column(name = "building_name", length = 255)
     private String buildingName;
     
     @NotBlank(message = "Номерът на апартамента е задължително")
@@ -150,7 +154,10 @@ public class Apartment {
      * Get full apartment identifier
      */
     public String getFullIdentifier() {
-        return buildingName + " - " + apartmentNumber;
+        if (building != null) {
+            return building.getName() + " - " + apartmentNumber;
+        }
+        return (buildingName != null ? buildingName : "Неизвестна сграда") + " - " + apartmentNumber;
     }
 }
 
