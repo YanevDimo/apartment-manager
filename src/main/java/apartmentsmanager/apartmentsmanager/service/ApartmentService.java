@@ -11,6 +11,8 @@ public interface ApartmentService {
     List<Apartment> getAllApartments();
     
     List<Apartment> getAllSoldApartments();
+
+    List<Apartment> getAllSoldApartmentsByBuilding(Long buildingId);
     
     Optional<Apartment> getApartmentById(Long id);
     
@@ -43,5 +45,7 @@ public interface ApartmentService {
     Apartment updateApartmentStage(Long apartmentId, String stage);
     
     void updateAllApartmentsStage(String stage);
+
+    void updateAllApartmentsStageByBuilding(Long buildingId, String stage);
 }
 

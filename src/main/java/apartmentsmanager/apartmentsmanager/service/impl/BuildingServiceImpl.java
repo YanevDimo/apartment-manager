@@ -2,6 +2,7 @@ package apartmentsmanager.apartmentsmanager.service.impl;
 
 import apartmentsmanager.apartmentsmanager.dto.BuildingDetailDto;
 import apartmentsmanager.apartmentsmanager.dto.BuildingRowDto;
+import apartmentsmanager.apartmentsmanager.entity.Apartment;
 import apartmentsmanager.apartmentsmanager.entity.Building;
 import apartmentsmanager.apartmentsmanager.repository.BuildingRepository;
 import apartmentsmanager.apartmentsmanager.service.BuildingService;
@@ -64,11 +65,12 @@ public class BuildingServiceImpl implements BuildingService {
                         .orElse(buildings.get(0));
                 }
                 data.put("currentBuilding", toDetailDto(currentEntity));
-                data.put("apartmentsCount", safeSize(currentEntity.getApartments()));
-                data.put("garagesCount", safeSize(currentEntity.getGarages()));
-                data.put("basementsCount", safeSize(currentEntity.getBasements()));
-                data.put("parkingSpacesCount", safeSize(currentEntity.getParkingSpaces()));
-                data.put("commercialSpacesCount", safeSize(currentEntity.getCommercialSpaces()));
+                CountSummary summary = buildCounts(currentEntity);
+                data.put("apartmentsCount", summary.apartments);
+                data.put("garagesCount", summary.garages);
+                data.put("basementsCount", summary.basements);
+                data.put("parkingSpacesCount", summary.parkingSpaces);
+                data.put("commercialSpacesCount", summary.commercialSpaces);
             }
         } catch (Exception e) {
             data.put("buildings", List.of());
@@ -89,12 +91,7 @@ public class BuildingServiceImpl implements BuildingService {
         if (buildings == null) return List.of();
         List<BuildingRowDto> list = new ArrayList<>(buildings.size());
         for (Building b : buildings) {
-            int apartmentsCount = safeSize(b.getApartments());
-            int garagesCount = safeSize(b.getGarages());
-            int basementsCount = safeSize(b.getBasements());
-            int parkingSpacesCount = safeSize(b.getParkingSpaces());
-            int commercialSpacesCount = safeSize(b.getCommercialSpaces());
-            int totalCount = apartmentsCount + garagesCount + basementsCount + parkingSpacesCount + commercialSpacesCount;
+            CountSummary summary = buildCounts(b);
             list.add(new BuildingRowDto(
                 b.getId(),
                 b.getName(),
@@ -102,12 +99,12 @@ public class BuildingServiceImpl implements BuildingService {
                 b.getStatus(),
                 b.getStage(),
                 b.getCreatedAt(),
-                apartmentsCount,
-                garagesCount,
-                basementsCount,
-                parkingSpacesCount,
-                commercialSpacesCount,
-                totalCount
+                summary.apartments,
+                summary.garages,
+                summary.basements,
+                summary.parkingSpaces,
+                summary.commercialSpaces,
+                summary.total
             ));
         }
         return list;
@@ -129,6 +126,66 @@ public class BuildingServiceImpl implements BuildingService {
 
     private static int safeSize(java.util.Collection<?> c) {
         return c != null ? c.size() : 0;
+    }
+
+    private static CountSummary buildCounts(Building building) {
+        CountSummary summary = new CountSummary();
+        if (building == null) return summary;
+
+        List<Apartment> apartments = building.getApartments();
+        CountSummary classified = classifyFromApartments(apartments);
+
+        boolean hasSpecialTypes = classified.garages > 0 ||
+            classified.basements > 0 ||
+            classified.parkingSpaces > 0 ||
+            classified.commercialSpaces > 0;
+
+        if (hasSpecialTypes) {
+            summary = classified;
+        } else {
+            summary.apartments = safeSize(building.getApartments());
+            summary.garages = safeSize(building.getGarages());
+            summary.basements = safeSize(building.getBasements());
+            summary.parkingSpaces = safeSize(building.getParkingSpaces());
+            summary.commercialSpaces = safeSize(building.getCommercialSpaces());
+            summary.total = summary.apartments + summary.garages + summary.basements + summary.parkingSpaces + summary.commercialSpaces;
+        }
+
+        return summary;
+    }
+
+    private static CountSummary classifyFromApartments(List<Apartment> apartments) {
+        CountSummary summary = new CountSummary();
+        if (apartments == null) return summary;
+
+        for (Apartment apartment : apartments) {
+            String number = apartment != null ? apartment.getApartmentNumber() : null;
+            String value = number != null ? number.trim().toUpperCase() : "";
+
+            if (value.contains("ГАРАЖ")) {
+                summary.garages++;
+            } else if (value.contains("ПАРКО")) {
+                summary.parkingSpaces++;
+            } else if (value.contains("МАЗЕ")) {
+                summary.basements++;
+            } else if (value.contains("ТЪРГ") || value.contains("МАГАЗ")) {
+                summary.commercialSpaces++;
+            } else {
+                summary.apartments++;
+            }
+        }
+
+        summary.total = summary.apartments + summary.garages + summary.basements + summary.parkingSpaces + summary.commercialSpaces;
+        return summary;
+    }
+
+    private static class CountSummary {
+        int apartments;
+        int garages;
+        int basements;
+        int parkingSpaces;
+        int commercialSpaces;
+        int total;
     }
     
     @Override
@@ -188,6 +245,28 @@ public class BuildingServiceImpl implements BuildingService {
     @Override
     public Optional<Long> getCurrentBuildingId() {
         return Optional.ofNullable(currentBuildingId.get());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Building> getOrSetCurrentBuilding() {
+        Long selectedId = currentBuildingId.get();
+        if (selectedId != null) {
+            return buildingRepository.findById(selectedId);
+        }
+
+        List<Building> buildings = buildingRepository.findAll();
+        if (buildings == null || buildings.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Building chosen = buildings.stream()
+            .filter(b -> b.getStatus() != null && b.getStatus().equals("активна"))
+            .findFirst()
+            .orElse(buildings.get(0));
+
+        currentBuildingId.set(chosen.getId());
+        return Optional.of(chosen);
     }
 }
 

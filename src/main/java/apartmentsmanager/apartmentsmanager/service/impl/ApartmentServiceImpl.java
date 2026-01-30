@@ -33,6 +33,15 @@ public class ApartmentServiceImpl implements ApartmentService {
     public List<Apartment> getAllSoldApartments() {
         return apartmentRepository.findAllSoldApartmentsWithPayments();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Apartment> getAllSoldApartmentsByBuilding(Long buildingId) {
+        if (buildingId == null) {
+            return List.of();
+        }
+        return apartmentRepository.findAllSoldApartmentsWithPaymentsByBuilding(buildingId);
+    }
     
     @Override
     @Transactional(readOnly = true)
@@ -155,6 +164,18 @@ public class ApartmentServiceImpl implements ApartmentService {
     @Override
     public void updateAllApartmentsStage(String stage) {
         List<Apartment> apartments = apartmentRepository.findByIsSoldTrue();
+        for (Apartment apartment : apartments) {
+            apartment.setStage(stage);
+        }
+        apartmentRepository.saveAll(apartments);
+    }
+
+    @Override
+    public void updateAllApartmentsStageByBuilding(Long buildingId, String stage) {
+        if (buildingId == null) {
+            return;
+        }
+        List<Apartment> apartments = apartmentRepository.findByIsSoldTrueAndBuildingId(buildingId);
         for (Apartment apartment : apartments) {
             apartment.setStage(stage);
         }

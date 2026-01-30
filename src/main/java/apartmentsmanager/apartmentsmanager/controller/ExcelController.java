@@ -75,7 +75,8 @@ public class ExcelController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> importDataFromExcel(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "type", defaultValue = "apartments") String importType) {
+            @RequestParam(value = "type", defaultValue = "apartments") String importType,
+            @RequestParam(value = "buildingId", required = false) Long buildingId) {
         Map<String, Object> response = new HashMap<>();
         
         if (file.isEmpty()) {
@@ -113,7 +114,7 @@ public class ExcelController {
                     break;
                 case "apartments":
                 default:
-                    importResult = excelService.importApartmentsFromExcel(file);
+                    importResult = excelService.importApartmentsFromExcelForBuilding(file, buildingId);
                     break;
             }
             

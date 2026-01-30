@@ -46,9 +46,8 @@ public class Apartment {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal area; // Площ в кв.м
     
-    @NotNull(message = "Цената на кв.м е задължителна")
     @DecimalMin(value = "0.01", message = "Цената трябва да е по-голяма от 0")
-    @Column(name = "price_per_m2", nullable = false, precision = 15, scale = 2)
+    @Column(name = "price_per_m2", nullable = true, precision = 15, scale = 2)
     private BigDecimal pricePerM2; // Цена на кв.м
     
     @Column(name = "total_price", nullable = false, precision = 15, scale = 2)
@@ -103,6 +102,8 @@ public class Apartment {
     private void calculateTotalPrice() {
         if (area != null && pricePerM2 != null) {
             totalPrice = area.multiply(pricePerM2).setScale(2, RoundingMode.HALF_UP);
+        } else {
+            totalPrice = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         }
     }
     

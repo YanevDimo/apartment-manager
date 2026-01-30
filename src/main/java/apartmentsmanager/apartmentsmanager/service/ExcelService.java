@@ -18,6 +18,11 @@ public interface ExcelService {
      * Import apartments from Excel file
      */
     Map<String, Object> importApartmentsFromExcel(MultipartFile file);
+
+    /**
+     * Import apartments from Excel file into a specific building
+     */
+    Map<String, Object> importApartmentsFromExcelForBuilding(MultipartFile file, Long buildingId);
     
     /**
      * Import buildings from Excel file

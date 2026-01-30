@@ -24,6 +24,9 @@ public interface ApartmentRepository extends JpaRepository<Apartment, Long> {
     
     // Find by building ID
     List<Apartment> findByBuildingId(Long buildingId);
+
+    // Find sold apartments by building ID
+    List<Apartment> findByIsSoldTrueAndBuildingId(Long buildingId);
     
     // Find all sold apartments
     List<Apartment> findByIsSoldTrue();
@@ -77,5 +80,9 @@ public interface ApartmentRepository extends JpaRepository<Apartment, Long> {
     // Find all with payments eagerly loaded
     @Query("SELECT DISTINCT a FROM Apartment a LEFT JOIN FETCH a.payments WHERE a.isSold = true")
     List<Apartment> findAllSoldApartmentsWithPayments();
+
+    // Find all sold apartments with payments by building
+    @Query("SELECT DISTINCT a FROM Apartment a LEFT JOIN FETCH a.payments WHERE a.isSold = true AND a.building.id = :buildingId")
+    List<Apartment> findAllSoldApartmentsWithPaymentsByBuilding(Long buildingId);
 }
 

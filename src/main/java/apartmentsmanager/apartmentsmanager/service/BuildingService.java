@@ -33,6 +33,8 @@ public interface BuildingService {
     void setCurrentBuildingId(Long buildingId);
 
     Optional<Long> getCurrentBuildingId();
+
+    Optional<Building> getOrSetCurrentBuilding();
 }
 
 

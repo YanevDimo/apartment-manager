@@ -34,10 +34,15 @@ public class ApartmentController {
     
     @GetMapping
     public String apartmentsPage(Model model) {
-        List<Apartment> apartments = apartmentService.getAllSoldApartments();
+        Long buildingId = buildingService.getOrSetCurrentBuilding()
+            .map(b -> b.getId())
+            .orElse(null);
+        if (buildingId == null) {
+            model.addAttribute("currentBuildingId", null);
+            model.addAttribute("currentBuildingName", "Не е избрана");
+            model.addAttribute("currentBuildingMissing", true);
+        }
         List<Client> clients = clientService.getAllClients();
-        
-        model.addAttribute("apartments", apartments);
         model.addAttribute("clients", clients);
         return "apartments";
     }
@@ -45,7 +50,12 @@ public class ApartmentController {
     @GetMapping("/api/list")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getApartmentsApi() {
-        List<Apartment> apartments = apartmentService.getAllSoldApartments();
+        Long buildingId = buildingService.getOrSetCurrentBuilding()
+            .map(b -> b.getId())
+            .orElse(null);
+        List<Apartment> apartments = buildingId != null
+            ? apartmentService.getAllSoldApartmentsByBuilding(buildingId)
+            : List.of();
         
         List<Map<String, Object>> apartmentData = apartments.stream().map(apt -> {
             Map<String, Object> data = new HashMap<>();
@@ -83,6 +93,24 @@ public class ApartmentController {
             return ResponseEntity.badRequest().body(response);
         }
         
+        Long buildingId = buildingService.getOrSetCurrentBuilding()
+            .map(b -> b.getId())
+            .orElse(null);
+        if (buildingId == null) {
+            response.put("success", false);
+            response.put("message", "Моля, изберете сграда за работа.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        var building = buildingService.getBuildingById(buildingId).orElse(null);
+        if (building == null) {
+            response.put("success", false);
+            response.put("message", "Сградата за работа не е намерена.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        apartment.setBuilding(building);
+        apartment.setBuildingName(building.getName());
+
         // Check for duplicate
         if (apartmentService.apartmentExists(apartment.getBuildingName(), 
                                             apartment.getApartmentNumber(), null)) {
@@ -115,6 +143,29 @@ public class ApartmentController {
             return ResponseEntity.badRequest().body(response);
         }
         
+        Long buildingId = buildingService.getOrSetCurrentBuilding()
+            .map(b -> b.getId())
+            .orElse(null);
+        if (buildingId == null) {
+            response.put("success", false);
+            response.put("message", "Моля, изберете сграда за работа.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        var existing = apartmentService.getApartmentById(id).orElse(null);
+        if (existing == null || existing.getBuilding() == null || !buildingId.equals(existing.getBuilding().getId())) {
+            response.put("success", false);
+            response.put("message", "Нямате достъп до този апартамент.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        var building = buildingService.getBuildingById(buildingId).orElse(null);
+        if (building == null) {
+            response.put("success", false);
+            response.put("message", "Сградата за работа не е намерена.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        apartment.setBuilding(building);
+        apartment.setBuildingName(building.getName());
+
         // Check for duplicate (excluding current apartment)
         if (apartmentService.apartmentExists(apartment.getBuildingName(), 
                                             apartment.getApartmentNumber(), id)) {
@@ -139,6 +190,15 @@ public class ApartmentController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+        Long buildingId = buildingService.getOrSetCurrentBuilding()
+            .map(b -> b.getId())
+            .orElse(null);
+            var existing = apartmentService.getApartmentById(id).orElse(null);
+            if (buildingId == null || existing == null || existing.getBuilding() == null || !buildingId.equals(existing.getBuilding().getId())) {
+                response.put("success", false);
+                response.put("message", "Нямате достъп до този апартамент.");
+                return ResponseEntity.badRequest().body(response);
+            }
             apartmentService.deleteApartment(id);
             response.put("success", true);
             response.put("message", "Апартаментът е изтрит успешно");
@@ -153,7 +213,11 @@ public class ApartmentController {
     @GetMapping("/api/{id}")
     @ResponseBody
     public ResponseEntity<Apartment> getApartment(@PathVariable Long id) {
+        Long buildingId = buildingService.getOrSetCurrentBuilding()
+            .map(b -> b.getId())
+            .orElse(null);
         return apartmentService.getApartmentById(id)
+                .filter(apt -> buildingId != null && apt.getBuilding() != null && buildingId.equals(apt.getBuilding().getId()))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -174,7 +238,15 @@ public class ApartmentController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            apartmentService.updateAllApartmentsStage(stage);
+            Long buildingId = buildingService.getOrSetCurrentBuilding()
+                .map(b -> b.getId())
+                .orElse(null);
+            if (buildingId == null) {
+                response.put("success", false);
+                response.put("message", "Моля, изберете сграда за работа.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            apartmentService.updateAllApartmentsStageByBuilding(buildingId, stage);
             response.put("success", true);
             response.put("message", "Етапът на всички апартаменти е обновен");
             return ResponseEntity.ok(response);

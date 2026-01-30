@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -24,16 +24,69 @@
     <div class="row justify-content-center">
  <div class="col-md-8 col-lg-6">
  <div class="card">
- <div class="card-header">
+ <div class="card-header d-flex justify-content-between align-items-center">
  <h5 class="mb-0">
  <i class="bi bi-cart-check"></i> Продажба на обекти
  <small class="text-muted d-block mt-1">
- <i class="bi bi-building"></i> Сграда: <span></span>
+ <i class="bi bi-building"></i> Сграда: <span th:text="${currentBuildingName != null ? currentBuildingName : 'Не е избрана'}">-</span>
  </small>
  </h5>
+ <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#excelImportSection" aria-expanded="false">
+ <i class="bi bi-file-earmark-excel me-2"></i>Импорт от Excel
+ </button>
  </div>
  <div class="card-body">
+ <!-- Excel Import Section -->
+ <div class="collapse mb-4" id="excelImportSection">
+ <div class="card border-primary">
+ <div class="card-header bg-primary text-white">
+ <h6 class="mb-0">
+ <i class="bi bi-upload me-2"></i>Импорт на апартаменти от Excel файл
+ </h6>
+ </div>
+ <div class="card-body">
+ <div class="alert alert-info mb-3">
+ <i class="bi bi-info-circle me-2"></i>
+ <strong>Сграда:</strong> <span th:text="${currentBuildingName}">-</span>
+ <br>
+ <small>Импортът ще добави апартаменти само към текущата сграда.</small>
+ </div>
+ 
+ <form id="excelImportForm" enctype="multipart/form-data">
+ <input type="hidden" name="type" value="apartments" />
+ <input type="hidden" name="buildingId" th:value="${currentBuildingId}" />
+ <div class="row">
+ <div class="col-md-8 mb-3">
+ <label for="excelFileInput" class="form-label">Excel файл (.xlsx или .xls) *</label>
+ <input type="file" class="form-control" id="excelFileInput" name="file" 
+ accept=".xlsx,.xls" required />
+ <div class="form-text">Изберете Excel файл с данни за апартаменти</div>
+ </div>
+ <div class="col-md-4 mb-3 d-flex align-items-end">
+ <button type="submit" class="btn btn-primary w-100" id="excelImportBtn">
+ <i class="bi bi-upload me-2"></i>Импортирай
+ </button>
+ </div>
+ </div>
+ <div class="mb-2">
+ <a th:href="@{/excel/template?type=apartments}" class="btn btn-sm btn-outline-secondary">
+ <i class="bi bi-file-earmark-arrow-down me-2"></i>Изтегли шаблон
+ </a>
+ </div>
+ </form>
+ 
+ <!-- Import Results -->
+ <div id="excelImportResults" class="mt-3" style="display: none;">
+ <div class="alert" id="excelImportAlert">
+ <h6><i class="bi me-2" id="excelImportIcon"></i><span id="excelImportMessage"></span></h6>
+ <div id="excelImportDetails"></div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
  <form method="POST" id="saleForm" action="/add-apartment">
+ <input type="hidden" name="buildingId" th:value="${currentBuildingId}">
  <!-- Клиентска информация -->
  <div class="alert alert-info mb-3">
  <h6 class="alert-heading">
@@ -79,7 +132,7 @@
  </h6>
  <p class="mb-0">
  Имате <strong></strong> за продажба в сграда
- <strong></strong>.
+ <strong th:text="${currentBuildingName}">-</strong>.
  </p>
  </div>
  <div class="col-md-4 text-end">
@@ -92,7 +145,7 @@
  <i class="bi bi-exclamation-triangle"></i> Няма налични обекти
  </h6>
  <p class="mb-0">
- Всички обекти в сграда <strong></strong>
+ Всички обекти в сграда <strong th:text="${currentBuildingName}">-</strong>
  са вече продадени или няма заредени обекти.
  </p>
  </div>
@@ -268,8 +321,7 @@
  </div>
 
  <div>
-<script>
- /*<![CDATA[*/
+<script th:inline="javascript">
  // Package information
  const packages = {
  "стандартен": [0.30, 0.30, 0.30, 0.10, 0.00],
@@ -287,7 +339,7 @@
  let allClients = /**/ [];
 
  // Current building stage
- const currentStage = /**/ 'Открита строителна площадка';
+ const currentStage = /*[[${currentBuildingStage != null ? currentBuildingStage : ''}]]*/ '';
 
  // Apartment names for dynamic generation
  const apartmentNames = /**/ [];
@@ -300,6 +352,70 @@
  initializeObjectSearch();
  updateTotalAmount();
  });
+
+ // Excel Import Form Handler
+ const excelForm = document.getElementById('excelImportForm');
+ if (excelForm) {
+     excelForm.addEventListener('submit', function(e) {
+         e.preventDefault();
+         const formData = new FormData(excelForm);
+         const importBtn = document.getElementById('excelImportBtn');
+         const originalText = importBtn ? importBtn.innerHTML : '';
+         if (importBtn) {
+             importBtn.disabled = true;
+             importBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Импортиране...';
+         }
+         const resultsDiv = document.getElementById('excelImportResults');
+         const alertDiv = document.getElementById('excelImportAlert');
+         const messageSpan = document.getElementById('excelImportMessage');
+         const iconSpan = document.getElementById('excelImportIcon');
+         const detailsDiv = document.getElementById('excelImportDetails');
+
+         fetch('/excel/import', {
+             method: 'POST',
+             body: formData
+         }).then(res => res.json())
+           .then(response => {
+               if (importBtn) {
+                   importBtn.disabled = false;
+                   importBtn.innerHTML = originalText;
+               }
+               if (response.success) {
+                   alertDiv.className = 'alert alert-success';
+                   iconSpan.className = 'bi bi-check-circle me-2';
+                   messageSpan.textContent = 'Импортът е завършен успешно!';
+                   let details = '<ul class="mb-0 mt-2">';
+                   details += '<li><strong>Импортирани:</strong> ' + (response.imported || 0) + ' обекта</li>';
+                   details += '<li><strong>Пропуснати:</strong> ' + (response.skipped || 0) + ' обекта</li>';
+                   details += '</ul>';
+                   if (response.errors && response.errors.length > 0) {
+                       details += '<div class="mt-3"><strong>Грешки:</strong><ul class="mb-0">';
+                       response.errors.forEach(function(err) {
+                           details += '<li class="text-danger small">' + err + '</li>';
+                       });
+                       details += '</ul></div>';
+                   }
+                   detailsDiv.innerHTML = details;
+               } else {
+                   alertDiv.className = 'alert alert-danger';
+                   iconSpan.className = 'bi bi-x-circle me-2';
+                   messageSpan.textContent = response.message || 'Грешка при импорт';
+                   detailsDiv.innerHTML = '';
+               }
+               resultsDiv.style.display = 'block';
+           }).catch(error => {
+               if (importBtn) {
+                   importBtn.disabled = false;
+                   importBtn.innerHTML = originalText;
+               }
+               alertDiv.className = 'alert alert-danger';
+               iconSpan.className = 'bi bi-x-circle me-2';
+               messageSpan.textContent = 'Грешка при импорт: ' + error;
+               detailsDiv.innerHTML = '';
+               resultsDiv.style.display = 'block';
+           });
+     });
+ }
 
  // Функционалност за множество обекти
  function initializeMultipleObjects() {
@@ -783,7 +899,6 @@
  e.preventDefault();
  }
  });
- /*]]>*/
 </script>
     </div>
     </div> <!-- End main-content -->

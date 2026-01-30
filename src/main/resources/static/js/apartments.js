@@ -34,7 +34,6 @@ function initializeTable() {
         },
             columns: [
             { data: 'id', visible: false },
-            { data: 'buildingName' },
             { 
                 data: 'apartmentNumber',
                 render: function(data, type, row) {
@@ -141,7 +140,7 @@ function initializeTable() {
                 $(document).trigger('apartmentSelected', [data.id]);
             });
         },
-        order: [[1, 'asc']], // Sort by building name
+        order: [[1, 'asc']], // Sort by apartment number
         pageLength: 25,
         responsive: true,
         scrollX: true,
@@ -256,7 +255,7 @@ function setupEventHandlers() {
  * Open add apartment modal
  */
 function openAddModal() {
-    $('#apartmentModalLabel').html('<i class="bi bi-plus-circle me-2"></i>Добави апартамент');
+    $('#apartmentModalLabel').html('<i class="bi bi-plus-circle me-2"></i>Добави обект');
     $('#apartmentForm')[0].reset();
     $('#apartmentId').val('');
     $('#totalPriceAlert').hide();
@@ -273,9 +272,8 @@ function openEditModal(id) {
         url: `/apartments/api/${id}`,
         method: 'GET',
         success: function(data) {
-            $('#apartmentModalLabel').html('<i class="bi bi-pencil me-2"></i>Редактирай апартамент');
+            $('#apartmentModalLabel').html('<i class="bi bi-pencil me-2"></i>Редактирай обект');
             $('#apartmentId').val(data.id);
-            $('#buildingName').val(data.buildingName);
             $('#apartmentNumber').val(data.apartmentNumber);
             $('#area').val(data.area);
             $('#pricePerM2').val(data.pricePerM2);
@@ -310,10 +308,16 @@ function saveApartment() {
     
     const formData = {
         id: $('#apartmentId').val() || null,
-        buildingName: $('#buildingName').val(),
         apartmentNumber: $('#apartmentNumber').val(),
         area: parseFloat($('#area').val()),
-        pricePerM2: parseFloat($('#pricePerM2').val()),
+        pricePerM2: (() => {
+            const raw = $('#pricePerM2').val();
+            if (raw === null || raw === undefined || raw === '') {
+                return null;
+            }
+            const parsed = parseFloat(raw);
+            return Number.isNaN(parsed) ? null : parsed;
+        })(),
         stage: $('#stage').val() || null,
         notes: $('#notes').val() || null,
         isSold: true
@@ -404,12 +408,11 @@ function showOverdueReport() {
             tbody.empty();
             
             if (!data || data.length === 0) {
-                tbody.append('<tr><td colspan="6" class="text-center text-muted">Няма апартаменти с изостанали плащания</td></tr>');
+                tbody.append('<tr><td colspan="5" class="text-center text-muted">Няма апартаменти с изостанали плащания</td></tr>');
             } else {
                 data.forEach(apt => {
                     const row = `
                         <tr>
-                            <td>${apt.buildingName || '-'}</td>
                             <td>${apt.apartmentNumber || '-'}</td>
                             <td>${apt.client ? apt.client.name : '-'}</td>
                             <td>${apt.stage || '-'}</td>
@@ -492,6 +495,73 @@ function calculateTotalPrice() {
         $('#totalPriceAlert').hide();
     }
 }
+
+// Excel import for apartments
+$(document).on('submit', '#excelImportForm', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const importBtn = $('#excelImportBtn');
+    const originalText = importBtn.html();
+    importBtn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-2"></i>Импортиране...');
+    $('#excelImportResults').hide();
+
+    $.ajax({
+        url: '/excel/import',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            importBtn.prop('disabled', false).html(originalText);
+            const alertDiv = $('#excelImportAlert');
+            const messageSpan = $('#excelImportMessage');
+            const iconSpan = $('#excelImportIcon');
+            const detailsDiv = $('#excelImportDetails');
+
+            if (response.success) {
+                alertDiv.removeClass('alert-danger').addClass('alert-success');
+                iconSpan.removeClass('bi-x-circle').addClass('bi-check-circle');
+                messageSpan.text('Импортът е завършен успешно!');
+                let details = '<ul class="mb-0 mt-2">';
+                details += '<li><strong>Импортирани:</strong> ' + (response.imported || 0) + ' обекта</li>';
+                details += '<li><strong>Пропуснати:</strong> ' + (response.skipped || 0) + ' обекта</li>';
+                details += '</ul>';
+                if (response.errors && response.errors.length > 0) {
+                    details += '<div class="mt-3"><strong>Грешки:</strong><ul class="mb-0">';
+                    response.errors.forEach(function(error) {
+                        details += '<li class="text-danger small">' + error + '</li>';
+                    });
+                    details += '</ul></div>';
+                }
+                detailsDiv.html(details);
+                apartmentsTable.ajax.reload();
+            } else {
+                alertDiv.removeClass('alert-success').addClass('alert-danger');
+                iconSpan.removeClass('bi-check-circle').addClass('bi-x-circle');
+                messageSpan.text('Грешка при импорт: ' + (response.message || 'Неизвестна грешка'));
+                detailsDiv.html('');
+            }
+            $('#excelImportResults').show();
+        },
+        error: function(xhr) {
+            importBtn.prop('disabled', false).html(originalText);
+            const alertDiv = $('#excelImportAlert');
+            const messageSpan = $('#excelImportMessage');
+            const iconSpan = $('#excelImportIcon');
+            alertDiv.removeClass('alert-success').addClass('alert-danger');
+            iconSpan.removeClass('bi-check-circle').addClass('bi-x-circle');
+            let errorMessage = 'Грешка при импорт: ';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage += xhr.responseJSON.message;
+            } else {
+                errorMessage += 'Неизвестна грешка';
+            }
+            messageSpan.text(errorMessage);
+            $('#excelImportDetails').html('');
+            $('#excelImportResults').show();
+        }
+    });
+});
 
 /**
  * Show/hide loading overlay

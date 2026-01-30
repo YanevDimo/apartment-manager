@@ -26,7 +26,9 @@ public class StatisticsController {
     @GetMapping("/api/statistics")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getStatistics() {
-        Long buildingId = buildingService.getCurrentBuildingId().orElse(null);
+        Long buildingId = buildingService.getOrSetCurrentBuilding()
+            .map(b -> b.getId())
+            .orElse(null);
         Map<String, Object> stats = new HashMap<>();
 
         if (buildingId == null) {

@@ -94,10 +94,19 @@ public class ExcelServiceImpl implements ExcelService {
     
     @Override
     public Map<String, Object> importApartmentsFromExcel(MultipartFile file) {
+        return importApartmentsFromExcelForBuilding(file, null);
+    }
+
+    @Override
+    public Map<String, Object> importApartmentsFromExcelForBuilding(MultipartFile file, Long buildingId) {
         Map<String, Object> result = new HashMap<>();
         List<String> errors = new ArrayList<>();
         int imported = 0;
         int skipped = 0;
+        Building currentBuilding = null;
+        if (buildingId != null) {
+            currentBuilding = buildingService.getBuildingById(buildingId).orElse(null);
+        }
         
         try (InputStream inputStream = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(inputStream)) {
@@ -122,7 +131,10 @@ public class ExcelServiceImpl implements ExcelService {
                     Apartment apartment = new Apartment();
                     
                     // Read data from row (adjust column indices based on export format)
-                    if (row.getCell(1) != null) {
+                    if (currentBuilding != null) {
+                        apartment.setBuilding(currentBuilding);
+                        apartment.setBuildingName(currentBuilding.getName());
+                    } else if (row.getCell(1) != null) {
                         apartment.setBuildingName(getCellValueAsString(row.getCell(1)));
                     }
                     if (row.getCell(2) != null) {
@@ -139,7 +151,7 @@ public class ExcelServiceImpl implements ExcelService {
                     }
                     apartment.setArea(area);
                     
-                    // Read pricePerM2 (column 4) - required field
+                    // Read pricePerM2 (column 4) - optional
                     BigDecimal pricePerM2 = null;
                     if (row.getCell(4) != null) {
                         double priceValue = getCellValueAsDouble(row.getCell(4));
@@ -159,7 +171,7 @@ public class ExcelServiceImpl implements ExcelService {
                     apartment.setIsSold(true);
                     
                     // Validate required fields
-                    if (apartment.getBuildingName() == null || apartment.getBuildingName().trim().isEmpty() ||
+                    if ((apartment.getBuildingName() == null || apartment.getBuildingName().trim().isEmpty()) ||
                         apartment.getApartmentNumber() == null || apartment.getApartmentNumber().trim().isEmpty()) {
                         skipped++;
                         errors.add("Ред " + (row.getRowNum() + 1) + ": Липсват задължителни полета");
@@ -173,15 +185,22 @@ public class ExcelServiceImpl implements ExcelService {
                         continue;
                     }
                     
-                    // Validate pricePerM2
-                    if (apartment.getPricePerM2() == null || apartment.getPricePerM2().compareTo(BigDecimal.valueOf(0.01)) < 0) {
-                        skipped++;
-                        errors.add("Ред " + (row.getRowNum() + 1) + ": Цената трябва да е по-голяма от 0");
-                        continue;
+                    // Resolve building if not provided
+                    if (apartment.getBuilding() == null) {
+                        Building foundBuilding = buildingService.getBuildingByName(apartment.getBuildingName()).orElse(null);
+                        if (foundBuilding == null) {
+                            // Create building if missing
+                            Building newBuilding = new Building();
+                            newBuilding.setName(apartment.getBuildingName());
+                            newBuilding.setStatus("активна");
+                            foundBuilding = buildingService.saveBuilding(newBuilding);
+                        }
+                        apartment.setBuilding(foundBuilding);
+                        apartment.setBuildingName(foundBuilding.getName());
                     }
-                    
+
                     // Check for duplicates
-                    if (apartmentService.apartmentExists(apartment.getBuildingName(), 
+                    if (apartmentService.apartmentExists(apartment.getBuildingName(),
                                                         apartment.getApartmentNumber(), null)) {
                         skipped++;
                         errors.add("Ред " + (row.getRowNum() + 1) + ": Апартамент вече съществува");
@@ -197,9 +216,7 @@ public class ExcelServiceImpl implements ExcelService {
                     String errorMessage = e.getMessage();
                     // Extract validation error message if it's a constraint violation
                     if (errorMessage != null && errorMessage.contains("ConstraintViolationImpl")) {
-                        if (errorMessage.contains("pricePerM2")) {
-                            errors.add("Ред " + (row.getRowNum() + 1) + ": Цената трябва да е по-голяма от 0");
-                        } else if (errorMessage.contains("area")) {
+                        if (errorMessage.contains("area")) {
                             errors.add("Ред " + (row.getRowNum() + 1) + ": Площта трябва да е по-голяма от 0");
                         } else {
                             errors.add("Ред " + (row.getRowNum() + 1) + ": " + errorMessage);

@@ -39,7 +39,11 @@ public class MainController {
     }
     
     @GetMapping("/index")
-    public String indexPage() {
+    public String indexPage(Model model) {
+        buildingService.getOrSetCurrentBuilding().ifPresent(building -> {
+            model.addAttribute("currentBuildingId", building.getId());
+            model.addAttribute("currentBuildingName", building.getName());
+        });
         return "dashboard";
     }
     
@@ -51,7 +55,14 @@ public class MainController {
     @GetMapping("/add-apartment")
     public String addApartmentPage(Model model) {
         model.addAttribute("clients", clientService.getAllClients());
-        model.addAttribute("buildings", buildingService.getAllBuildings());
+        var currentBuilding = buildingService.getOrSetCurrentBuilding().orElse(null);
+        if (currentBuilding == null) {
+            model.addAttribute("error", "Моля, изберете сграда за работа преди добавяне на апартаменти.");
+            return "redirect:/buildings";
+        }
+        model.addAttribute("currentBuildingId", currentBuilding.getId());
+        model.addAttribute("currentBuildingName", currentBuilding.getName());
+        model.addAttribute("currentBuildingStage", currentBuilding.getStage());
         return "add_apartment";
     }
     
@@ -76,36 +87,15 @@ public class MainController {
                 }
             }
             
-            // Get building (by name or ID)
-            String buildingName = request.getParameter("buildingName");
-            String buildingIdStr = request.getParameter("buildingId");
+            // Use current building (global selection)
             Building building = null;
-            
-            if (buildingIdStr != null && !buildingIdStr.trim().isEmpty()) {
-                try {
-                    Long buildingId = Long.parseLong(buildingIdStr);
-                    building = buildingService.getBuildingById(buildingId)
-                        .orElse(null);
-                } catch (NumberFormatException e) {
-                    // Invalid building ID, try by name
-                }
-            }
-            
-            if (building == null && buildingName != null && !buildingName.trim().isEmpty()) {
-                building = buildingService.getBuildingByName(buildingName.trim())
-                    .orElse(null);
-                
-                // If building doesn't exist, create it
-                if (building == null) {
-                    Building newBuilding = new Building();
-                    newBuilding.setName(buildingName.trim());
-                    newBuilding.setStatus("активна");
-                    building = buildingService.saveBuilding(newBuilding);
-                }
+            var currentBuilding = buildingService.getOrSetCurrentBuilding().orElse(null);
+            if (currentBuilding != null) {
+                building = currentBuilding;
             }
             
             if (building == null) {
-                redirectAttributes.addFlashAttribute("error", "Моля, изберете или създайте сграда!");
+                redirectAttributes.addFlashAttribute("error", "Моля, изберете сграда за работа преди добавяне на апартаменти!");
                 return "redirect:/add-apartment";
             }
             
