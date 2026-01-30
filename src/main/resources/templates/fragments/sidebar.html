@@ -14,47 +14,13 @@
         </div>
 
         <div class="sidebar-nav">
-            <!-- Главна секция -->
+            <!-- Dashboard -->
             <div class="nav-section">
                 <div class="nav-section-title">Главно</div>
                 <div class="nav-item">
                     <a th:href="@{/index}" class="nav-link" th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI == '/index' or #httpServletRequest.requestURI == '/dashboard')} ? 'active' : ''">
                         <i class="bi bi-speedometer2"></i>
                         <span>Dashboard</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Апартаменти -->
-            <div class="nav-section">
-                <div class="nav-section-title">Апартаменти</div>
-                <div class="nav-item">
-                    <a th:href="@{/apartments}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/apartments') and !#strings.contains(#httpServletRequest.requestURI, '/add-apartment')} ? 'active' : ''">
-                        <i class="bi bi-list-ul"></i>
-                        <span>Списък с апартаменти</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/add-apartment}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/add-apartment')} ? 'active' : ''">
-                        <i class="bi bi-plus-circle"></i>
-                        <span>Добави апартамент</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Клиенти -->
-            <div class="nav-section">
-                <div class="nav-section-title">Клиенти</div>
-                <div class="nav-item">
-                    <a th:href="@{/clients}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/clients') and !#strings.contains(#httpServletRequest.requestURI, '/add-client')} ? 'active' : ''">
-                        <i class="bi bi-people"></i>
-                        <span>Списък с клиенти</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/add-client}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/add-client')} ? 'active' : ''">
-                        <i class="bi bi-person-plus"></i>
-                        <span>Добави клиент</span>
                     </a>
                 </div>
             </div>
@@ -76,6 +42,40 @@
                 </div>
             </div>
 
+            <!-- Обекти (Апартаменти) -->
+            <div class="nav-section">
+                <div class="nav-section-title">Обекти</div>
+                <div class="nav-item">
+                    <a th:href="@{/apartments}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/apartments') and !#strings.contains(#httpServletRequest.requestURI, '/add-apartment')} ? 'active' : ''">
+                        <i class="bi bi-list-ul"></i>
+                        <span>Списък с обекти</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a th:href="@{/add-apartment}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/add-apartment')} ? 'active' : ''">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Добави обект</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Клиенти -->
+            <div class="nav-section">
+                <div class="nav-section-title">Клиенти</div>
+                <div class="nav-item">
+                    <a th:href="@{/clients}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/clients') and !#strings.contains(#httpServletRequest.requestURI, '/add-client')} ? 'active' : ''">
+                        <i class="bi bi-people"></i>
+                        <span>Списък с клиенти</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a th:href="@{/add-client}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/add-client')} ? 'active' : ''">
+                        <i class="bi bi-person-plus"></i>
+                        <span>Добави клиент</span>
+                    </a>
+                </div>
+            </div>
+
             <!-- Плащания -->
             <div class="nav-section">
                 <div class="nav-section-title">Плащания</div>
@@ -87,9 +87,9 @@
                 </div>
             </div>
 
-            <!-- Excel операции -->
+            <!-- Импорт/Експорт -->
             <div class="nav-section">
-                <div class="nav-section-title">Excel</div>
+                <div class="nav-section-title">Импорт/Експорт</div>
                 <div class="nav-item">
                     <a th:href="@{/excel}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/excel') and !#strings.contains(#httpServletRequest.requestURI, '/export')} ? 'active' : ''">
                         <i class="bi bi-file-earmark-excel"></i>
@@ -100,126 +100,6 @@
                     <a th:href="@{/excel/export}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/excel/export')} ? 'active' : ''">
                         <i class="bi bi-download"></i>
                         <span>Експорт на данни</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Потребителски секция -->
-            <div class="nav-section">
-                <div class="nav-section-title">Моят профил</div>
-                <div class="nav-item">
-                    <a th:href="@{/user/dashboard}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/user/dashboard')} ? 'active' : ''">
-                        <i class="bi bi-person-circle"></i>
-                        <span>Потребителски dashboard</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/user/profile}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/user/profile')} ? 'active' : ''">
-                        <i class="bi bi-person"></i>
-                        <span>Моят профил</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/user/inquiries}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/user/inquiries')} ? 'active' : ''">
-                        <i class="bi bi-question-circle"></i>
-                        <span>Моите запитвания</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Агентска секция -->
-            <div class="nav-section">
-                <div class="nav-section-title">Агентски панел</div>
-                <div class="nav-item">
-                    <a th:href="@{/agent/dashboard}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/agent/dashboard')} ? 'active' : ''">
-                        <i class="bi bi-house-door"></i>
-                        <span>Агентски dashboard</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/agent/properties}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/agent/properties')} ? 'active' : ''">
-                        <i class="bi bi-house"></i>
-                        <span>Моите имоти</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/agent/inquiries}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/agent/inquiries')} ? 'active' : ''">
-                        <i class="bi bi-inbox"></i>
-                        <span>Запитвания</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/agent/profile}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/agent/profile')} ? 'active' : ''">
-                        <i class="bi bi-person-badge"></i>
-                        <span>Агентски профил</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Административна секция -->
-            <div class="nav-section">
-                <div class="nav-section-title">Администрация</div>
-                <div class="nav-item">
-                    <a th:href="@{/admin/dashboard}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/admin/dashboard')} ? 'active' : ''">
-                        <i class="bi bi-shield-lock"></i>
-                        <span>Админ dashboard</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/admin/users}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/admin/users')} ? 'active' : ''">
-                        <i class="bi bi-people-fill"></i>
-                        <span>Потребители</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/admin/inquiries}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/admin/inquiries')} ? 'active' : ''">
-                        <i class="bi bi-envelope"></i>
-                        <span>Всички запитвания</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/admin/system}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/admin/system')} ? 'active' : ''">
-                        <i class="bi bi-gear"></i>
-                        <span>Системен мониторинг</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Публична секция -->
-            <div class="nav-section">
-                <div class="nav-section-title">Публична страница</div>
-                <div class="nav-item">
-                    <a th:href="@{/public/home}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/public/home')} ? 'active' : ''">
-                        <i class="bi bi-house"></i>
-                        <span>Начало</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/public/properties}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/public/properties')} ? 'active' : ''">
-                        <i class="bi bi-list-check"></i>
-                        <span>Публични имоти</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/public/about}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/public/about')} ? 'active' : ''">
-                        <i class="bi bi-info-circle"></i>
-                        <span>За нас</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a th:href="@{/public/contact}" class="nav-link" th:classappend="${#httpServletRequest != null and #strings.contains(#httpServletRequest.requestURI, '/public/contact')} ? 'active' : ''">
-                        <i class="bi bi-envelope"></i>
-                        <span>Контакти</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Изход -->
-            <div class="nav-section">
-                <div class="nav-item">
-                    <a th:href="@{/auth/logout}" class="nav-link">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>Изход</span>
                     </a>
                 </div>
             </div>

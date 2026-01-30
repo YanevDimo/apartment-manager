@@ -3,6 +3,7 @@ package apartmentsmanager.apartmentsmanager.controller;
 import apartmentsmanager.apartmentsmanager.entity.Apartment;
 import apartmentsmanager.apartmentsmanager.entity.Client;
 import apartmentsmanager.apartmentsmanager.service.ApartmentService;
+import apartmentsmanager.apartmentsmanager.service.BuildingService;
 import apartmentsmanager.apartmentsmanager.service.ClientService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -23,10 +24,12 @@ public class ApartmentController {
     
     private final ApartmentService apartmentService;
     private final ClientService clientService;
+    private final BuildingService buildingService;
     
-    public ApartmentController(ApartmentService apartmentService, ClientService clientService) {
+    public ApartmentController(ApartmentService apartmentService, ClientService clientService, BuildingService buildingService) {
         this.apartmentService = apartmentService;
         this.clientService = clientService;
+        this.buildingService = buildingService;
     }
     
     @GetMapping
@@ -158,7 +161,10 @@ public class ApartmentController {
     @GetMapping("/api/overdue")
     @ResponseBody
     public ResponseEntity<List<Apartment>> getOverdueApartments() {
-        List<Apartment> overdue = apartmentService.getApartmentsWithOverduePayments();
+        Long buildingId = buildingService.getCurrentBuildingId().orElse(null);
+        List<Apartment> overdue = buildingId != null
+            ? apartmentService.getApartmentsWithOverduePaymentsByBuilding(buildingId)
+            : List.of();
         return ResponseEntity.ok(overdue);
     }
     

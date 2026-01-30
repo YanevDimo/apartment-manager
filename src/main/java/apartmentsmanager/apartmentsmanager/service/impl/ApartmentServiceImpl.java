@@ -70,11 +70,30 @@ public class ApartmentServiceImpl implements ApartmentService {
     public List<Apartment> getApartmentsWithOverduePayments() {
         return apartmentRepository.findApartmentsWithOverduePayments();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Apartment> getApartmentsWithOverduePaymentsByBuilding(Long buildingId) {
+        if (buildingId == null) {
+            return List.of();
+        }
+        return apartmentRepository.findApartmentsWithOverduePaymentsByBuilding(buildingId);
+    }
     
     @Override
     @Transactional(readOnly = true)
     public BigDecimal getTotalRevenue() {
         BigDecimal total = apartmentRepository.calculateTotalRevenue();
+        return total != null ? total : BigDecimal.ZERO;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalRevenueByBuilding(Long buildingId) {
+        if (buildingId == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal total = apartmentRepository.calculateTotalRevenueByBuilding(buildingId);
         return total != null ? total : BigDecimal.ZERO;
     }
     
@@ -84,17 +103,42 @@ public class ApartmentServiceImpl implements ApartmentService {
         BigDecimal total = apartmentRepository.calculateTotalCollectedPayments();
         return total != null ? total : BigDecimal.ZERO;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalCollectedPaymentsByBuilding(Long buildingId) {
+        if (buildingId == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal total = apartmentRepository.calculateTotalCollectedPaymentsByBuilding(buildingId);
+        return total != null ? total : BigDecimal.ZERO;
+    }
     
     @Override
     @Transactional(readOnly = true)
     public BigDecimal getTotalExpectedPayments() {
         return getTotalRevenue();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalExpectedPaymentsByBuilding(Long buildingId) {
+        return getTotalRevenueByBuilding(buildingId);
+    }
     
     @Override
     @Transactional(readOnly = true)
     public long getTotalApartmentsCount() {
         return apartmentRepository.findByIsSoldTrue().size();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long getTotalApartmentsCountByBuilding(Long buildingId) {
+        if (buildingId == null) {
+            return 0;
+        }
+        return apartmentRepository.countSoldApartmentsByBuilding(buildingId);
     }
     
     @Override

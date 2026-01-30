@@ -37,15 +37,38 @@ public interface ApartmentRepository extends JpaRepository<Apartment, Long> {
            "     pp.akt15Date < CURRENT_DATE OR " +
            "     pp.akt16Date < CURRENT_DATE)")
     List<Apartment> findApartmentsWithOverduePayments();
+
+    // Find apartments with overdue payments by building
+    @Query("SELECT DISTINCT a FROM Apartment a " +
+           "JOIN a.paymentPlan pp " +
+           "WHERE a.isSold = true AND a.building.id = :buildingId " +
+           "AND (pp.preliminaryContractDate < CURRENT_DATE OR " +
+           "     pp.akt14Date < CURRENT_DATE OR " +
+           "     pp.akt15Date < CURRENT_DATE OR " +
+           "     pp.akt16Date < CURRENT_DATE)")
+    List<Apartment> findApartmentsWithOverduePaymentsByBuilding(Long buildingId);
     
     // Calculate total revenue
     @Query("SELECT COALESCE(SUM(a.totalPrice), 0) FROM Apartment a WHERE a.isSold = true")
     BigDecimal calculateTotalRevenue();
+
+    // Calculate total revenue by building
+    @Query("SELECT COALESCE(SUM(a.totalPrice), 0) FROM Apartment a WHERE a.isSold = true AND a.building.id = :buildingId")
+    BigDecimal calculateTotalRevenueByBuilding(Long buildingId);
     
     // Calculate total collected payments
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p " +
            "JOIN p.apartment a WHERE a.isSold = true")
     BigDecimal calculateTotalCollectedPayments();
+
+    // Calculate total collected payments by building
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p " +
+           "JOIN p.apartment a WHERE a.isSold = true AND a.building.id = :buildingId")
+    BigDecimal calculateTotalCollectedPaymentsByBuilding(Long buildingId);
+
+    // Count sold apartments by building
+    @Query("SELECT COUNT(a) FROM Apartment a WHERE a.isSold = true AND a.building.id = :buildingId")
+    long countSoldApartmentsByBuilding(Long buildingId);
     
     // Count apartments by stage
     @Query("SELECT a.stage, COUNT(a) FROM Apartment a WHERE a.isSold = true GROUP BY a.stage")

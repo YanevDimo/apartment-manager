@@ -34,6 +34,11 @@ public interface StatisticsService {
      * Get statistics map
      */
     Map<String, Object> getStatistics();
+
+    /**
+     * Get statistics for a specific building
+     */
+    Map<String, Object> getStatisticsForBuilding(Long buildingId);
 }
 
 

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
@@ -132,86 +132,6 @@
             }
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 250px;
-            background: linear-gradient(180deg, #4e73df 0%, #224abe 100%);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            overflow-y: auto;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .sidebar-brand {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .sidebar-nav {
-            padding: 1rem 0;
-        }
-
-        .nav-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .nav-section-title {
-            color: rgba(255,255,255,0.6);
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 0.5rem 1.5rem;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-item {
-            margin: 0.25rem 0;
-        }
-
-        .nav-link {
-            color: rgba(255,255,255,0.9);
-            padding: 0.75rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-
-        .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border-left-color: white;
-        }
-
-        .nav-link.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-left-color: white;
-            font-weight: 600;
-        }
-
-        .nav-link i {
-            width: 20px;
-            text-align: center;
-        }
-
         .main-content {
             margin-left: 250px;
             padding: 2rem;
@@ -219,7 +139,7 @@
             position: relative;
             z-index: 1;
         }
-        
+
         /* Ensure buttons are clickable */
         .card-body a.btn,
         .card-body .btn {
@@ -229,265 +149,20 @@
             position: relative;
         }
 
-        .sidebar-toggle {
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1001;
-            background: #4e73df;
-            color: white;
-            border: none;
-            padding: 0.5rem;
-            border-radius: 5px;
-            display: none;
-        }
-
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.show {
-                transform: translateX(0);
-            }
-
             .main-content {
                 margin-left: 0;
             }
-
-            .sidebar-toggle {
-                display: block;
-            }
         }
     </style>
+    <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
 </head>
 <body>
     <!-- Sidebar Toggle Button (Mobile) -->
-    <button class="sidebar-toggle" id="sidebarToggle">
-        <i class="bi bi-list"></i>
-    </button>
+    <th:block th:replace="~{fragments/sidebar :: sidebarToggle}"></th:block>
 
-    <!-- Sidebar -->
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <a href="/index" class="sidebar-brand">
-                <i class="bi bi-building"></i>
-                <span>Dashboard</span>
-            </a>
-        </div>
-
-        <div class="sidebar-nav">
-            <!-- Главна секция -->
-            <div class="nav-section">
-                <div class="nav-section-title">Главно</div>
-                <div class="nav-item">
-                    <a href="/index" class="nav-link active">
-                        <i class="bi bi-speedometer2"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Апартаменти -->
-            <div class="nav-section">
-                <div class="nav-section-title">Апартаменти</div>
-                <div class="nav-item">
-                    <a href="/apartments" class="nav-link">
-                        <i class="bi bi-list-ul"></i>
-                        <span>Списък с апартаменти</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/add-apartment" class="nav-link">
-                        <i class="bi bi-plus-circle"></i>
-                        <span>Добави апартамент</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Клиенти -->
-            <div class="nav-section">
-                <div class="nav-section-title">Клиенти</div>
-                <div class="nav-item">
-                    <a href="/clients" class="nav-link">
-                        <i class="bi bi-people"></i>
-                        <span>Списък с клиенти</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/add-client" class="nav-link">
-                        <i class="bi bi-person-plus"></i>
-                        <span>Добави клиент</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Сгради -->
-            <div class="nav-section">
-                <div class="nav-section-title">Сгради</div>
-                <div class="nav-item">
-                    <a href="/buildings" class="nav-link">
-                        <i class="bi bi-buildings"></i>
-                        <span>Списък със сгради</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/buildings/add" class="nav-link">
-                        <i class="bi bi-building-add"></i>
-                        <span>Добави сграда</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Плащания -->
-            <div class="nav-section">
-                <div class="nav-section-title">Плащания</div>
-                <div class="nav-item">
-                    <a href="/payments" class="nav-link">
-                        <i class="bi bi-cash-stack"></i>
-                        <span>Плащания</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Excel операции -->
-            <div class="nav-section">
-                <div class="nav-section-title">Excel</div>
-                <div class="nav-item">
-                    <a href="/excel" class="nav-link">
-                        <i class="bi bi-file-earmark-excel"></i>
-                        <span>Excel операции</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/excel/export" class="nav-link">
-                        <i class="bi bi-download"></i>
-                        <span>Експорт на данни</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Потребителски секция -->
-            <div class="nav-section">
-                <div class="nav-section-title">Моят профил</div>
-                <div class="nav-item">
-                    <a href="/user/dashboard" class="nav-link">
-                        <i class="bi bi-person-circle"></i>
-                        <span>Потребителски dashboard</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/user/profile" class="nav-link">
-                        <i class="bi bi-person"></i>
-                        <span>Моят профил</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/user/inquiries" class="nav-link">
-                        <i class="bi bi-question-circle"></i>
-                        <span>Моите запитвания</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Агентска секция -->
-            <div class="nav-section">
-                <div class="nav-section-title">Агентски панел</div>
-                <div class="nav-item">
-                    <a href="/agent/dashboard" class="nav-link">
-                        <i class="bi bi-house-door"></i>
-                        <span>Агентски dashboard</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/agent/properties" class="nav-link">
-                        <i class="bi bi-house"></i>
-                        <span>Моите имоти</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/agent/inquiries" class="nav-link">
-                        <i class="bi bi-inbox"></i>
-                        <span>Запитвания</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/agent/profile" class="nav-link">
-                        <i class="bi bi-person-badge"></i>
-                        <span>Агентски профил</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Административна секция -->
-            <div class="nav-section">
-                <div class="nav-section-title">Администрация</div>
-                <div class="nav-item">
-                    <a href="/admin/dashboard" class="nav-link">
-                        <i class="bi bi-shield-lock"></i>
-                        <span>Админ dashboard</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/admin/users" class="nav-link">
-                        <i class="bi bi-people-fill"></i>
-                        <span>Потребители</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/admin/inquiries" class="nav-link">
-                        <i class="bi bi-envelope"></i>
-                        <span>Всички запитвания</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/admin/system" class="nav-link">
-                        <i class="bi bi-gear"></i>
-                        <span>Системен мониторинг</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Публична секция -->
-            <div class="nav-section">
-                <div class="nav-section-title">Публична страница</div>
-                <div class="nav-item">
-                    <a href="/public/home" class="nav-link">
-                        <i class="bi bi-house"></i>
-                        <span>Начало</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/public/properties" class="nav-link">
-                        <i class="bi bi-list-check"></i>
-                        <span>Публични имоти</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/public/about" class="nav-link">
-                        <i class="bi bi-info-circle"></i>
-                        <span>За нас</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="/public/contact" class="nav-link">
-                        <i class="bi bi-envelope"></i>
-                        <span>Контакти</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Изход -->
-            <div class="nav-section">
-                <div class="nav-item">
-                    <a href="/auth/logout" class="nav-link">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>Изход</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <!-- Sidebar (единен източник: fragments/sidebar.html) -->
+    <th:block th:replace="~{fragments/sidebar :: sidebar}"></th:block>
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
@@ -957,45 +632,7 @@
             }).format(amount);
         }
 
-        // Sidebar Toggle Script
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('show');
-                });
-            }
-
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener('click', function(event) {
-                if (window.innerWidth <= 768) {
-                    // Don't close if clicking on buttons or links
-                    if (event.target.closest('a.btn') || event.target.closest('button') || event.target.closest('a')) {
-                        return;
-                    }
-                    if (!sidebar.contains(event.target) && 
-                        !sidebarToggle.contains(event.target) && 
-                        sidebar.classList.contains('show')) {
-                        sidebar.classList.remove('show');
-                    }
-                }
-            });
-
-            // Set active nav link based on current URL
-            const currentPath = window.location.pathname;
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => {
-                if (link.getAttribute('href') === currentPath || 
-                    (currentPath === '/dashboard' && link.getAttribute('href') === '/index')) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('active');
-                }
-            });
-        });
     </script>
+    <th:block th:replace="~{fragments/sidebar :: sidebarScript}"></th:block>
 </body>
 </html>

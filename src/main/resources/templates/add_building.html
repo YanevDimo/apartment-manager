@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -125,8 +125,14 @@
 
  <div class="col-md-6 mb-3">
  <label for="stage" class="form-label">Етап</label>
- <input type="text" class="form-control" id="stage" th:field="*{stage}"
- placeholder="Например: Открита строителна площадка, Акт 14, и т.н." />
+ <select class="form-select" id="stage" th:field="*{stage}">
+ <option value="">— Изберете етап (по желание) —</option>
+ <option value="Открита строителна площадка">Открита строителна площадка</option>
+ <option value="Акт 14">Акт 14</option>
+ <option value="Акт 15">Акт 15</option>
+ <option value="Акт 16">Акт 16</option>
+ <option value="Завършен">Завършен</option>
+ </select>
  <div class="form-text">Текущият етап на сградата (по желание)</div>
  </div>
  </div>

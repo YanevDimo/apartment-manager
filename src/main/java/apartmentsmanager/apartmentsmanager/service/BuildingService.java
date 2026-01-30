@@ -3,9 +3,16 @@ package apartmentsmanager.apartmentsmanager.service;
 import apartmentsmanager.apartmentsmanager.entity.Building;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface BuildingService {
+    
+    /**
+     * Loads all data needed for the buildings list page in one transaction (avoids LazyInitializationException).
+     * Keys: buildings, buildingsCount, currentBuilding, apartmentsCount, garagesCount, basementsCount, parkingSpacesCount, commercialSpacesCount
+     */
+    Map<String, Object> getBuildingsPageData();
     
     List<Building> getAllBuildings();
     
@@ -22,6 +29,10 @@ public interface BuildingService {
     Building updateBuildingStatus(Long buildingId, String status);
     
     Building updateBuildingStage(Long buildingId, String stage);
+
+    void setCurrentBuildingId(Long buildingId);
+
+    Optional<Long> getCurrentBuildingId();
 }
 
 

@@ -71,6 +71,31 @@ public class StatisticsServiceImpl implements StatisticsService {
         stats.put("remainingPayments", getTotalRevenue().subtract(getTotalCollectedPayments()));
         return stats;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getStatisticsForBuilding(Long buildingId) {
+        Map<String, Object> stats = new HashMap<>();
+        BigDecimal totalRevenue = apartmentService.getTotalRevenueByBuilding(buildingId);
+        BigDecimal totalCollected = apartmentService.getTotalCollectedPaymentsByBuilding(buildingId);
+        BigDecimal totalExpected = apartmentService.getTotalExpectedPaymentsByBuilding(buildingId);
+        long totalApartments = apartmentService.getTotalApartmentsCountByBuilding(buildingId);
+
+        BigDecimal collectionRate = BigDecimal.ZERO;
+        if (totalRevenue.compareTo(BigDecimal.ZERO) > 0) {
+            collectionRate = totalCollected.divide(totalRevenue, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(2, RoundingMode.HALF_UP);
+        }
+
+        stats.put("totalApartments", totalApartments);
+        stats.put("totalRevenue", totalRevenue);
+        stats.put("totalCollected", totalCollected);
+        stats.put("totalExpected", totalExpected);
+        stats.put("collectionRate", collectionRate);
+        stats.put("remainingPayments", totalExpected.subtract(totalCollected));
+        return stats;
+    }
 }
 
 

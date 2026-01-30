@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bg">
 <head>
  <meta charset="UTF-8" />
@@ -49,6 +49,18 @@
  <p class="text-muted mb-4">
  Моля опитайте отново по-късно.
  </p>
+
+ <!-- Debug Details (when available) -->
+ <div class="text-start" th:if="${errorMessage != null}">
+ <div class="alert alert-danger small mb-3">
+ <strong>Съобщение:</strong>
+ <span th:text="${errorMessage}">Грешка</span>
+ </div>
+ <details class="small">
+ <summary>Детайли (за диагностика)</summary>
+ <pre class="mt-2" style="white-space: pre-wrap;" th:text="${errorStack}">Stack trace</pre>
+ </details>
+ </div>
 
  <!-- Action Buttons -->
  <div class="mt-4">

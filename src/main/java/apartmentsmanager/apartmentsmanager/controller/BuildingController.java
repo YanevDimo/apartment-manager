@@ -4,6 +4,7 @@ import apartmentsmanager.apartmentsmanager.entity.Building;
 import apartmentsmanager.apartmentsmanager.service.BuildingService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,40 +27,32 @@ public class BuildingController {
         this.buildingService = buildingService;
     }
     
-    @GetMapping
+    /** Списък със сгради. Маппинг за "" и "/" за да не се обръща /buildings/ към /{id} с празен id (NumberFormatException → ERR_INCOMPLETE_CHUNKED_ENCODING). */
+    @GetMapping({"", "/"})
     public String buildingsPage(Model model) {
         try {
-            java.util.List<Building> buildings = buildingService.getAllBuildings();
-            model.addAttribute("buildings", buildings);
-            model.addAttribute("buildingsCount", buildings.size());
-            
-            // Select current building (first active building, or first building if no active)
-            Building currentBuilding = null;
-            if (buildings != null && !buildings.isEmpty()) {
-                // Try to find an active building first
-                currentBuilding = buildings.stream()
-                    .filter(b -> b.getStatus() != null && b.getStatus().equals("активна"))
-                    .findFirst()
-                    .orElse(buildings.get(0)); // If no active, use first building
-                
-                // Load statistics for current building
-                int apartmentsCount = currentBuilding.getApartments() != null ? currentBuilding.getApartments().size() : 0;
-                int garagesCount = currentBuilding.getGarages() != null ? currentBuilding.getGarages().size() : 0;
-                int basementsCount = currentBuilding.getBasements() != null ? currentBuilding.getBasements().size() : 0;
-                int parkingSpacesCount = currentBuilding.getParkingSpaces() != null ? currentBuilding.getParkingSpaces().size() : 0;
-                int commercialSpacesCount = currentBuilding.getCommercialSpaces() != null ? currentBuilding.getCommercialSpaces().size() : 0;
-                
-                model.addAttribute("currentBuilding", currentBuilding);
-                model.addAttribute("apartmentsCount", apartmentsCount);
-                model.addAttribute("garagesCount", garagesCount);
-                model.addAttribute("basementsCount", basementsCount);
-                model.addAttribute("parkingSpacesCount", parkingSpacesCount);
-                model.addAttribute("commercialSpacesCount", commercialSpacesCount);
+            java.util.Map<String, Object> data = buildingService.getBuildingsPageData();
+            model.addAttribute("buildings", data.get("buildings"));
+            model.addAttribute("buildingsCount", data.get("buildingsCount"));
+            model.addAttribute("currentBuilding", data.get("currentBuilding"));
+            model.addAttribute("apartmentsCount", data.get("apartmentsCount"));
+            model.addAttribute("garagesCount", data.get("garagesCount"));
+            model.addAttribute("basementsCount", data.get("basementsCount"));
+            model.addAttribute("parkingSpacesCount", data.get("parkingSpacesCount"));
+            model.addAttribute("commercialSpacesCount", data.get("commercialSpacesCount"));
+            if (data.containsKey("error")) {
+                model.addAttribute("error", "Грешка при зареждане: " + data.get("error"));
             }
         } catch (Exception e) {
             model.addAttribute("error", "Грешка при зареждане на сградите: " + e.getMessage());
             model.addAttribute("buildings", java.util.Collections.emptyList());
             model.addAttribute("buildingsCount", 0);
+            model.addAttribute("currentBuilding", null);
+            model.addAttribute("apartmentsCount", 0);
+            model.addAttribute("garagesCount", 0);
+            model.addAttribute("basementsCount", 0);
+            model.addAttribute("parkingSpacesCount", 0);
+            model.addAttribute("commercialSpacesCount", 0);
         }
         return "buildings";
     }
@@ -74,6 +67,8 @@ public class BuildingController {
             building.setBasements(new java.util.ArrayList<>());
             building.setParkingSpaces(new java.util.ArrayList<>());
             building.setCommercialSpaces(new java.util.ArrayList<>());
+            // Default stage for new buildings (user can change or clear it)
+            building.setStage("Открита строителна площадка");
             model.addAttribute("building", building);
         }
         return "add_building";
@@ -150,6 +145,8 @@ public class BuildingController {
             
             // Save building
             Building savedBuilding = buildingService.saveBuilding(building);
+            // Set newly created building as current
+            buildingService.setCurrentBuildingId(savedBuilding.getId());
             
             redirectAttributes.addFlashAttribute("success", 
                 "Сградата '" + savedBuilding.getName() + "' е добавена успешно! Сега можете да добавите апартаменти, гаражи и мазета.");
@@ -168,7 +165,12 @@ public class BuildingController {
     
     // View building details with all information
     @GetMapping("/{id}")
+    @Transactional(readOnly = true)
     public String viewBuilding(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        if (id == null) {
+            redirectAttributes.addFlashAttribute("error", "Невалиден идентификатор на сграда.");
+            return "redirect:/buildings";
+        }
         try {
             Building building = buildingService.getBuildingById(id)
                 .orElseThrow(() -> new RuntimeException("Сграда с ID " + id + " не е намерена"));
@@ -196,6 +198,7 @@ public class BuildingController {
     
     // Edit building - GET
     @GetMapping("/edit/{id}")
+    @Transactional(readOnly = true)
     public String editBuildingPage(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
             Building building = buildingService.getBuildingById(id)
@@ -295,6 +298,20 @@ public class BuildingController {
             System.err.println("ERROR deleting building: " + e.getMessage());
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Грешка при изтриване на сграда: " + e.getMessage());
+        }
+        return "redirect:/buildings";
+    }
+
+    @PostMapping("/set-current")
+    public String setCurrentBuilding(@RequestParam("buildingId") Long id, RedirectAttributes redirectAttributes) {
+        try {
+            Building building = buildingService.getBuildingById(id)
+                .orElseThrow(() -> new RuntimeException("Сграда с ID " + id + " не е намерена"));
+            buildingService.setCurrentBuildingId(id);
+            redirectAttributes.addFlashAttribute("success",
+                "Избрана е сграда: " + building.getName());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Грешка при избор на сграда: " + e.getMessage());
         }
         return "redirect:/buildings";
     }

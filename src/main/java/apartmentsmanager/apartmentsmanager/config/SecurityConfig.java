@@ -39,6 +39,11 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
+                // TEMPORARY: Bypass authentication for development - permit all requests
+                .anyRequest().permitAll()
+                
+                // ORIGINAL CONFIGURATION (commented out for development):
+                /*
                 // Public endpoints
                 .requestMatchers("/", "/home", "/public/**", "/properties", "/properties/**", 
                                "/about", "/contact", "/auth/register", "/auth/login", "/login", "/register",
@@ -58,6 +63,7 @@ public class SecurityConfig {
                                "/add-client", "/buildings/**").hasAnyRole("USER", "AGENT", "ADMIN")
                 // All other requests require authentication
                 .anyRequest().authenticated()
+                */
             )
                    .formLogin(form -> form
                        .loginPage("/auth/login")

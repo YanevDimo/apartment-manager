@@ -21,14 +21,24 @@ public interface ApartmentService {
     boolean apartmentExists(String buildingName, String apartmentNumber, Long excludeId);
     
     List<Apartment> getApartmentsWithOverduePayments();
+
+    List<Apartment> getApartmentsWithOverduePaymentsByBuilding(Long buildingId);
     
     BigDecimal getTotalRevenue();
+
+    BigDecimal getTotalRevenueByBuilding(Long buildingId);
     
     BigDecimal getTotalCollectedPayments();
+
+    BigDecimal getTotalCollectedPaymentsByBuilding(Long buildingId);
     
     BigDecimal getTotalExpectedPayments();
+
+    BigDecimal getTotalExpectedPaymentsByBuilding(Long buildingId);
     
     long getTotalApartmentsCount();
+
+    long getTotalApartmentsCountByBuilding(Long buildingId);
     
     Apartment updateApartmentStage(Long apartmentId, String stage);
     
