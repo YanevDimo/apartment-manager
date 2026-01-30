@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local artifacts
+logs/
+BUILDINGS_PAGE_ANALYSIS.md
+setup-java17.ps1
