@@ -222,7 +222,7 @@ function setupEventHandlers() {
     });
     
     // Calculate total price on input change
-    $('#area, #pricePerM2').on('input', function() {
+    $('#area').on('input', function() {
         calculateTotalPrice();
     });
     
@@ -290,13 +290,8 @@ function openEditModal(id) {
             $('#apartmentId').val(data.id);
             $('#apartmentNumber').val(data.apartmentNumber);
             $('#area').val(data.area);
-            $('#pricePerM2').val(data.pricePerM2);
             $('#stage').val(data.stage || '');
             $('#notes').val(data.notes || '');
-            
-            if (data.client && data.client.id) {
-                $('#clientSelect').val(data.client.id);
-            }
             
             calculateTotalPrice();
             $('#apartmentModal').modal('show');
@@ -324,23 +319,10 @@ function saveApartment() {
         id: $('#apartmentId').val() || null,
         apartmentNumber: $('#apartmentNumber').val(),
         area: parseFloat($('#area').val()),
-        pricePerM2: (() => {
-            const raw = $('#pricePerM2').val();
-            if (raw === null || raw === undefined || raw === '') {
-                return null;
-            }
-            const parsed = parseFloat(raw);
-            return Number.isNaN(parsed) ? null : parsed;
-        })(),
         stage: $('#stage').val() || null,
         notes: $('#notes').val() || null,
         isSold: true
     };
-    
-    const clientId = $('#clientSelect').val();
-    if (clientId) {
-        formData.client = { id: parseInt(clientId) };
-    }
     
     showLoading(true);
     
