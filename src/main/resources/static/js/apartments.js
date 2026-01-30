@@ -13,6 +13,7 @@ $(document).ready(function() {
     initializeTable();
     loadClients();
     setupEventHandlers();
+    openModalFromQuery();
 });
 
 /**
@@ -249,6 +250,19 @@ function setupEventHandlers() {
     $('#btnSaveGlobalStage').on('click', function() {
         saveGlobalStage();
     });
+}
+
+/**
+ * Auto-open add modal from query param
+ */
+function openModalFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('add') === '1') {
+        openAddModal();
+        params.delete('add');
+        const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        window.history.replaceState({}, document.title, newUrl);
+    }
 }
 
 /**

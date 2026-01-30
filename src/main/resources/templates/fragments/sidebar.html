@@ -8,8 +8,13 @@
     <nav th:fragment="sidebar" class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a th:href="@{/index}" class="sidebar-brand">
-                <i class="bi bi-building"></i>
-                <span>Dashboard</span>
+                <span class="sidebar-brand-icon">
+                    <i class="bi bi-buildings"></i>
+                </span>
+                <span class="sidebar-brand-text">
+                    <span class="sidebar-brand-title">Apartments Manager</span>
+                    <span class="sidebar-brand-subtitle">Real Estate</span>
+                </span>
             </a>
         </div>
 
@@ -47,7 +52,7 @@
                         <i class="bi bi-list-ul"></i>
                         <span>Списък с обекти</span>
                     </a>
-                    <a th:href="@{/add-apartment}" class="nav-action-btn" title="Добави обект" aria-label="Добави обект">
+                    <a th:href="@{/apartments(add=1)}" class="nav-action-btn" title="Добави обект" aria-label="Добави обект">
                         <i class="bi bi-plus"></i>
                     </a>
                 </div>
@@ -111,8 +116,8 @@
             left: 0;
             height: 100vh;
             width: 250px;
-            background: linear-gradient(180deg, #4e73df 0%, #224abe 100%);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            background: linear-gradient(180deg, #2b2d30 0%, #1f2023 100%);
+            box-shadow: 2px 0 12px rgba(0,0,0,0.35);
             z-index: 1000;
             overflow-y: auto;
             transition: transform 0.3s ease;
@@ -120,8 +125,8 @@
 
         .sidebar-header {
             padding: 1.5rem;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
         .sidebar-brand {
@@ -132,6 +137,37 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        .sidebar-brand-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.12);
+        }
+
+        .sidebar-brand-text {
+            display: inline-flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .sidebar-brand-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .sidebar-brand-subtitle {
+            font-size: 0.62rem;
+            color: rgba(255,255,255,0.65);
+            font-weight: 500;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
         }
 
         .sidebar-nav {
