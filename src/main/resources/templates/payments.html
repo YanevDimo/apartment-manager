@@ -36,10 +36,49 @@
                 </div>
             </div>
 
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <div class="small text-white-50">Общо плащания</div>
+                            <div class="fs-4 fw-semibold" id="totalPaymentsCount">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <div class="small text-white-50">Обща сума</div>
+                            <div class="fs-4 fw-semibold" id="totalPaymentsAmount">0.00 €</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <div class="small text-white-50">Банкови</div>
+                            <div class="fs-4 fw-semibold" id="totalBankPayments">0.00 €</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <div class="small text-white-50">В брой</div>
+                            <div class="fs-4 fw-semibold" id="totalCashPayments">0.00 €</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <div class="fw-semibold">
                         <i class="bi bi-cash-coin me-2"></i>Плащания
+                    </div>
+                    <div class="input-group" style="max-width: 320px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="paymentSearch" placeholder="Търсене по обект, фактура...">
                     </div>
                 </div>
                 <div class="card-body">
@@ -53,12 +92,13 @@
                                     <th>Метод</th>
                                     <th>Етап</th>
                                     <th>Фактура</th>
+                                    <th>Капаро</th>
                                     <th>Действия</th>
                                 </tr>
                             </thead>
                             <tbody id="paymentsListBody">
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted">Зареждане...</td>
+                                    <td colspan="8" class="text-center text-muted">Зареждане...</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -369,8 +369,6 @@ function populateTable(clients) {
         tbody.append(row);
     });
     
-    // Re-setup delete buttons after populating table
-    setupDeleteButtons();
 }
 
 
@@ -408,110 +406,47 @@ function editClient(clientId) {
 }
 
 function confirmDelete(clientId, clientName) {
- console.log('confirmDelete called with:', clientId, clientName);
+    // Проверяваме дали имаме валидни параметри
+    if (!clientId || !clientName) {
+        return;
+    }
 
- // Проверяваме дали имаме валидни параметри
- if (!clientId || !clientName) {
- console.error('Invalid parameters:', clientId, clientName);
- return;
- }
+    // Задаваме името на клиента в модала
+    var clientNameElement = document.getElementById('clientName');
+    if (clientNameElement) {
+        clientNameElement.textContent = clientName;
+    }
 
- // Задаваме името на клиента в модала
- var clientNameElement = document.getElementById('clientName');
- if (clientNameElement) {
- clientNameElement.textContent = clientName;
- }
+    // Запазваме ID в бутона за потвърждение
+    var confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.setAttribute('data-client-id', clientId);
+    } else {
+        return;
+    }
 
- // Задаваме правилния URL за изтриване
- var deleteForm = document.getElementById('deleteForm');
- if (deleteForm) {
- deleteForm.setAttribute('data-client-id', clientId);
- console.log('Delete form client ID set to:', clientId);
- } else {
- console.error('Delete form not found!');
- return;
- }
-
- // Показваме модала
- var deleteModalElement = document.getElementById('deleteModal');
- if (deleteModalElement) {
- var deleteModal = new bootstrap.Modal(deleteModalElement);
- deleteModal.show();
- } else {
- console.error('Delete modal not found!');
- }
+    // Показваме модала
+    var deleteModalElement = document.getElementById('deleteModal');
+    if (deleteModalElement) {
+        var deleteModal = new bootstrap.Modal(deleteModalElement);
+        deleteModal.show();
+    }
 }
 
-// Добавяме event listeners когато страницата се зареди
-document.addEventListener('DOMContentLoaded', function() {
- console.log('DOM loaded, setting up event listeners...');
- setupDeleteButtons();
+// Единствен делегиран handler за delete бутон
+$(document).on('click', '.delete-client-btn', function(e) {
+    e.preventDefault();
+    const clientId = $(this).data('client-id');
+    const clientName = $(this).data('client-name');
+    confirmDelete(clientId, clientName);
 });
 
-// Функция за настройване на бутоните за изтриване
-function setupDeleteButtons() {
- // Event listener за бутоните за изтриване
- var deleteButtons = document.querySelectorAll('.delete-client-btn');
- console.log('Found delete buttons:', deleteButtons.length);
-
- deleteButtons.forEach(function(button) {
- // Премахваме старите event listeners
- button.removeEventListener('click', handleDeleteClick);
- // Добавяме нов event listener
- button.addEventListener('click', handleDeleteClick);
- });
-
- // Event listener за бутона за потвърждение на изтриване
- var confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
- if (confirmDeleteBtn) {
- confirmDeleteBtn.addEventListener('click', function() {
- var deleteForm = document.getElementById('deleteForm');
- if (deleteForm) {
- var clientId = deleteForm.getAttribute('data-client-id');
- if (clientId) {
- deleteClient(clientId);
- }
- }
- });
- }
-}
-
-// Функция за обработка на кликване на бутон за изтриване
-function handleDeleteClick(e) {
- e.preventDefault();
- e.stopPropagation();
- e.stopImmediatePropagation();
-
- var clientId = this.getAttribute('data-client-id');
- var clientName = this.getAttribute('data-client-name');
-
- console.log('Delete button clicked for:', clientId, clientName);
- confirmDelete(clientId, clientName);
-
- return false;
-}
-
-// Ако DataTables се зарежда след DOM, опитваме се отново
-if (typeof $.fn.DataTable !== 'undefined') {
- $(document).on('init.dt', function() {
- console.log('DataTables initialized, setting up delete buttons again...');
- setTimeout(setupDeleteButtons, 100);
- });
-}
-
-// jQuery event delegation за да работи дори с динамично добавени елементи
-$(document).on('click', '.delete-client-btn', function(e) {
- e.preventDefault();
- e.stopPropagation();
- e.stopImmediatePropagation();
-
- var clientId = $(this).data('client-id');
- var clientName = $(this).data('client-name');
-
- console.log('jQuery delete button clicked for:', clientId, clientName);
- confirmDelete(clientId, clientName);
-
- return false;
+// Единствен handler за потвърждение
+$(document).on('click', '#confirmDeleteBtn', function() {
+    const clientId = $(this).attr('data-client-id');
+    if (clientId) {
+        deleteClient(clientId);
+    }
 });
 
 // Function to delete client via API

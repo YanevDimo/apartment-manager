@@ -333,6 +333,20 @@ function formatCurrency(value) {
 }
 
 /**
+ * Format date as dd.MM.yyyy
+ */
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('bg-BG', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
+/**
  * Validate payment amount and suggest stage
  */
 function validatePaymentAmount() {
@@ -619,6 +633,15 @@ $(document).ready(function() {
         });
     }
 
+    // Search filter on payments list
+    $('#paymentSearch').on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        $('#paymentsListBody tr').each(function() {
+            const text = $(this).text().toLowerCase();
+            $(this).toggle(text.includes(searchTerm));
+        });
+    });
+
     // Load all payments if on payments page
     if ($('#paymentsListBody').length) {
         loadAllPayments();
@@ -639,17 +662,31 @@ function loadAllPayments() {
             tbody.empty();
             
             if (!data.payments || data.payments.length === 0) {
-                tbody.append('<tr><td colspan="7" class="text-center text-muted">Няма плащания</td></tr>');
+                tbody.append('<tr><td colspan="8" class="text-center text-muted">Няма плащания</td></tr>');
             } else {
+                const totalAmount = data.payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+                const bankTotal = data.payments
+                    .filter(p => p.paymentMethod === 'Банка')
+                    .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+                const cashTotal = data.payments
+                    .filter(p => p.paymentMethod === 'В брой')
+                    .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+
+                $('#totalPaymentsCount').text(data.total || data.payments.length || 0);
+                $('#totalPaymentsAmount').text(formatCurrency(totalAmount) + ' €');
+                $('#totalBankPayments').text(formatCurrency(bankTotal) + ' €');
+                $('#totalCashPayments').text(formatCurrency(cashTotal) + ' €');
+
                 data.payments.forEach(payment => {
                     const row = `
                         <tr>
                             <td>${payment.apartment || '-'}</td>
-                            <td class="fw-bold">${parseFloat(payment.amount || 0).toFixed(2)} €</td>
-                            <td>${payment.paymentDate || '-'}</td>
+                            <td class="fw-bold">${formatCurrency(parseFloat(payment.amount || 0))} €</td>
+                            <td>${formatDate(payment.paymentDate) || '-'}</td>
                             <td>${payment.paymentMethod || '-'}</td>
                             <td>${payment.paymentStage || '-'}</td>
                             <td>${payment.invoiceNumber || '-'}</td>
+                            <td>${payment.isDeposit ? '<span class="badge bg-info">Да</span>' : '<span class="badge bg-secondary">Не</span>'}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary btn-edit-payment" data-id="${payment.id}" title="Редактирай">
                                     <i class="bi bi-pencil"></i>
