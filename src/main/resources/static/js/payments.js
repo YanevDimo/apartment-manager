@@ -51,6 +51,9 @@ function openAddPaymentModal(apartmentId) {
             // Load payment summary
             loadPaymentSummary(apartmentId);
             
+            // Check if deposit already exists
+            checkAndDisableDeposit(apartmentId);
+            
             // Set default date to today
             $('#paymentDate').val(new Date().toISOString().split('T')[0]);
             
@@ -58,6 +61,41 @@ function openAddPaymentModal(apartmentId) {
         },
         error: function() {
             showToast('Грешка при зареждане на данните за апартамента', 'error');
+        }
+    });
+}
+
+/**
+ * Check if deposit exists and disable checkbox if it does
+ */
+function checkAndDisableDeposit(apartmentId) {
+    $.ajax({
+        url: `/payments/api/apartment/${apartmentId}/hasDeposit`,
+        method: 'GET',
+        success: function(data) {
+            const depositCheckbox = $('#isDeposit');
+            if (data.hasDeposit) {
+                depositCheckbox.prop('disabled', true);
+                depositCheckbox.prop('checked', false);
+                
+                // Add warning message if not exists
+                if (!$('#depositWarning').length) {
+                    depositCheckbox.closest('.form-check').after(
+                        '<small id="depositWarning" class="text-warning d-block mt-1">' +
+                        '<i class="bi bi-exclamation-triangle me-1"></i>' +
+                        'Капаро вече е платено за този обект' +
+                        '</small>'
+                    );
+                }
+            } else {
+                depositCheckbox.prop('disabled', false);
+                $('#depositWarning').remove();
+            }
+        },
+        error: function() {
+            // If error, allow checkbox
+            $('#isDeposit').prop('disabled', false);
+            $('#depositWarning').remove();
         }
     });
 }
@@ -85,6 +123,16 @@ function openEditPaymentModal(paymentId) {
             
             // Load payment summary
             loadPaymentSummary(payment.apartment.id);
+            
+            // Check if deposit exists (but allow editing current deposit)
+            const isCurrentlyDeposit = payment.isDeposit || false;
+            if (!isCurrentlyDeposit) {
+                checkAndDisableDeposit(payment.apartment.id);
+            } else {
+                // This is a deposit payment being edited, allow checkbox
+                $('#isDeposit').prop('disabled', false);
+                $('#depositWarning').remove();
+            }
             
             $('#paymentModal').modal('show');
         },

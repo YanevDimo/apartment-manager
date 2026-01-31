@@ -147,13 +147,31 @@ public class PaymentController {
             Payment saved = paymentService.savePayment(payment);
             response.put("success", true);
             response.put("message", "Плащането е добавено успешно");
-            response.put("payment", saved);
+            // Return only basic payment data to avoid LazyInitializationException
+            Map<String, Object> paymentData = new HashMap<>();
+            paymentData.put("id", saved.getId());
+            paymentData.put("amount", saved.getAmount());
+            paymentData.put("paymentDate", saved.getPaymentDate().toString());
+            response.put("payment", paymentData);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Грешка при добавяне на плащане: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+    
+    @GetMapping("/api/apartment/{apartmentId}/hasDeposit")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkDepositForApartment(@PathVariable Long apartmentId) {
+        List<Payment> payments = paymentService.getPaymentsByApartmentId(apartmentId);
+        boolean hasDeposit = payments.stream()
+                .anyMatch(p -> p.getIsDeposit() != null && p.getIsDeposit());
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("hasDeposit", hasDeposit);
+        
+        return ResponseEntity.ok(response);
     }
     
     @PutMapping("/api/update/{id}")
@@ -216,7 +234,12 @@ public class PaymentController {
             Payment saved = paymentService.savePayment(payment);
             response.put("success", true);
             response.put("message", "Плащането е обновено успешно");
-            response.put("payment", saved);
+            // Return only basic payment data to avoid LazyInitializationException
+            Map<String, Object> paymentData = new HashMap<>();
+            paymentData.put("id", saved.getId());
+            paymentData.put("amount", saved.getAmount());
+            paymentData.put("paymentDate", saved.getPaymentDate().toString());
+            response.put("payment", paymentData);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
