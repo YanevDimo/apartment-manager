@@ -274,6 +274,7 @@ public class ApartmentController {
             : List.of();
 
         List<Map<String, Object>> data = apartments.stream()
+            .filter(Apartment::hasOverduePayments)
             .map(this::buildOverdueDto)
             .filter(item -> {
                 Object amount = item.get("overdueAmount");
@@ -307,6 +308,13 @@ public class ApartmentController {
             addUpcomingIfNeeded(upcoming, apt, "Акт 14", plan.getAkt14Date(), plan.getAkt14Amount(), today);
             addUpcomingIfNeeded(upcoming, apt, "Акт 15", plan.getAkt15Date(), plan.getAkt15Amount(), today);
             addUpcomingIfNeeded(upcoming, apt, "Акт 16", plan.getAkt16Date(), plan.getAkt16Amount(), today);
+
+            // Fallback: if no upcoming rows for this apartment (no future dates), use current stage cumulative
+            boolean hasRowForApartment = upcoming.stream()
+                .anyMatch(item -> apt.getId().equals(item.get("id")));
+            if (!hasRowForApartment) {
+                addUpcomingFallbackForStage(upcoming, apt);
+            }
         }
 
         upcoming.sort((a, b) -> {
@@ -327,11 +335,23 @@ public class ApartmentController {
         data.put("buildingName", apt.getBuildingName());
         data.put("apartmentNumber", apt.getApartmentNumber());
         data.put("stage", apt.getStage());
-        data.put("clientName", apt.getClient() != null ? apt.getClient().getName() : "-");
+        if (apt.getClient() != null) {
+            data.put("clientName", apt.getClient().getName());
+            data.put("clientId", apt.getClient().getId());
+        } else {
+            data.put("clientName", "-");
+            data.put("clientId", null);
+        }
 
         OverdueInfo overdueInfo = getOverdueInfo(apt);
-        data.put("overdueAmount", overdueInfo.amount);
-        data.put("daysOverdue", overdueInfo.days);
+        if (overdueInfo.amount.compareTo(new java.math.BigDecimal("0.01")) > 0) {
+            data.put("overdueAmount", overdueInfo.amount);
+            data.put("daysOverdue", overdueInfo.days);
+        } else {
+            java.math.BigDecimal fallbackAmount = getStageBasedOverdueAmount(apt);
+            data.put("overdueAmount", fallbackAmount);
+            data.put("daysOverdue", 0);
+        }
         return data;
     }
 
@@ -354,12 +374,91 @@ public class ApartmentController {
         data.put("id", apt.getId());
         data.put("buildingName", apt.getBuildingName());
         data.put("apartmentNumber", apt.getApartmentNumber());
-        data.put("clientName", apt.getClient() != null ? apt.getClient().getName() : "-");
+        if (apt.getClient() != null) {
+            data.put("clientName", apt.getClient().getName());
+            data.put("clientId", apt.getClient().getId());
+        } else {
+            data.put("clientName", "-");
+            data.put("clientId", null);
+        }
         data.put("stage", stageLabel);
         data.put("expectedAmount", expectedAmount.subtract(paid));
         data.put("date", date.toString());
         data.put("_date", date);
         upcoming.add(data);
+    }
+
+    private void addUpcomingFallbackForStage(List<Map<String, Object>> upcoming, Apartment apt) {
+        if (apt.getPaymentPlan() == null || apt.getStage() == null) {
+            return;
+        }
+
+        String stage = apt.getStage();
+        java.util.List<String> stageOrder = java.util.Arrays.asList("prelim", "akt14", "akt15", "akt16");
+        java.util.Map<String, String> stageMappingToKey = new java.util.HashMap<>();
+        stageMappingToKey.put("Предварителен договор", "prelim");
+        stageMappingToKey.put("При предварителен договор", "prelim");
+        stageMappingToKey.put("Акт 14", "akt14");
+        stageMappingToKey.put("Акт 15", "akt15");
+        stageMappingToKey.put("Акт 16", "akt16");
+
+        String currentStageKey = stageMappingToKey.get(stage);
+        if (currentStageKey == null) {
+            return;
+        }
+
+        int currentStageIndex = stageOrder.indexOf(currentStageKey);
+        if (currentStageIndex == -1) {
+            return;
+        }
+
+        java.math.BigDecimal expectedCumulative = java.math.BigDecimal.ZERO;
+        for (int i = 0; i <= currentStageIndex; i++) {
+            expectedCumulative = expectedCumulative.add(getExpectedAmountForKey(apt, stageOrder.get(i)));
+        }
+
+        java.math.BigDecimal totalPaid = apt.getTotalPaid() != null ? apt.getTotalPaid() : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal remaining = expectedCumulative.subtract(totalPaid);
+
+        if (remaining.compareTo(new java.math.BigDecimal("0.01")) <= 0) {
+            return;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", apt.getId());
+        data.put("buildingName", apt.getBuildingName());
+        data.put("apartmentNumber", apt.getApartmentNumber());
+        if (apt.getClient() != null) {
+            data.put("clientName", apt.getClient().getName());
+            data.put("clientId", apt.getClient().getId());
+        } else {
+            data.put("clientName", "-");
+            data.put("clientId", null);
+        }
+        data.put("stage", stage);
+        data.put("expectedAmount", remaining);
+        data.put("date", "-");
+        data.put("_date", java.time.LocalDate.now().plusYears(100)); // push to end
+        upcoming.add(data);
+    }
+
+    private java.math.BigDecimal getExpectedAmountForKey(Apartment apt, String stageKey) {
+        var plan = apt.getPaymentPlan();
+        if (plan == null) {
+            return java.math.BigDecimal.ZERO;
+        }
+        switch (stageKey) {
+            case "prelim":
+                return plan.getPreliminaryContractAmount() != null ? plan.getPreliminaryContractAmount() : java.math.BigDecimal.ZERO;
+            case "akt14":
+                return plan.getAkt14Amount() != null ? plan.getAkt14Amount() : java.math.BigDecimal.ZERO;
+            case "akt15":
+                return plan.getAkt15Amount() != null ? plan.getAkt15Amount() : java.math.BigDecimal.ZERO;
+            case "akt16":
+                return plan.getAkt16Amount() != null ? plan.getAkt16Amount() : java.math.BigDecimal.ZERO;
+            default:
+                return java.math.BigDecimal.ZERO;
+        }
     }
 
     private OverdueInfo getOverdueInfo(Apartment apt) {
@@ -375,6 +474,42 @@ public class ApartmentController {
         result = pickOverdueForStage(result, apt, "Акт 15", plan.getAkt15Date(), plan.getAkt15Amount(), today);
         result = pickOverdueForStage(result, apt, "Акт 16", plan.getAkt16Date(), plan.getAkt16Amount(), today);
         return result;
+    }
+
+    private java.math.BigDecimal getStageBasedOverdueAmount(Apartment apt) {
+        if (apt.getPaymentPlan() == null || apt.getStage() == null) {
+            return java.math.BigDecimal.ZERO;
+        }
+
+        String stage = apt.getStage();
+        java.util.List<String> stageOrder = java.util.Arrays.asList("prelim", "akt14", "akt15", "akt16");
+        java.util.Map<String, String> stageMappingToKey = new java.util.HashMap<>();
+        stageMappingToKey.put("Предварителен договор", "prelim");
+        stageMappingToKey.put("При предварителен договор", "prelim");
+        stageMappingToKey.put("Акт 14", "akt14");
+        stageMappingToKey.put("Акт 15", "akt15");
+        stageMappingToKey.put("Акт 16", "akt16");
+
+        String currentStageKey = stageMappingToKey.get(stage);
+        if (currentStageKey == null) {
+            return java.math.BigDecimal.ZERO;
+        }
+        int currentStageIndex = stageOrder.indexOf(currentStageKey);
+        if (currentStageIndex == -1) {
+            return java.math.BigDecimal.ZERO;
+        }
+
+        java.math.BigDecimal expectedCumulative = java.math.BigDecimal.ZERO;
+        for (int i = 0; i <= currentStageIndex; i++) {
+            expectedCumulative = expectedCumulative.add(getExpectedAmountForKey(apt, stageOrder.get(i)));
+        }
+
+        java.math.BigDecimal totalPaid = apt.getTotalPaid() != null ? apt.getTotalPaid() : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal remaining = expectedCumulative.subtract(totalPaid);
+        if (remaining.compareTo(new java.math.BigDecimal("0.01")) > 0) {
+            return remaining;
+        }
+        return java.math.BigDecimal.ZERO;
     }
 
     private OverdueInfo pickOverdueForStage(OverdueInfo current, Apartment apt, String stageLabel,

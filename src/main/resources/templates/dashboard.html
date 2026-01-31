@@ -101,6 +101,42 @@
             font-size: 0.8rem;
             color: var(--secondary);
         }
+        .dashboard-table {
+            font-size: 0.82rem;
+        }
+        .dashboard-table th,
+        .dashboard-table td {
+            padding: 0.4rem 0.45rem;
+            vertical-align: middle;
+        }
+        .dashboard-card-body {
+            padding: 0.75rem;
+        }
+        .dashboard-card-header {
+            padding: 0.6rem 0.8rem;
+        }
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 0.35rem;
+            font-size: 0.8rem;
+        }
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.8rem;
+        }
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            font-size: 0.8rem;
+        }
+        .dashboard-table .badge {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.5rem;
+        }
+        .dashboard-table .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
 
         .chart-container {
             position: relative;
@@ -129,6 +165,38 @@
 
             .stats-icon {
                 font-size: 2rem;
+            }
+            .dashboard-table {
+                font-size: 0.75rem;
+            }
+            .dashboard-table th,
+            .dashboard-table td {
+                padding: 0.3rem 0.35rem;
+            }
+            .dashboard-card-body {
+                padding: 0.6rem;
+            }
+            .dashboard-card-header {
+                padding: 0.5rem 0.7rem;
+            }
+            .dataTables_wrapper .dataTables_length,
+            .dataTables_wrapper .dataTables_filter,
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                font-size: 0.75rem;
+            }
+            .dataTables_wrapper .dataTables_length select,
+            .dataTables_wrapper .dataTables_filter input {
+                padding: 0.15rem 0.35rem;
+                font-size: 0.75rem;
+            }
+            .dashboard-table .badge {
+                font-size: 0.65rem;
+                padding: 0.25rem 0.4rem;
+            }
+            .dashboard-table .btn {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.7rem;
             }
         }
 
@@ -182,6 +250,67 @@
                 <a href="/buildings" class="btn btn-sm btn-primary">
                     <i class="bi bi-arrow-repeat me-1"></i>Смени
                 </a>
+            </div>
+        </div>
+
+        <!-- Предстоящи и забавени плащания -->
+        <div class="row mb-4">
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center dashboard-card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-calendar-event me-2"></i> Предстоящи плащания
+                        </h6>
+                        <span class="badge bg-primary" id="upcoming-badge">0</span>
+                    </div>
+                    <div class="card-body dashboard-card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover dashboard-table" id="upcomingTable" width="100%" cellspacing="0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Апартамент</th>
+                                        <th>Купувач</th>
+                                        <th>Етап</th>
+                                        <th>Очаквана сума</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="upcoming-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center dashboard-card-header">
+                        <h6 class="m-0 font-weight-bold text-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i> Забавени плащания
+                        </h6>
+                        <span class="badge bg-warning" id="delayed-badge">0</span>
+                    </div>
+                    <div class="card-body dashboard-card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover dashboard-table" id="delayedTable" width="100%" cellspacing="0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Апартамент</th>
+                                        <th>Купувач</th>
+                                        <th>Етап</th>
+                                        <th>Забавена сума</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="delayed-tbody">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -294,72 +423,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Предстоящи плащания -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="bi bi-calendar-event me-2"></i> Предстоящи плащания
-                        </h6>
-                        <span class="badge bg-primary" id="upcoming-badge">0</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover" id="upcomingTable" width="100%" cellspacing="0">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>Апартамент</th>
-                                        <th>Купувач</th>
-                                        <th>Етап</th>
-                                        <th>Очаквана сума</th>
-                                        <th>Дата</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="upcoming-tbody">
-                                    <!-- Will be populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Забавени плащания -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-warning">
-                            <i class="bi bi-exclamation-triangle me-2"></i> Забавени плащания
-                        </h6>
-                        <span class="badge bg-warning" id="delayed-badge">0</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover" id="delayedTable" width="100%" cellspacing="0">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>Апартамент</th>
-                                        <th>Купувач</th>
-                                        <th>Етап</th>
-                                        <th>Забавена сума</th>
-                                        <th>Дни закъснение</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="delayed-tbody">
-                                    <!-- Will be populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
     </div> <!-- End main-content -->
 
@@ -369,6 +432,7 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/payments.js"></script>
 
     <script>
         // Statistics will be loaded from backend
@@ -384,6 +448,16 @@
         let paymentChart = null;
 
         $(document).ready(function() {
+            // Add payment handler for dashboard tables
+            $(document).on('click', '.add-payment-btn', function() {
+                const apartmentId = $(this).data('apt-id');
+                if (typeof openAddPaymentModal === 'function' && apartmentId) {
+                    openAddPaymentModal(apartmentId);
+                } else {
+                    alert('Не може да се отвори плащане. Моля, опитайте от "Списък с обекти".');
+                }
+            });
+
             // Load statistics
             loadStatistics();
             
@@ -515,13 +589,7 @@
             tbody.empty();
             
             if (apartments.length === 0) {
-                tbody.append(
-                    '<tr>' +
-                    '<td class="text-center text-muted">Няма забавени плащания</td>' +
-                    '<td></td><td></td><td></td><td></td><td></td>' +
-                    '</tr>'
-                );
-                initializeDataTable('#delayedTable');
+                initializeDataTable('#delayedTable', 'Няма забавени плащания');
                 return;
             }
             
@@ -529,14 +597,13 @@
                 const row = `
                     <tr>
                         <td><strong>${apt.buildingName || '-'} - ${apt.apartmentNumber || '-'}</strong></td>
-                        <td>${apt.clientName || '-'}</td>
+                        <td>${apt.clientId ? `<a href="/clients/${apt.clientId}" class="fw-semibold text-decoration-none">${apt.clientName}</a>` : '-'}</td>
                         <td><span class="badge bg-warning">${apt.stage || '-'}</span></td>
                         <td><span class="text-danger">${formatCurrency(apt.overdueAmount || 0)}</span></td>
-                        <td><span class="badge bg-danger">${apt.daysOverdue || 0}</span></td>
                         <td>
-                            <a href="/apartments" class="btn btn-sm btn-warning">
+                            <button type="button" class="btn btn-sm btn-warning add-payment-btn" data-apt-id="${apt.id}">
                                 <i class="bi bi-plus-circle me-1"></i> Добави плащане
-                            </a>
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -563,13 +630,7 @@
             tbody.empty();
 
             if (!items || items.length === 0) {
-                tbody.append(
-                    '<tr>' +
-                    '<td class="text-center text-muted">Няма предстоящи плащания</td>' +
-                    '<td></td><td></td><td></td><td></td><td></td>' +
-                    '</tr>'
-                );
-                initializeDataTable('#upcomingTable');
+                initializeDataTable('#upcomingTable', 'Няма предстоящи плащания');
                 return;
             }
 
@@ -577,24 +638,23 @@
                 const row = `
                     <tr>
                         <td><strong>${item.buildingName || '-'} - ${item.apartmentNumber || '-'}</strong></td>
-                        <td>${item.clientName || '-'}</td>
+                        <td>${item.clientId ? `<a href="/clients/${item.clientId}" class="fw-semibold text-decoration-none">${item.clientName}</a>` : '-'}</td>
                         <td><span class="badge bg-info">${item.stage || '-'}</span></td>
                         <td>${formatCurrency(item.expectedAmount || 0)}</td>
-                        <td>${item.date || '-'}</td>
                         <td>
-                            <a href="/apartments" class="btn btn-sm btn-primary">
+                            <button type="button" class="btn btn-sm btn-primary add-payment-btn" data-apt-id="${item.id}">
                                 <i class="bi bi-plus-circle me-1"></i> Добави плащане
-                            </a>
+                            </button>
                         </td>
                     </tr>
                 `;
                 tbody.append(row);
             });
 
-            initializeDataTable('#upcomingTable');
+            initializeDataTable('#upcomingTable', 'Няма предстоящи плащания');
         }
 
-        function initializeDataTable(selector) {
+        function initializeDataTable(selector, emptyText) {
             if (!$(selector).length) {
                 return;
             }
@@ -603,7 +663,8 @@
             }
             $(selector).DataTable({
                 language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/bg.json'
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/bg.json',
+                    emptyTable: emptyText || 'Няма данни'
                 },
                 pageLength: 10,
                 responsive: true,
@@ -705,7 +766,171 @@
             }).format(amount);
         }
 
+        // Fallback toast helper (required by payments.js)
+        function showToast(message, type = 'info') {
+            const bgClass = {
+                'success': 'bg-success',
+                'error': 'bg-danger',
+                'warning': 'bg-warning',
+                'info': 'bg-info'
+            }[type] || 'bg-info';
+
+            const icon = {
+                'success': 'bi-check-circle',
+                'error': 'bi-x-circle',
+                'warning': 'bi-exclamation-triangle',
+                'info': 'bi-info-circle'
+            }[type] || 'bi-info-circle';
+
+            const toast = $(`
+                <div class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi ${icon} me-2"></i>${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `);
+
+            $('.toast-container').append(toast);
+            const bsToast = new bootstrap.Toast(toast[0]);
+            bsToast.show();
+
+            toast.on('hidden.bs.toast', function() {
+                $(this).remove();
+            });
+        }
+
     </script>
+    <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+    <!-- Add/Edit Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">
+                        <i class="bi bi-cash-coin me-2"></i>Добави плащане
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymentForm">
+                        <input type="hidden" id="paymentId" name="id" />
+                        <input type="hidden" id="paymentApartmentId" name="apartmentId" />
+
+                        <div class="alert alert-info" id="apartmentInfo">
+                            <strong>Обект:</strong> <span id="apartmentInfoText">-</span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="paymentAmount" class="form-label">Сума (€) *</label>
+                                <input type="number" class="form-control" id="paymentAmount" name="amount" step="0.01" min="0.01" required />
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="paymentDate" class="form-label">Дата на плащане *</label>
+                                <input type="date" class="form-control" id="paymentDate" name="paymentDate" required />
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="paymentMethod" class="form-label">Метод на плащане</label>
+                                <select class="form-select" id="paymentMethod" name="paymentMethod">
+                                    <option value="">Изберете метод</option>
+                                    <option value="Банка">Банка</option>
+                                    <option value="В брой">В брой</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="paymentStage" class="form-label">Етап на плащане</label>
+                                <select class="form-select" id="paymentStage" name="paymentStage">
+                                    <option value="">Изберете етап</option>
+                                    <option value="При предварителен договор">При предварителен договор</option>
+                                    <option value="Акт 14">Акт 14</option>
+                                    <option value="Акт 15">Акт 15</option>
+                                    <option value="Акт 16">Акт 16</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="invoiceNumber" class="form-label">Номер на фактура</label>
+                                <input type="text" class="form-control" id="invoiceNumber" name="invoiceNumber" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="isDeposit" name="isDeposit" />
+                                    <label class="form-check-label" for="isDeposit">
+                                        Капаро
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="paymentNotes" class="form-label">Бележки</label>
+                            <textarea class="form-control" id="paymentNotes" name="notes" rows="3"></textarea>
+                        </div>
+
+                        <!-- Payment Summary -->
+                        <div class="alert alert-info" id="paymentSummary" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <small><strong>Обща цена:</strong> <span id="totalPriceInfo">0.00</span> €</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <small><strong>Платено:</strong> <span id="totalPaidInfo">0.00</span> €</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <small><strong>Остатък:</strong> <span id="remainingInfo">0.00</span> €</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Plan Progress -->
+                        <div id="paymentPlanSection" style="display: none;">
+                            <h6 class="mb-3">
+                                <i class="bi bi-calendar-check me-2"></i>План за плащане
+                                <small class="text-muted" id="packageTypeName"></small>
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Етап</th>
+                                            <th>Очаквано</th>
+                                            <th>Платено</th>
+                                            <th>Остатък</th>
+                                            <th>Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="paymentPlanBody">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="paymentWarning" class="alert alert-warning mt-3" style="display: none;">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <span id="paymentWarningText"></span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                    <button type="button" class="btn btn-primary" id="btnSavePayment">
+                        <i class="bi bi-check-circle me-2"></i>Запази
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <th:block th:replace="~{fragments/sidebar :: sidebarScript}"></th:block>
 </body>
 </html>
