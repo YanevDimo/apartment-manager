@@ -7,6 +7,58 @@
 let selectedApartmentForPayment = null;
 
 /**
+ * Fallback helpers (when apartments.js is not loaded)
+ */
+if (typeof showLoading === 'undefined') {
+    function showLoading(show) {
+        const overlay = $('#loadingOverlay');
+        if (!overlay.length) return;
+        if (show) {
+            overlay.addClass('show');
+        } else {
+            overlay.removeClass('show');
+        }
+    }
+}
+
+if (typeof showToast === 'undefined') {
+    function showToast(message, type = 'info') {
+        const bgClass = {
+            'success': 'bg-success',
+            'error': 'bg-danger',
+            'warning': 'bg-warning',
+            'info': 'bg-info'
+        }[type] || 'bg-info';
+        
+        const icon = {
+            'success': 'bi-check-circle',
+            'error': 'bi-x-circle',
+            'warning': 'bi-exclamation-triangle',
+            'info': 'bi-info-circle'
+        }[type] || 'bi-info-circle';
+        
+        const toast = $(`
+            <div class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi ${icon} me-2"></i>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `);
+        
+        $('.toast-container').append(toast);
+        const bsToast = new bootstrap.Toast(toast[0]);
+        bsToast.show();
+        
+        toast.on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+}
+
+/**
  * Initialize payment functionality
  */
 function initializePayments() {
@@ -566,7 +618,60 @@ $(document).ready(function() {
             $('#btnAddPayment').prop('disabled', !apartmentId);
         });
     }
+
+    // Load all payments if on payments page
+    if ($('#paymentsListBody').length) {
+        loadAllPayments();
+    }
 });
+
+/**
+ * Load all payments for payments page
+ */
+function loadAllPayments() {
+    showLoading(true);
+    
+    $.ajax({
+        url: '/payments/api/list',
+        method: 'GET',
+        success: function(data) {
+            const tbody = $('#paymentsListBody');
+            tbody.empty();
+            
+            if (!data.payments || data.payments.length === 0) {
+                tbody.append('<tr><td colspan="7" class="text-center text-muted">Няма плащания</td></tr>');
+            } else {
+                data.payments.forEach(payment => {
+                    const row = `
+                        <tr>
+                            <td>${payment.apartment || '-'}</td>
+                            <td class="fw-bold">${parseFloat(payment.amount || 0).toFixed(2)} €</td>
+                            <td>${payment.paymentDate || '-'}</td>
+                            <td>${payment.paymentMethod || '-'}</td>
+                            <td>${payment.paymentStage || '-'}</td>
+                            <td>${payment.invoiceNumber || '-'}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary btn-edit-payment" data-id="${payment.id}" title="Редактирай">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-delete-payment" data-id="${payment.id}" title="Изтрий">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+            }
+            
+            showLoading(false);
+        },
+        error: function() {
+            showToast('Грешка при зареждане на плащанията', 'error');
+            showLoading(false);
+        }
+    });
+}
 
 
 

@@ -267,12 +267,171 @@ public class ApartmentController {
     
     @GetMapping("/api/overdue")
     @ResponseBody
-    public ResponseEntity<List<Apartment>> getOverdueApartments() {
+    public ResponseEntity<List<Map<String, Object>>> getOverdueApartments() {
         Long buildingId = buildingService.getCurrentBuildingId().orElse(null);
-        List<Apartment> overdue = buildingId != null
-            ? apartmentService.getApartmentsWithOverduePaymentsByBuilding(buildingId)
+        List<Apartment> apartments = buildingId != null
+            ? apartmentService.getAllSoldApartmentsByBuilding(buildingId)
             : List.of();
-        return ResponseEntity.ok(overdue);
+
+        List<Map<String, Object>> data = apartments.stream()
+            .map(this::buildOverdueDto)
+            .filter(item -> {
+                Object amount = item.get("overdueAmount");
+                if (amount instanceof java.math.BigDecimal) {
+                    return ((java.math.BigDecimal) amount).compareTo(new java.math.BigDecimal("0.01")) > 0;
+                }
+                return false;
+            })
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/api/upcoming")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getUpcomingPayments() {
+        Long buildingId = buildingService.getCurrentBuildingId().orElse(null);
+        List<Apartment> apartments = buildingId != null
+            ? apartmentService.getAllSoldApartmentsByBuilding(buildingId)
+            : List.of();
+
+        List<Map<String, Object>> upcoming = new java.util.ArrayList<>();
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        for (Apartment apt : apartments) {
+            if (apt.getPaymentPlan() == null || apt.getPayments() == null) {
+                continue;
+            }
+            var plan = apt.getPaymentPlan();
+            addUpcomingIfNeeded(upcoming, apt, "При предварителен договор", plan.getPreliminaryContractDate(), plan.getPreliminaryContractAmount(), today);
+            addUpcomingIfNeeded(upcoming, apt, "Акт 14", plan.getAkt14Date(), plan.getAkt14Amount(), today);
+            addUpcomingIfNeeded(upcoming, apt, "Акт 15", plan.getAkt15Date(), plan.getAkt15Amount(), today);
+            addUpcomingIfNeeded(upcoming, apt, "Акт 16", plan.getAkt16Date(), plan.getAkt16Amount(), today);
+        }
+
+        upcoming.sort((a, b) -> {
+            java.time.LocalDate da = (java.time.LocalDate) a.get("_date");
+            java.time.LocalDate db = (java.time.LocalDate) b.get("_date");
+            return da.compareTo(db);
+        });
+
+        // Remove internal date helper
+        upcoming.forEach(item -> item.remove("_date"));
+
+        return ResponseEntity.ok(upcoming);
+    }
+
+    private Map<String, Object> buildOverdueDto(Apartment apt) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", apt.getId());
+        data.put("buildingName", apt.getBuildingName());
+        data.put("apartmentNumber", apt.getApartmentNumber());
+        data.put("stage", apt.getStage());
+        data.put("clientName", apt.getClient() != null ? apt.getClient().getName() : "-");
+
+        OverdueInfo overdueInfo = getOverdueInfo(apt);
+        data.put("overdueAmount", overdueInfo.amount);
+        data.put("daysOverdue", overdueInfo.days);
+        return data;
+    }
+
+    private void addUpcomingIfNeeded(List<Map<String, Object>> upcoming, Apartment apt, String stageLabel,
+                                     java.time.LocalDate date, java.math.BigDecimal expectedAmount,
+                                     java.time.LocalDate today) {
+        if (date == null || expectedAmount == null || expectedAmount.compareTo(new java.math.BigDecimal("0.01")) <= 0) {
+            return;
+        }
+        if (!date.isAfter(today)) {
+            return;
+        }
+
+        java.math.BigDecimal paid = getPaidForStage(apt, stageLabel);
+        if (paid.compareTo(expectedAmount) >= 0) {
+            return;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", apt.getId());
+        data.put("buildingName", apt.getBuildingName());
+        data.put("apartmentNumber", apt.getApartmentNumber());
+        data.put("clientName", apt.getClient() != null ? apt.getClient().getName() : "-");
+        data.put("stage", stageLabel);
+        data.put("expectedAmount", expectedAmount.subtract(paid));
+        data.put("date", date.toString());
+        data.put("_date", date);
+        upcoming.add(data);
+    }
+
+    private OverdueInfo getOverdueInfo(Apartment apt) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        var plan = apt.getPaymentPlan();
+        if (plan == null) {
+            return new OverdueInfo(java.math.BigDecimal.ZERO, 0);
+        }
+
+        OverdueInfo result = new OverdueInfo(java.math.BigDecimal.ZERO, 0);
+        result = pickOverdueForStage(result, apt, "При предварителен договор", plan.getPreliminaryContractDate(), plan.getPreliminaryContractAmount(), today);
+        result = pickOverdueForStage(result, apt, "Акт 14", plan.getAkt14Date(), plan.getAkt14Amount(), today);
+        result = pickOverdueForStage(result, apt, "Акт 15", plan.getAkt15Date(), plan.getAkt15Amount(), today);
+        result = pickOverdueForStage(result, apt, "Акт 16", plan.getAkt16Date(), plan.getAkt16Amount(), today);
+        return result;
+    }
+
+    private OverdueInfo pickOverdueForStage(OverdueInfo current, Apartment apt, String stageLabel,
+                                            java.time.LocalDate date, java.math.BigDecimal expectedAmount,
+                                            java.time.LocalDate today) {
+        if (date == null || expectedAmount == null || expectedAmount.compareTo(new java.math.BigDecimal("0.01")) <= 0) {
+            return current;
+        }
+        if (!date.isBefore(today)) {
+            return current;
+        }
+        java.math.BigDecimal paid = getPaidForStage(apt, stageLabel);
+        java.math.BigDecimal remaining = expectedAmount.subtract(paid);
+        if (remaining.compareTo(new java.math.BigDecimal("0.01")) <= 0) {
+            return current;
+        }
+        long days = java.time.temporal.ChronoUnit.DAYS.between(date, today);
+        if (days > current.days) {
+            return new OverdueInfo(remaining, (int) days);
+        }
+        return current;
+    }
+
+    private java.math.BigDecimal getPaidForStage(Apartment apt, String stageLabel) {
+        if (apt.getPayments() == null) {
+            return java.math.BigDecimal.ZERO;
+        }
+        return apt.getPayments().stream()
+            .filter(p -> p.getPaymentStage() != null)
+            .filter(p -> {
+                String s = p.getPaymentStage();
+                if (stageLabel.contains("предварителен")) {
+                    return s.toLowerCase().contains("предварителен") || s.toLowerCase().contains("prelim");
+                }
+                if (stageLabel.equals("Акт 14")) {
+                    return s.contains("Акт 14") || s.contains("акт 14");
+                }
+                if (stageLabel.equals("Акт 15")) {
+                    return s.contains("Акт 15") || s.contains("акт 15");
+                }
+                if (stageLabel.equals("Акт 16")) {
+                    return s.contains("Акт 16") || s.contains("акт 16");
+                }
+                return false;
+            })
+            .map(p -> p.getAmount() != null ? p.getAmount() : java.math.BigDecimal.ZERO)
+            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
+
+    private static class OverdueInfo {
+        final java.math.BigDecimal amount;
+        final int days;
+
+        OverdueInfo(java.math.BigDecimal amount, int days) {
+            this.amount = amount;
+            this.days = days;
+        }
     }
     
     @PostMapping("/api/stage/global")

@@ -257,9 +257,11 @@ function setupEventHandlers() {
  */
 function openModalFromQuery() {
     const params = new URLSearchParams(window.location.search);
+    const clientId = params.get('client');
     if (params.get('add') === '1') {
-        openAddModal();
+        openAddModal(clientId);
         params.delete('add');
+        params.delete('client');
         const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
         window.history.replaceState({}, document.title, newUrl);
     }
@@ -267,12 +269,19 @@ function openModalFromQuery() {
 
 /**
  * Open add apartment modal
+ * @param {string} preselectedClientId - Optional client ID to preselect in dropdown
  */
-function openAddModal() {
+function openAddModal(preselectedClientId) {
     $('#apartmentModalLabel').html('<i class="bi bi-plus-circle me-2"></i>Добави обект');
     $('#apartmentForm')[0].reset();
     $('#apartmentId').val('');
     $('#totalPriceAlert').hide();
+    
+    // Preselect client if provided
+    if (preselectedClientId && $('#clientSelect').length) {
+        $('#clientSelect').val(preselectedClientId);
+    }
+    
     $('#apartmentModal').modal('show');
 }
 

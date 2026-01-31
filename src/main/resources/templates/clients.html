@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
@@ -26,49 +26,139 @@
 
  <div>
 <style>
+ /* Modern table styling */
+ .clients-table {
+ border-collapse: separate;
+ border-spacing: 0;
+ }
+
+ .clients-table thead th {
+ background: #2b2d30;
+ background: linear-gradient(180deg, #2b2d30 0%, #1f2023 100%);
+ color: white;
+ font-weight: 600;
+ text-transform: uppercase;
+ font-size: 0.75rem;
+ letter-spacing: 0.5px;
+ padding: 1rem 0.75rem;
+ border: none;
+ position: relative;
+ }
+ 
+ .clients-table thead th:first-child {
+ border-top-left-radius: 0;
+ }
+ 
+ .clients-table thead th:last-child {
+ border-top-right-radius: 0;
+ }
+
+ .clients-table tbody tr {
+ transition: all 0.3s ease;
+ background: white;
+ border-bottom: 1px solid #e9ecef;
+ }
+
+ .clients-table tbody tr:hover {
+ background: linear-gradient(90deg, #f8f9ff 0%, #ffffff 100%);
+ box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+ transform: translateX(2px);
+ }
+
+ .clients-table tbody td {
+ padding: 1rem 0.75rem;
+ vertical-align: middle;
+ border: none;
+ }
+
+ .client-name-link {
+ color: #667eea;
+ font-weight: 600;
+ font-size: 1rem;
+ text-decoration: none;
+ transition: all 0.2s ease;
+ display: inline-block;
+ }
+
+ .client-name-link:hover {
+ color: #764ba2;
+ transform: translateX(3px);
+ }
+
+ .client-id-badge {
+ background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+ color: white;
+ padding: 0.25rem 0.5rem;
+ border-radius: 12px;
+ font-size: 0.7rem;
+ font-weight: 600;
+ }
+
+ .contact-link {
+ color: #6c757d;
+ text-decoration: none;
+ font-size: 0.9rem;
+ transition: all 0.2s ease;
+ display: inline-flex;
+ align-items: center;
+ gap: 0.25rem;
+ }
+
+ .contact-link:hover {
+ color: #667eea;
+ }
+
+ .contact-link i {
+ font-size: 1rem;
+ }
+
  /* Иконки за действия */
  .action-icon {
- font-size: 18px;
+ font-size: 1.25rem;
  text-decoration: none;
  transition: all 0.2s ease-in-out;
  cursor: pointer;
- padding: 6px;
- border-radius: 4px;
+ padding: 0.5rem;
+ border-radius: 8px;
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
  }
 
  .action-icon:hover {
- transform: scale(1.3);
+ transform: translateY(-2px);
  text-decoration: none;
- background-color: rgba(255,255,255,0.8);
- box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+ box-shadow: 0 4px 8px rgba(0,0,0,0.15);
  }
 
- /* Цветни иконки */
  .icon-blue {
- color: #0066cc !important;
+ color: #667eea !important;
+ background: rgba(102, 126, 234, 0.1);
  }
 
  .icon-blue:hover {
- color: #004499 !important;
- background-color: rgba(0, 102, 204, 0.1) !important;
+ color: #764ba2 !important;
+ background: rgba(102, 126, 234, 0.2) !important;
  }
 
  .icon-green {
  color: #28a745 !important;
+ background: rgba(40, 167, 69, 0.1);
  }
 
  .icon-green:hover {
  color: #1e7e34 !important;
- background-color: rgba(40, 167, 69, 0.1) !important;
+ background: rgba(40, 167, 69, 0.2) !important;
  }
 
  .icon-red {
  color: #dc3545 !important;
+ background: rgba(220, 53, 69, 0.1);
  }
 
  .icon-red:hover {
  color: #bd2130 !important;
- background-color: rgba(220, 53, 69, 0.1) !important;
+ background: rgba(220, 53, 69, 0.2) !important;
  }
 
  /* Стил за търсачката */
@@ -90,6 +180,12 @@
  border-color: #86b7fe;
  background-color: #fff;
  }
+
+ /* Card shadow */
+ .card {
+ box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+ border: none;
+ }
 </style>
 <div class="container-fluid">
  <div class="row">
@@ -105,70 +201,6 @@
  <a href="/export-clients" class="btn btn-outline-info">
  <i class="bi bi-file-earmark-excel me-1"></i> Експорт Excel
  </a>
- </div>
- </div>
-
- <!-- Статистика -->
- <div class="row mb-4">
- <div class="col-md-3">
- <div class="card bg-primary text-white">
- <div class="card-body">
- <div class="d-flex justify-content-between">
- <div>
- <h4 class="card-title"></h4>
- <p class="card-text">Общо клиенти</p>
- </div>
- <div class="align-self-center">
- <i class="bi bi-people" style="font-size: 2rem;"></i>
- </div>
- </div>
- </div>
- </div>
- </div>
- <div class="col-md-3">
- <div class="card bg-success text-white">
- <div class="card-body">
- <div class="d-flex justify-content-between">
- <div>
- <h4 class="card-title"></h4>
- <p class="card-text">С телефон</p>
- </div>
- <div class="align-self-center">
- <i class="bi bi-telephone" style="font-size: 2rem;"></i>
- </div>
- </div>
- </div>
- </div>
- </div>
- <div class="col-md-3">
- <div class="card bg-info text-white">
- <div class="card-body">
- <div class="d-flex justify-content-between">
- <div>
- <h4 class="card-title"></h4>
- <p class="card-text">С имейл</p>
- </div>
- <div class="align-self-center">
- <i class="bi bi-envelope" style="font-size: 2rem;"></i>
- </div>
- </div>
- </div>
- </div>
- </div>
- <div class="col-md-3">
- <div class="card bg-warning text-white">
- <div class="card-body">
- <div class="d-flex justify-content-between">
- <div>
- <h4 class="card-title"></h4>
- <p class="card-text">Нови тази седмица</p>
- </div>
- <div class="align-self-center">
- <i class="bi bi-calendar-plus" style="font-size: 2rem;"></i>
- </div>
- </div>
- </div>
- </div>
  </div>
  </div>
 
@@ -201,17 +233,15 @@
 
  <!-- Таблица с клиенти -->
  <div class="card">
- <div class="card-body">
+ <div class="card-body p-0">
  <div class="table-responsive">
- <table class="table table-hover">
- <thead class="table-dark">
+ <table class="table table-hover clients-table mb-0">
+ <thead>
  <tr>
  <th style="width: 80px;">ID</th>
- <th>Име</th>
- <th style="width: 140px;">Телефон</th>
- <th style="width: 180px;">Имейл</th>
- <th style="width: 100px;">Създаден</th>
- <th style="width: 90px;">Действия</th>
+ <th>Клиент</th>
+ <th style="width: 220px;">Контакти</th>
+ <th style="width: 120px;" class="text-center">Действия</th>
  </tr>
  </thead>
  <tbody id="clients-tbody">
@@ -282,7 +312,6 @@ function loadClients() {
         success: function(response) {
             const clients = response.clients || [];
             populateTable(clients);
-            updateStatistics(clients);
             // Update client count
             $('#client-count-value').text(clients.length);
         },
@@ -298,45 +327,40 @@ function populateTable(clients) {
     tbody.empty();
     
     if (clients.length === 0) {
-        tbody.html('<tr><td colspan="6" class="text-center text-muted">Няма намерени клиенти</td></tr>');
+        tbody.html('<tr><td colspan="4" class="text-center text-muted py-5">Няма намерени клиенти</td></tr>');
         return;
     }
     
     clients.forEach(function(client) {
+        const phoneHtml = client.phone ? 
+            `<div class="mb-1"><a href="tel:${escapeHtml(client.phone)}" class="contact-link"><i class="bi bi-telephone-fill"></i>${escapeHtml(client.phone)}</a></div>` : '';
+        const emailHtml = client.email ? 
+            `<div><a href="mailto:${escapeHtml(client.email)}" class="contact-link"><i class="bi bi-envelope-fill"></i>${escapeHtml(client.email)}</a></div>` : '';
+        const contactsHtml = phoneHtml || emailHtml ? phoneHtml + emailHtml : '<span class="text-muted">-</span>';
+        
         const row = `
             <tr>
-                <td><small class="text-muted">${client.id || ''}</small></td>
                 <td>
-                    <strong>${escapeHtml(client.name || '')}</strong>
-                    ${client.egn ? '<br/><small class="text-muted">ЕГН/ЕИК: ' + escapeHtml(client.egn) + '</small>' : ''}
+                    <span class="client-id-badge">#${client.id || ''}</span>
                 </td>
                 <td>
-                    ${client.phone ? 
-                        '<a href="tel:' + escapeHtml(client.phone) + '" class="text-decoration-none"><i class="bi bi-telephone text-success"></i> ' + escapeHtml(client.phone) + '</a>' : 
-                        '<span class="text-muted">-</span>'}
+                    <a href="/clients/${client.id}" class="client-name-link">
+                        <i class="bi bi-person-circle me-2"></i>${escapeHtml(client.name || '')}
+                    </a>
                 </td>
                 <td>
-                    ${client.email ? 
-                        '<a href="mailto:' + escapeHtml(client.email) + '" class="text-decoration-none"><i class="bi bi-envelope text-primary"></i> ' + escapeHtml(client.email) + '</a>' : 
-                        '<span class="text-muted">-</span>'}
-                </td>
-                <td>
-                    <small class="text-muted">${client.createdAt ? formatDate(client.createdAt) : '-'}</small>
+                    ${contactsHtml}
                 </td>
                 <td>
                     <div class="d-flex gap-2 justify-content-center">
-                        <a href="/clients/${client.id}" class="action-icon icon-blue" title="Преглед на детайли">
-                            <i class="bi bi-file-text"></i>
-                        </a>
-                        <a href="#" class="action-icon icon-green" title="Редактиране на клиент" onclick="editClient(${client.id}); return false;">
-                            <i class="bi bi-pencil"></i>
+                        <a href="/clients/edit/${client.id}" class="action-icon icon-green" title="Редактиране">
+                            <i class="bi bi-pencil-fill"></i>
                         </a>
                         <a href="#" class="action-icon icon-red delete-client-btn" 
                            data-client-id="${client.id}" 
                            data-client-name="${escapeHtml(client.name || '')}"
-                           style="cursor: pointer; text-decoration: none;" 
-                           title="Изтриване на клиент">
-                            <i class="bi bi-x-circle"></i>
+                           title="Изтриване">
+                            <i class="bi bi-trash-fill"></i>
                         </a>
                     </div>
                 </td>
@@ -349,16 +373,6 @@ function populateTable(clients) {
     setupDeleteButtons();
 }
 
-function updateStatistics(clients) {
-    const totalClients = clients.length;
-    const withPhone = clients.filter(c => c.phone && c.phone.trim() !== '').length;
-    const withEmail = clients.filter(c => c.email && c.email.trim() !== '').length;
-    
-    $('.card.bg-primary .card-title').text(totalClients);
-    $('.card.bg-success .card-title').text(withPhone);
-    $('.card.bg-info .card-title').text(withEmail);
-    $('.card.bg-warning .card-title').text('0'); // New this week - would need date logic
-}
 
 function escapeHtml(text) {
     if (!text) return '';

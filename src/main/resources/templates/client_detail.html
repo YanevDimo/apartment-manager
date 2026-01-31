@@ -25,6 +25,35 @@
         .progress {
             height: 20px;
         }
+        .apartment-card {
+            transition: border 0.3s ease, box-shadow 0.3s ease;
+        }
+        .delay-indicator {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Payment history collapse styles */
+        .collapse-icon {
+            transition: transform 0.3s ease;
+        }
+        .collapsed .collapse-icon {
+            transform: rotate(0deg);
+        }
+        .collapse-icon:not(.collapsed) {
+            transform: rotate(180deg);
+        }
+        [data-bs-toggle="collapse"]:not(.collapsed) .collapse-icon {
+            transform: rotate(180deg);
+        }
+        .card-header .btn-link:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        .card-header .btn-link:focus {
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
@@ -194,7 +223,10 @@
                                 </button>
                             </div>
                             <div class="card-body">
-                                <div th:each="apt : ${client.apartments}" class="card mb-3 border">
+                                <div th:each="apt : ${client.apartments}" class="card mb-3 border apartment-card" 
+                                     th:data-apt-id="${apt.id}"
+                                     th:data-has-plan="${apt.paymentPlan != null}"
+                                     th:data-stage="${apt.stage}">
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-5">
@@ -245,6 +277,12 @@
                                             </div>
                                             <div class="col-md-2 text-end">
                                                 <div class="btn-group-vertical" role="group">
+                                                    <button type="button" class="btn btn-sm btn-success mb-2 add-payment-btn" 
+                                                            th:data-apt-id="${apt.id}"
+                                                            th:data-apt-number="${apt.apartmentNumber}"
+                                                            th:data-building-name="${apt.buildingName != null ? apt.buildingName : (apt.building != null ? apt.building.name : 'Неизвестна сграда')}">
+                                                        <i class="bi bi-cash-coin"></i> Добави плащане
+                                                    </button>
                                                     <button type="button" class="btn btn-sm btn-warning mb-2 edit-purchase-btn" 
                                                             th:data-apt-id="${apt.id}"
                                                             th:data-apt-number="${apt.apartmentNumber}"
@@ -270,25 +308,61 @@
                                                 <div class="card border-light">
                                                     <div class="card-header py-2 bg-light">
                                                         <h6 class="mb-0">
-                                                            <i class="bi bi-clock-history me-2"></i>История на плащанията
+                                                            <button class="btn btn-link text-decoration-none text-dark p-0 w-100 text-start d-flex justify-content-between align-items-center collapsed" 
+                                                                    type="button" 
+                                                                    data-bs-toggle="collapse" 
+                                                                    th:data-bs-target="${'#paymentHistory-' + apt.id}" 
+                                                                    aria-expanded="false" 
+                                                                    th:aria-controls="${'paymentHistory-' + apt.id}">
+                                                                <span>
+                                                                    <i class="bi bi-clock-history me-2"></i>История на плащанията
+                                                                    <span class="badge bg-secondary ms-2" th:text="${apt.payments.size()}">0</span>
+                                                                </span>
+                                                                <i class="bi bi-chevron-down collapse-icon"></i>
+                                                            </button>
                                                         </h6>
                                                     </div>
-                                                    <div class="card-body py-2">
+                                                    <div class="collapse" th:id="${'paymentHistory-' + apt.id}">
+                                                        <div class="card-body py-2">
                                                         <div th:each="payment, iterStat : ${apt.payments}" th:if="${iterStat.index < 5}" class="card border-light mb-2">
                                                             <div class="card-body py-2">
                                                                 <div class="d-flex justify-content-between align-items-start mb-1">
-                                                                    <div>
+                                                                    <div class="flex-grow-1">
                                                                         <small class="fw-bold text-primary" th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</small>
                                                                         <br />
                                                                         <small class="text-muted" th:text="${#temporals.format(payment.paymentDate, 'dd.MM.yyyy')}">Дата</small>
                                                                     </div>
-                                                                    <div class="text-end">
+                                                                    <div class="text-end me-2">
                                                                         <span class="badge" 
                                                                               th:classappend="${payment.paymentMethod == 'Банка' or payment.paymentMethod == 'Bank Transfer' or payment.paymentMethod == 'Bank'} ? 'bg-primary' : 'bg-success'"
                                                                               style="font-size: 0.7em;">
                                                                             <i th:classappend="${payment.paymentMethod == 'Банка' or payment.paymentMethod == 'Bank Transfer' or payment.paymentMethod == 'Bank'} ? 'bi bi-bank' : 'bi bi-cash'"></i>
                                                                             <span th:text="${payment.paymentMethod != null ? payment.paymentMethod : 'Не посочен'}">Метод</span>
                                                                         </span>
+                                                                    </div>
+                                                                    <div class="btn-group-vertical btn-group-sm">
+                                                                        <button type="button" class="btn btn-sm btn-outline-primary edit-payment-btn" 
+                                                                                th:data-payment-id="${payment.id}"
+                                                                                th:data-apt-id="${apt.id}"
+                                                                                th:data-apt-number="${apt.apartmentNumber}"
+                                                                                th:data-building-name="${apt.buildingName != null ? apt.buildingName : (apt.building != null ? apt.building.name : 'Неизвестна сграда')}"
+                                                                                th:data-amount="${payment.amount}"
+                                                                                th:data-date="${#temporals.format(payment.paymentDate, 'yyyy-MM-dd')}"
+                                                                                th:data-method="${payment.paymentMethod}"
+                                                                                th:data-stage="${payment.paymentStage}"
+                                                                                th:data-invoice="${payment.invoiceNumber}"
+                                                                                th:data-is-deposit="${payment.isDeposit}"
+                                                                                th:data-notes="${payment.notes}"
+                                                                                title="Редактирай плащане">
+                                                                            <i class="bi bi-pencil"></i>
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger delete-payment-btn" 
+                                                                                th:data-payment-id="${payment.id}"
+                                                                                th:data-amount="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 2, 'POINT')}"
+                                                                                th:data-date="${#temporals.format(payment.paymentDate, 'dd.MM.yyyy')}"
+                                                                                title="Изтрий плащане">
+                                                                            <i class="bi bi-trash"></i>
+                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                                 <div class="mt-1" th:if="${payment.invoiceNumber != null and !payment.invoiceNumber.isEmpty()}">
@@ -306,12 +380,18 @@
                                                                         <i class="bi bi-cash-stack"></i> Капаро
                                                                     </span>
                                                                 </div>
+                                                                <div class="mt-1" th:if="${payment.notes != null and !payment.notes.isEmpty()}">
+                                                                    <small class="text-muted">
+                                                                        <i class="bi bi-sticky"></i> <span th:text="${payment.notes}">Бележки</span>
+                                                                    </small>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div class="text-center mt-2" th:if="${apt.payments.size() > 5}">
-                                                            <small class="text-muted">
-                                                                И още <span th:text="${apt.payments.size() - 5}">0</span> плащания...
-                                                            </small>
+                                                            <div class="text-center mt-2" th:if="${apt.payments.size() > 5}">
+                                                                <small class="text-muted">
+                                                                    И още <span th:text="${apt.payments.size() - 5}">0</span> плащания...
+                                                                </small>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -501,6 +581,133 @@
                         </button>
                         <button type="button" class="btn btn-primary" id="confirmPurchaseBtn" disabled>
                             <i class="bi bi-check-circle"></i> Добави избраните обекти
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Payment Modal -->
+        <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="paymentModalLabel">
+                            <i class="bi bi-cash-coin me-2"></i>Добави плащане
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="paymentForm">
+                            <input type="hidden" id="paymentId" name="id" />
+                            <input type="hidden" id="paymentApartmentId" name="apartmentId" />
+                            
+                            <div class="alert alert-info" id="apartmentInfo">
+                                <strong>Обект:</strong> <span id="apartmentInfoText">-</span>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="paymentAmount" class="form-label">Сума (€) *</label>
+                                    <input type="number" class="form-control" id="paymentAmount" name="amount" step="0.01" min="0.01" required />
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="paymentDate" class="form-label">Дата на плащане *</label>
+                                    <input type="date" class="form-control" id="paymentDate" name="paymentDate" required />
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="paymentMethod" class="form-label">Метод на плащане</label>
+                                    <select class="form-select" id="paymentMethod" name="paymentMethod">
+                                        <option value="">Изберете метод</option>
+                                        <option value="Банка">Банка</option>
+                                        <option value="В брой">В брой</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="paymentStage" class="form-label">Етап на плащане</label>
+                                    <select class="form-select" id="paymentStage" name="paymentStage">
+                                        <option value="">Изберете етап</option>
+                                        <option value="При предварителен договор">При предварителен договор</option>
+                                        <option value="Акт 14">Акт 14</option>
+                                        <option value="Акт 15">Акт 15</option>
+                                        <option value="Акт 16">Акт 16</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="invoiceNumber" class="form-label">Номер на фактура</label>
+                                    <input type="text" class="form-control" id="invoiceNumber" name="invoiceNumber" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="isDeposit" name="isDeposit" />
+                                        <label class="form-check-label" for="isDeposit">
+                                            Капаро
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="paymentNotes" class="form-label">Бележки</label>
+                                <textarea class="form-control" id="paymentNotes" name="notes" rows="3"></textarea>
+                            </div>
+
+                            <!-- Payment Summary -->
+                            <div class="alert alert-info" id="paymentSummary" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <small><strong>Обща цена:</strong> <span id="totalPriceInfo">0.00</span> €</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small><strong>Платено:</strong> <span id="totalPaidInfo">0.00</span> €</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small><strong>Остатък:</strong> <span id="remainingInfo">0.00</span> €</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Plan Progress -->
+                            <div id="paymentPlanSection" style="display: none;">
+                                <h6 class="mb-3">
+                                    <i class="bi bi-calendar-check me-2"></i>План за плащане
+                                    <small class="text-muted" id="packageTypeName"></small>
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Етап</th>
+                                                <th>Очаквано</th>
+                                                <th>Платено</th>
+                                                <th>Остатък</th>
+                                                <th>Статус</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="paymentPlanBody">
+                                            <!-- Will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="paymentWarning" class="alert alert-warning mt-3" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <span id="paymentWarningText"></span>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                        <button type="button" class="btn btn-primary" id="btnSavePayment">
+                            <i class="bi bi-check-circle me-2"></i>Запази
                         </button>
                     </div>
                 </div>
@@ -1203,6 +1410,552 @@
                         errorMsg = xhr.responseJSON.message;
                     }
                     alert(errorMsg);
+                }
+            });
+        });
+        
+        // ===== PAYMENT HANDLING =====
+        // Handler for "Add Payment" button
+        $(document).on('click', '.add-payment-btn', function() {
+            const aptId = $(this).data('apt-id');
+            const aptNumber = $(this).data('apt-number');
+            const buildingName = $(this).data('building-name');
+            
+            openAddPaymentModal(aptId, buildingName, aptNumber);
+        });
+        
+        /**
+         * Open add payment modal for specific apartment
+         */
+        function openAddPaymentModal(apartmentId, buildingName, apartmentNumber) {
+            // Reset form
+            $('#paymentForm')[0].reset();
+            $('#paymentId').val('');
+            $('#paymentApartmentId').val(apartmentId);
+            $('#apartmentInfoText').text(buildingName + ' - ' + apartmentNumber);
+            
+            // Clear previous hints
+            $('#paymentHint').remove();
+            $('#depositWarning').remove();
+            
+            // Set modal title
+            $('#paymentModalLabel').html('<i class="bi bi-cash-coin me-2"></i>Добави плащане');
+            
+            // Load payment summary and plan
+            loadPaymentSummary(apartmentId);
+            
+            // Check if deposit already exists
+            checkAndDisableDeposit(apartmentId);
+            
+            // Set default date to today
+            $('#paymentDate').val(new Date().toISOString().split('T')[0]);
+            
+            $('#paymentModal').modal('show');
+        }
+        
+        /**
+         * Load payment summary for apartment
+         */
+        function loadPaymentSummary(apartmentId) {
+            $.ajax({
+                url: `/payments/api/apartment/${apartmentId}/total`,
+                method: 'GET',
+                success: function(data) {
+                    $('#totalPriceInfo').text(parseFloat(data.totalPrice || 0).toFixed(2));
+                    $('#totalPaidInfo').text(parseFloat(data.totalPaid || 0).toFixed(2));
+                    $('#remainingInfo').text(parseFloat(data.remainingPayment || 0).toFixed(2));
+                    $('#paymentSummary').show();
+                },
+                error: function() {
+                    $('#paymentSummary').hide();
+                }
+            });
+            
+            // Load payment plan details
+            loadPaymentPlan(apartmentId);
+        }
+        
+        /**
+         * Load payment plan details with progress by stage
+         */
+        function loadPaymentPlan(apartmentId) {
+            $.ajax({
+                url: `/payments/api/apartment/${apartmentId}/payment-plan`,
+                method: 'GET',
+                success: function(data) {
+                    if (!data.hasPaymentPlan) {
+                        $('#paymentPlanSection').hide();
+                        return;
+                    }
+                    
+                    const stages = [
+                        { key: 'prelim', name: 'При предварителен договор' },
+                        { key: 'akt14', name: 'Акт 14' },
+                        { key: 'akt15', name: 'Акт 15' },
+                        { key: 'akt16', name: 'Акт 16' }
+                    ];
+                    
+                    const tbody = $('#paymentPlanBody');
+                    tbody.empty();
+                    
+                    let cumulativeOverpayment = 0;
+                    
+                    stages.forEach((stage, index) => {
+                        const expected = parseFloat(data.expectedAmounts[stage.key] || 0);
+                        let paid = parseFloat(data.paidByStage[stage.key] || 0);
+                        
+                        if (cumulativeOverpayment > 0) {
+                            const toApply = Math.min(cumulativeOverpayment, Math.max(0, expected - paid));
+                            paid += toApply;
+                            cumulativeOverpayment -= toApply;
+                        }
+                        
+                        const remaining = Math.max(0, expected - paid);
+                        const overpayment = Math.max(0, paid - expected);
+                        
+                        if (overpayment > 0) {
+                            cumulativeOverpayment += overpayment;
+                        }
+                        
+                        let statusBadge = '';
+                        let rowClass = '';
+                        
+                        if (paid >= expected && expected > 0) {
+                            statusBadge = '<span class="badge bg-success">Платено</span>';
+                            rowClass = 'table-success';
+                        } else if (paid > 0 && paid < expected) {
+                            statusBadge = '<span class="badge bg-warning">Частично</span>';
+                            rowClass = 'table-warning';
+                        } else if (expected > 0) {
+                            statusBadge = '<span class="badge bg-secondary">Неплатено</span>';
+                        } else {
+                            statusBadge = '<span class="badge bg-light text-dark">Не се прилага</span>';
+                            rowClass = 'table-light';
+                        }
+                        
+                        const row = `
+                            <tr class="${rowClass}">
+                                <td><strong>${stage.name}</strong></td>
+                                <td>${formatCurrency(expected)} €</td>
+                                <td>${formatCurrency(paid)} €${overpayment > 0 ? ' <span class="badge bg-info">+' + formatCurrency(overpayment) + '</span>' : ''}</td>
+                                <td class="${remaining > 0 ? 'text-danger fw-bold' : ''}">${formatCurrency(remaining)} €</td>
+                                <td>${statusBadge}</td>
+                            </tr>
+                        `;
+                        
+                        tbody.append(row);
+                    });
+                    
+                    const otherPayments = parseFloat(data.paidByStage.other || 0);
+                    if (otherPayments > 0 || cumulativeOverpayment > 0) {
+                        const totalUnallocated = otherPayments + cumulativeOverpayment;
+                        $('#paymentWarningText').html(
+                            `<strong>Внимание:</strong> Има ${formatCurrency(totalUnallocated)} € нерапределени плащания. ` +
+                            `Моля свържете плащанията с конкретен етап.`
+                        );
+                        $('#paymentWarning').show();
+                    } else {
+                        $('#paymentWarning').hide();
+                    }
+                    
+                    $('#paymentPlanSection').show();
+                },
+                error: function() {
+                    $('#paymentPlanSection').hide();
+                }
+            });
+        }
+        
+        /**
+         * Check if deposit exists and disable checkbox if it does
+         */
+        function checkAndDisableDeposit(apartmentId) {
+            $.ajax({
+                url: `/payments/api/apartment/${apartmentId}/hasDeposit`,
+                method: 'GET',
+                success: function(data) {
+                    const depositCheckbox = $('#isDeposit');
+                    if (data.hasDeposit) {
+                        depositCheckbox.prop('disabled', true);
+                        depositCheckbox.prop('checked', false);
+                        
+                        if (!$('#depositWarning').length) {
+                            depositCheckbox.closest('.form-check').after(
+                                '<small id="depositWarning" class="text-warning d-block mt-1">' +
+                                '<i class="bi bi-exclamation-triangle me-1"></i>' +
+                                'Капаро вече е платено за този обект' +
+                                '</small>'
+                            );
+                        }
+                    } else {
+                        depositCheckbox.prop('disabled', false);
+                        $('#depositWarning').remove();
+                    }
+                },
+                error: function() {
+                    $('#isDeposit').prop('disabled', false);
+                    $('#depositWarning').remove();
+                }
+            });
+        }
+        
+        /**
+         * Format currency with proper decimal places
+         */
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('bg-BG', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+        
+        /**
+         * Validate payment amount and suggest stage
+         */
+        function validatePaymentAmount() {
+            const amount = parseFloat($('#paymentAmount').val()) || 0;
+            const remaining = parseFloat($('#remainingInfo').text().replace(' €', '').replace(',', '')) || 0;
+            const paymentId = $('#paymentId').val();
+            
+            if (amount > remaining && !paymentId) {
+                $('#paymentAmount').addClass('is-invalid');
+                $('#paymentAmount').next('.invalid-feedback').text('Сумата надвишава остатъка за плащане');
+            } else {
+                $('#paymentAmount').removeClass('is-invalid');
+            }
+            
+            if (amount > 0 && !paymentId) {
+                suggestPaymentStage(amount);
+            }
+        }
+        
+        /**
+         * Suggest payment stage based on payment plan progress
+         */
+        function suggestPaymentStage(amount) {
+            const apartmentId = $('#paymentApartmentId').val();
+            
+            if (!apartmentId) return;
+            
+            $.ajax({
+                url: `/payments/api/apartment/${apartmentId}/payment-plan`,
+                method: 'GET',
+                success: function(data) {
+                    if (!data.hasPaymentPlan) return;
+                    
+                    const stages = [
+                        { key: 'prelim', name: 'При предварителен договор', value: 'При предварителен договор' },
+                        { key: 'akt14', name: 'Акт 14', value: 'Акт 14' },
+                        { key: 'akt15', name: 'Акт 15', value: 'Акт 15' },
+                        { key: 'akt16', name: 'Акт 16', value: 'Акт 16' }
+                    ];
+                    
+                    let suggestedStage = null;
+                    let suggestedAmount = 0;
+                    
+                    for (const stage of stages) {
+                        const expected = parseFloat(data.expectedAmounts[stage.key] || 0);
+                        const paid = parseFloat(data.paidByStage[stage.key] || 0);
+                        const remaining = expected - paid;
+                        
+                        if (remaining > 0.01) {
+                            suggestedStage = stage;
+                            suggestedAmount = remaining;
+                            break;
+                        }
+                    }
+                    
+                    if (suggestedStage) {
+                        $('#paymentStage').val(suggestedStage.value);
+                        
+                        const diff = amount - suggestedAmount;
+                        let hintMessage = '';
+                        
+                        if (Math.abs(diff) < 0.01) {
+                            hintMessage = `<i class="bi bi-check-circle text-success"></i> Плащането покрива точно етап "${suggestedStage.name}"`;
+                        } else if (diff < 0) {
+                            hintMessage = `<i class="bi bi-exclamation-triangle text-warning"></i> Недостига ${formatCurrency(Math.abs(diff))} € за покриване на "${suggestedStage.name}" (очаквано: ${formatCurrency(suggestedAmount)} €)`;
+                        } else {
+                            hintMessage = `<i class="bi bi-info-circle text-info"></i> Надвишение от ${formatCurrency(diff)} € ще се отчете за следващия етап`;
+                        }
+                        
+                        if (!$('#paymentHint').length) {
+                            $('#paymentAmount').after('<small id="paymentHint" class="form-text"></small>');
+                        }
+                        $('#paymentHint').html(hintMessage);
+                    }
+                }
+            });
+        }
+        
+        // Payment amount validation
+        $('#paymentAmount').on('input', function() {
+            validatePaymentAmount();
+        });
+        
+        // Clear hint when stage is manually changed
+        $('#paymentStage').on('change', function() {
+            $('#paymentHint').remove();
+        });
+        
+        // ===== PAYMENT CRUD OPERATIONS =====
+        
+        // Edit Payment button handler
+        $(document).on('click', '.edit-payment-btn', function() {
+            const paymentId = $(this).data('payment-id');
+            const aptId = $(this).data('apt-id');
+            const aptNumber = $(this).data('apt-number');
+            const buildingName = $(this).data('building-name');
+            const amount = $(this).data('amount');
+            const date = $(this).data('date');
+            const method = $(this).data('method');
+            const stage = $(this).data('stage');
+            const invoice = $(this).data('invoice');
+            const isDeposit = $(this).data('is-deposit');
+            const notes = $(this).data('notes');
+            
+            openEditPaymentModal(paymentId, aptId, buildingName, aptNumber, amount, date, method, stage, invoice, isDeposit, notes);
+        });
+        
+        /**
+         * Open edit payment modal with prefilled data
+         */
+        function openEditPaymentModal(paymentId, apartmentId, buildingName, apartmentNumber, amount, date, method, stage, invoice, isDeposit, notes) {
+            // Reset and fill form
+            $('#paymentForm')[0].reset();
+            $('#paymentId').val(paymentId);
+            $('#paymentApartmentId').val(apartmentId);
+            $('#apartmentInfoText').text(buildingName + ' - ' + apartmentNumber);
+            $('#paymentAmount').val(amount);
+            $('#paymentDate').val(date);
+            $('#paymentMethod').val(method || '');
+            $('#paymentStage').val(stage || '');
+            $('#invoiceNumber').val(invoice || '');
+            $('#isDeposit').prop('checked', isDeposit === true || isDeposit === 'true');
+            $('#paymentNotes').val(notes || '');
+            
+            // Clear previous hints
+            $('#paymentHint').remove();
+            $('#depositWarning').remove();
+            
+            // Set modal title
+            $('#paymentModalLabel').html('<i class="bi bi-pencil me-2"></i>Редактирай плащане');
+            
+            // Load payment summary and plan
+            loadPaymentSummary(apartmentId);
+            
+            // For edit mode, don't disable deposit checkbox (user can uncheck it)
+            $('#isDeposit').prop('disabled', false);
+            
+            $('#paymentModal').modal('show');
+        }
+        
+        // Delete Payment button handler
+        $(document).on('click', '.delete-payment-btn', function() {
+            const paymentId = $(this).data('payment-id');
+            const amount = $(this).data('amount');
+            const date = $(this).data('date');
+            
+            if (confirm(`Сигурни ли сте, че искате да изтриете плащането?\n\nСума: ${amount} €\nДата: ${date}`)) {
+                deletePayment(paymentId);
+            }
+        });
+        
+        /**
+         * Delete payment by ID
+         */
+        function deletePayment(paymentId) {
+            $.ajax({
+                url: `/payments/api/delete/${paymentId}`,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        alert('Плащането е изтрито успешно!');
+                        location.reload();
+                    } else {
+                        alert('Грешка: ' + (response.message || 'Неуспешно изтриване'));
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Грешка при изтриване на плащането';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    alert(errorMsg);
+                }
+            });
+        }
+        
+        // ===== DELAYED PAYMENT VISUAL INDICATOR =====
+        
+        /**
+         * Check all apartments for delayed payments and apply visual indicator
+         * Based on CURRENT STAGE and CUMULATIVE PAYMENTS up to that stage
+         * ONLY checks stages that exist in the payment plan (expectedAmount > 0)
+         */
+        function checkDelayedPayments() {
+            $('.apartment-card').each(function() {
+                const card = $(this);
+                const aptId = card.data('apt-id');
+                const hasPlan = card.data('has-plan');
+                const currentStage = card.data('stage'); // Get current stage from data attribute
+                
+                // Only check apartments with payment plan
+                if (!hasPlan) {
+                    return;
+                }
+                
+                // Check payment plan for this apartment
+                $.ajax({
+                    url: `/payments/api/apartment/${aptId}/payment-plan`,
+                    method: 'GET',
+                    success: function(data) {
+                        if (!data.hasPaymentPlan) {
+                            return;
+                        }
+                        
+                        // Define stage order
+                        const stageOrder = ['prelim', 'akt14', 'akt15', 'akt16'];
+                        const stageMappingToKey = {
+                            'Предварителен договор': 'prelim',
+                            'При предварителен договор': 'prelim',
+                            'Акт 14': 'akt14',
+                            'Акт 15': 'akt15',
+                            'Акт 16': 'akt16'
+                        };
+                        
+                        const currentStageKey = stageMappingToKey[currentStage];
+                        if (!currentStageKey) {
+                            return; // Unknown stage
+                        }
+                        
+                        // Find the index of current stage
+                        const currentStageIndex = stageOrder.indexOf(currentStageKey);
+                        if (currentStageIndex === -1) {
+                            return;
+                        }
+                        
+                        // Get all stages up to and including current stage
+                        const stagesToCheck = stageOrder.slice(0, currentStageIndex + 1);
+                        
+                        // FILTER: Only include stages that have expectedAmount > 0 (exist in payment plan)
+                        const activeStages = stagesToCheck.filter(stageKey => {
+                            const expected = parseFloat(data.expectedAmounts[stageKey] || 0);
+                            return expected > 0.01; // Only stages with actual expected payment
+                        });
+                        
+                        if (activeStages.length === 0) {
+                            return; // No active stages to check
+                        }
+                        
+                        // Calculate expected cumulative amount ONLY for active stages
+                        let expectedCumulative = 0;
+                        activeStages.forEach(stageKey => {
+                            expectedCumulative += parseFloat(data.expectedAmounts[stageKey] || 0);
+                        });
+                        
+                        // Calculate total paid (all payments regardless of stage assignment)
+                        let totalPaid = 0;
+                        for (const stageKey in data.paidByStage) {
+                            totalPaid += parseFloat(data.paidByStage[stageKey] || 0);
+                        }
+                        
+                        // Check if there's a shortfall (delay)
+                        const shortfall = expectedCumulative - totalPaid;
+                        const hasDelay = shortfall > 0.01; // Allow small rounding differences
+                        
+                        // Apply visual indicator if there's a delay
+                        if (hasDelay) {
+                            card.css({
+                                'border': '3px solid #ff8c00',
+                                'border-left': '6px solid #ff6600',
+                                'box-shadow': '0 0 10px rgba(255, 140, 0, 0.3)'
+                            });
+                            
+                            // Add badge indicator at the top of the card (only once)
+                            if (card.find('.delay-indicator').length === 0) {
+                                const shortfallFormatted = formatCurrency(shortfall);
+                                card.find('.card-body > .row').first().before(`
+                                    <div class="alert alert-warning delay-indicator mb-3 py-2 px-3" style="font-size: 0.9em;">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        <strong>Забавено плащане!</strong> Недостиг: ${shortfallFormatted} € за текущ етап
+                                    </div>
+                                `);
+                            }
+                        }
+                    },
+                    error: function() {
+                        // Silently fail - no visual indicator
+                    }
+                });
+            });
+        }
+        
+        // Check for delayed payments when page loads
+        $(document).ready(function() {
+            checkDelayedPayments();
+            
+            // Animate collapse icon on payment history toggle
+            $('[data-bs-toggle="collapse"]').on('click', function() {
+                const icon = $(this).find('.collapse-icon');
+                const isCollapsed = $(this).hasClass('collapsed');
+                
+                if (isCollapsed) {
+                    icon.css('transform', 'rotate(180deg)');
+                } else {
+                    icon.css('transform', 'rotate(0deg)');
+                }
+            });
+        });
+        
+        // Save payment
+        $('#btnSavePayment').on('click', function() {
+            const form = $('#paymentForm')[0];
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const formData = {
+                id: $('#paymentId').val() || null,
+                amount: parseFloat($('#paymentAmount').val()),
+                paymentDate: $('#paymentDate').val(),
+                paymentMethod: $('#paymentMethod').val() || null,
+                paymentStage: $('#paymentStage').val() || null,
+                invoiceNumber: $('#invoiceNumber').val() || null,
+                isDeposit: $('#isDeposit').is(':checked'),
+                notes: $('#paymentNotes').val() || null,
+                apartment: {
+                    id: parseInt($('#paymentApartmentId').val())
+                }
+            };
+            
+            const isEdit = formData.id !== null && formData.id !== '';
+            const url = isEdit ? `/payments/api/update/${formData.id}` : '/payments/api/add';
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            $.ajax({
+                url: url,
+                method: method,
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Плащането е запазено успешно!');
+                        $('#paymentModal').modal('hide');
+                        $('#paymentHint').remove();
+                        location.reload();
+                    } else {
+                        alert('Грешка: ' + (response.message || 'Неуспешно запазване'));
+                    }
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Грешка при запазване';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    alert(errorMessage);
                 }
             });
         });

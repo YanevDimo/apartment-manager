@@ -267,9 +267,30 @@ public class PaymentController {
     
     @GetMapping("/api/{id}")
     @ResponseBody
-    public ResponseEntity<Payment> getPayment(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getPayment(@PathVariable Long id) {
         return paymentService.getPaymentById(id)
-                .map(ResponseEntity::ok)
+                .map(payment -> {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("id", payment.getId());
+                    data.put("amount", payment.getAmount());
+                    data.put("paymentDate", payment.getPaymentDate() != null ? payment.getPaymentDate().toString() : null);
+                    data.put("paymentMethod", payment.getPaymentMethod());
+                    data.put("paymentStage", payment.getPaymentStage());
+                    data.put("invoiceNumber", payment.getInvoiceNumber());
+                    data.put("isDeposit", payment.getIsDeposit());
+                    data.put("notes", payment.getNotes());
+
+                    Apartment apartment = payment.getApartment();
+                    if (apartment != null) {
+                        Map<String, Object> apartmentData = new HashMap<>();
+                        apartmentData.put("id", apartment.getId());
+                        apartmentData.put("apartmentNumber", apartment.getApartmentNumber());
+                        apartmentData.put("buildingName", apartment.getBuildingName());
+                        data.put("apartment", apartmentData);
+                    }
+
+                    return ResponseEntity.ok(data);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
     

@@ -94,7 +94,79 @@ public class StatisticsServiceImpl implements StatisticsService {
         stats.put("totalExpected", totalExpected);
         stats.put("collectionRate", collectionRate);
         stats.put("remainingPayments", totalExpected.subtract(totalCollected));
+        stats.put("stageBreakdown", buildStageBreakdown(buildingId));
+        stats.put("paymentBreakdown", buildPaymentBreakdown(buildingId));
         return stats;
+    }
+
+    private Map<String, Long> buildStageBreakdown(Long buildingId) {
+        Map<String, Long> breakdown = new HashMap<>();
+        breakdown.put("При предварителен договор", 0L);
+        breakdown.put("Акт 14", 0L);
+        breakdown.put("Акт 15", 0L);
+        breakdown.put("Акт 16", 0L);
+
+        apartmentService.getAllSoldApartmentsByBuilding(buildingId).forEach(apt -> {
+            String stage = apt.getStage();
+            if (stage == null || stage.isBlank()) {
+                stage = "При предварителен договор";
+            }
+            if ("Предварителен договор".equals(stage)) {
+                stage = "При предварителен договор";
+            }
+            breakdown.put(stage, breakdown.getOrDefault(stage, 0L) + 1L);
+        });
+
+        return breakdown;
+    }
+
+    private Map<String, Object> buildPaymentBreakdown(Long buildingId) {
+        Map<String, Object> breakdown = new HashMap<>();
+        Map<String, BigDecimal> expected = new HashMap<>();
+        Map<String, BigDecimal> collected = new HashMap<>();
+
+        expected.put("prelim", BigDecimal.ZERO);
+        expected.put("akt14", BigDecimal.ZERO);
+        expected.put("akt15", BigDecimal.ZERO);
+        expected.put("akt16", BigDecimal.ZERO);
+
+        collected.put("prelim", BigDecimal.ZERO);
+        collected.put("akt14", BigDecimal.ZERO);
+        collected.put("akt15", BigDecimal.ZERO);
+        collected.put("akt16", BigDecimal.ZERO);
+
+        apartmentService.getAllSoldApartmentsByBuilding(buildingId).forEach(apt -> {
+            if (apt.getPaymentPlan() != null) {
+                var plan = apt.getPaymentPlan();
+                expected.put("prelim", expected.get("prelim").add(plan.getPreliminaryContractAmount() != null ? plan.getPreliminaryContractAmount() : BigDecimal.ZERO));
+                expected.put("akt14", expected.get("akt14").add(plan.getAkt14Amount() != null ? plan.getAkt14Amount() : BigDecimal.ZERO));
+                expected.put("akt15", expected.get("akt15").add(plan.getAkt15Amount() != null ? plan.getAkt15Amount() : BigDecimal.ZERO));
+                expected.put("akt16", expected.get("akt16").add(plan.getAkt16Amount() != null ? plan.getAkt16Amount() : BigDecimal.ZERO));
+            }
+
+            if (apt.getPayments() != null) {
+                apt.getPayments().forEach(payment -> {
+                    String stage = payment.getPaymentStage();
+                    BigDecimal amount = payment.getAmount() != null ? payment.getAmount() : BigDecimal.ZERO;
+                    if (stage == null) {
+                        return;
+                    }
+                    if (stage.contains("предварителен") || stage.toLowerCase().contains("prelim")) {
+                        collected.put("prelim", collected.get("prelim").add(amount));
+                    } else if (stage.contains("Акт 14") || stage.contains("акт 14")) {
+                        collected.put("akt14", collected.get("akt14").add(amount));
+                    } else if (stage.contains("Акт 15") || stage.contains("акт 15")) {
+                        collected.put("akt15", collected.get("akt15").add(amount));
+                    } else if (stage.contains("Акт 16") || stage.contains("акт 16")) {
+                        collected.put("akt16", collected.get("akt16").add(amount));
+                    }
+                });
+            }
+        });
+
+        breakdown.put("expected", expected);
+        breakdown.put("collected", collected);
+        return breakdown;
     }
 }
 

@@ -141,22 +141,92 @@ public class Apartment {
     /**
      * Check if apartment has overdue payments
      */
+    /**
+     * Check if apartment has overdue payments based on current stage and payment plan
+     * Logic: Checks if cumulative paid amount covers all stages up to current stage
+     * ONLY for stages that exist in the payment plan (expectedAmount > 0)
+     */
     public boolean hasOverduePayments() {
-        if (paymentPlan == null || payments == null) {
+        if (paymentPlan == null || payments == null || stage == null) {
             return false;
         }
-        LocalDate today = LocalDate.now();
-        return paymentPlan.getPaymentDates().stream()
-                .anyMatch(date -> date.isBefore(today) && !isPaymentReceivedForDate(date));
+        
+        // Define stage order and mapping
+        java.util.List<String> stageOrder = java.util.Arrays.asList("prelim", "akt14", "akt15", "akt16");
+        java.util.Map<String, String> stageMappingToKey = new java.util.HashMap<>();
+        stageMappingToKey.put("Предварителен договор", "prelim");
+        stageMappingToKey.put("При предварителен договор", "prelim");
+        stageMappingToKey.put("Акт 14", "akt14");
+        stageMappingToKey.put("Акт 15", "akt15");
+        stageMappingToKey.put("Акт 16", "akt16");
+        
+        String currentStageKey = stageMappingToKey.get(stage);
+        if (currentStageKey == null) {
+            return false; // Unknown stage
+        }
+        
+        int currentStageIndex = stageOrder.indexOf(currentStageKey);
+        if (currentStageIndex == -1) {
+            return false;
+        }
+        
+        // Get all stages up to and including current stage
+        java.util.List<String> stagesToCheck = stageOrder.subList(0, currentStageIndex + 1);
+        
+        // FILTER: Only include stages that have expectedAmount > 0 (exist in payment plan)
+        java.util.List<String> activeStages = new java.util.ArrayList<>();
+        for (String stageKey : stagesToCheck) {
+            BigDecimal expected = getExpectedAmountForStage(stageKey);
+            if (expected != null && expected.compareTo(new BigDecimal("0.01")) > 0) {
+                activeStages.add(stageKey);
+            }
+        }
+        
+        if (activeStages.isEmpty()) {
+            return false; // No active stages to check
+        }
+        
+        // Calculate expected cumulative amount ONLY for active stages
+        BigDecimal expectedCumulative = BigDecimal.ZERO;
+        for (String stageKey : activeStages) {
+            BigDecimal expected = getExpectedAmountForStage(stageKey);
+            if (expected != null) {
+                expectedCumulative = expectedCumulative.add(expected);
+            }
+        }
+        
+        // Calculate total paid (all payments)
+        BigDecimal totalPaid = getTotalPaid();
+        
+        // Check if there's a shortfall (delay)
+        BigDecimal shortfall = expectedCumulative.subtract(totalPaid);
+        return shortfall.compareTo(new BigDecimal("0.01")) > 0; // Allow small rounding differences
     }
     
     /**
-     * Check if payment is received for a specific date
+     * Get expected amount for a specific stage from payment plan
      */
-    private boolean isPaymentReceivedForDate(LocalDate date) {
-        return payments.stream()
-                .anyMatch(p -> p.getPaymentDate().equals(date) || 
-                             (p.getPaymentDate().isBefore(date) && p.getPaymentStage() != null));
+    private BigDecimal getExpectedAmountForStage(String stageKey) {
+        if (paymentPlan == null) {
+            return BigDecimal.ZERO;
+        }
+        
+        switch (stageKey) {
+            case "prelim":
+                return paymentPlan.getPreliminaryContractAmount() != null ? 
+                       paymentPlan.getPreliminaryContractAmount() : BigDecimal.ZERO;
+            case "akt14":
+                return paymentPlan.getAkt14Amount() != null ? 
+                       paymentPlan.getAkt14Amount() : BigDecimal.ZERO;
+            case "akt15":
+                return paymentPlan.getAkt15Amount() != null ? 
+                       paymentPlan.getAkt15Amount() : BigDecimal.ZERO;
+            case "akt16":
+                return paymentPlan.getAkt16Amount() != null ? 
+                       paymentPlan.getAkt16Amount() : BigDecimal.ZERO;
+            default:
+                return BigDecimal.ZERO;
+        }
     }
     
     /**

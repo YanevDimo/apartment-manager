@@ -315,6 +315,24 @@ public class BuildingController {
         }
         return "redirect:/buildings";
     }
+    
+    @PostMapping("/update-stage")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public java.util.Map<String, Object> updateBuildingStage(@RequestParam("buildingId") Long id, 
+                                                               @RequestParam("stage") String stage) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        try {
+            Building building = buildingService.updateBuildingStage(id, stage);
+            response.put("success", true);
+            response.put("message", "Етапът на сграда \"" + building.getName() + "\" е променен на \"" + stage + "\". Всички обекти в сградата са актуализирани.");
+            response.put("buildingId", building.getId());
+            response.put("stage", building.getStage());
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Грешка при промяна на етап: " + e.getMessage());
+        }
+        return response;
+    }
 }
 
 

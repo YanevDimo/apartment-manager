@@ -170,14 +170,6 @@ public class MainController {
             return "add_client";
         }
         
-        // Check for duplicate EGN if provided
-        if (client.getEgn() != null && !client.getEgn().trim().isEmpty()) {
-            if (clientService.findByEgn(client.getEgn()).isPresent()) {
-                bindingResult.rejectValue("egn", "error.egn", "Клиент с този ЕГН/ЕИК вече съществува");
-                return "add_client";
-            }
-        }
-        
         try {
             clientService.saveClient(client);
             redirectAttributes.addFlashAttribute("success", "Клиентът е добавен успешно!");

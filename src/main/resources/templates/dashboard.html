@@ -380,15 +380,18 @@
             collectionRate: 0
         };
         
+        let stageChart = null;
+        let paymentChart = null;
+
         $(document).ready(function() {
             // Load statistics
             loadStatistics();
             
             // Load overdue apartments
             loadOverdueApartments();
-            
-            // Initialize DataTables
-            initializeDataTables();
+
+            // Load upcoming payments
+            loadUpcomingPayments();
             
             // Initialize charts
             initializeCharts();
@@ -428,8 +431,63 @@
         }
         
         function updateCharts(data) {
-            // Update stage chart if available
-            // This would need stage breakdown data from backend
+            if (!data) {
+                return;
+            }
+
+            // Stage breakdown
+            if (data.stageBreakdown) {
+                const stageLabels = ['При предварителен договор', 'Акт 14', 'Акт 15', 'Акт 16'];
+                const stageData = stageLabels.map(label => data.stageBreakdown[label] || 0);
+
+                if (stageChart) {
+                    stageChart.data.labels = stageLabels;
+                    stageChart.data.datasets[0].data = stageData;
+                    stageChart.update();
+                }
+
+                const breakdownContainer = $('#stage-breakdown');
+                breakdownContainer.empty();
+                stageLabels.forEach((label, idx) => {
+                    breakdownContainer.append(`
+                        <div class="col-6 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">${label}</span>
+                                <span class="fw-semibold">${stageData[idx]}</span>
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+
+            // Payment breakdown
+            if (data.paymentBreakdown && data.paymentBreakdown.expected && data.paymentBreakdown.collected) {
+                const keys = ['prelim', 'akt14', 'akt15', 'akt16'];
+                const labels = ['Предв. договор', 'Акт 14', 'Акт 15', 'Акт 16'];
+                const expected = keys.map(k => parseFloat(data.paymentBreakdown.expected[k] || 0));
+                const collected = keys.map(k => parseFloat(data.paymentBreakdown.collected[k] || 0));
+
+                if (paymentChart) {
+                    paymentChart.data.labels = labels;
+                    paymentChart.data.datasets[0].data = collected;
+                    paymentChart.data.datasets[1].data = expected;
+                    paymentChart.update();
+                }
+
+                const analysis = $('#payment-analysis');
+                analysis.empty();
+                labels.forEach((label, idx) => {
+                    analysis.append(`
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">${label}</span>
+                            <span>
+                                <strong class="text-success">${formatCurrency(collected[idx])}</strong> /
+                                <strong class="text-primary">${formatCurrency(expected[idx])}</strong>
+                            </span>
+                        </div>
+                    `);
+                });
+            }
         }
         
         function updateStatisticsDisplay(stats) {
@@ -445,6 +503,7 @@
                 .then(data => {
                     populateDelayedTable(data);
                     $('#delayed-badge').text(data.length || 0);
+                    $('#delayed-count').text(data.length || 0);
                 })
                 .catch(error => {
                     console.error('Error loading overdue apartments:', error);
@@ -456,18 +515,24 @@
             tbody.empty();
             
             if (apartments.length === 0) {
-                tbody.append('<tr><td colspan="6" class="text-center text-muted">Няма забавени плащания</td></tr>');
+                tbody.append(
+                    '<tr>' +
+                    '<td class="text-center text-muted">Няма забавени плащания</td>' +
+                    '<td></td><td></td><td></td><td></td><td></td>' +
+                    '</tr>'
+                );
+                initializeDataTable('#delayedTable');
                 return;
             }
             
             apartments.forEach(apt => {
                 const row = `
                     <tr>
-                        <td><strong>${apt.buildingName} - ${apt.apartmentNumber}</strong></td>
-                        <td>${apt.client ? apt.client.name : '-'}</td>
+                        <td><strong>${apt.buildingName || '-'} - ${apt.apartmentNumber || '-'}</strong></td>
+                        <td>${apt.clientName || '-'}</td>
                         <td><span class="badge bg-warning">${apt.stage || '-'}</span></td>
-                        <td><span class="text-danger">${formatCurrency(apt.remainingPayment || 0)}</span></td>
-                        <td><span class="badge bg-danger">-</span></td>
+                        <td><span class="text-danger">${formatCurrency(apt.overdueAmount || 0)}</span></td>
+                        <td><span class="badge bg-danger">${apt.daysOverdue || 0}</span></td>
                         <td>
                             <a href="/apartments" class="btn btn-sm btn-warning">
                                 <i class="bi bi-plus-circle me-1"></i> Добави плащане
@@ -477,44 +542,87 @@
                 `;
                 tbody.append(row);
             });
+
+            initializeDataTable('#delayedTable');
         }
 
-        function initializeDataTables() {
-            if ($('#upcomingTable').length) {
-                $('#upcomingTable').DataTable({
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/bg.json'
-                    },
-                    pageLength: 10,
-                    responsive: true,
-                    dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
+        function loadUpcomingPayments() {
+            fetch('/apartments/api/upcoming')
+                .then(response => response.json())
+                .then(data => {
+                    populateUpcomingTable(data);
+                    $('#upcoming-badge').text(data.length || 0);
+                })
+                .catch(error => {
+                    console.error('Error loading upcoming payments:', error);
                 });
+        }
+
+        function populateUpcomingTable(items) {
+            const tbody = $('#upcoming-tbody');
+            tbody.empty();
+
+            if (!items || items.length === 0) {
+                tbody.append(
+                    '<tr>' +
+                    '<td class="text-center text-muted">Няма предстоящи плащания</td>' +
+                    '<td></td><td></td><td></td><td></td><td></td>' +
+                    '</tr>'
+                );
+                initializeDataTable('#upcomingTable');
+                return;
             }
 
-            if ($('#delayedTable').length) {
-                $('#delayedTable').DataTable({
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/bg.json'
-                    },
-                    pageLength: 10,
-                    responsive: true,
-                    dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
-                });
+            items.forEach(item => {
+                const row = `
+                    <tr>
+                        <td><strong>${item.buildingName || '-'} - ${item.apartmentNumber || '-'}</strong></td>
+                        <td>${item.clientName || '-'}</td>
+                        <td><span class="badge bg-info">${item.stage || '-'}</span></td>
+                        <td>${formatCurrency(item.expectedAmount || 0)}</td>
+                        <td>${item.date || '-'}</td>
+                        <td>
+                            <a href="/apartments" class="btn btn-sm btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i> Добави плащане
+                            </a>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+
+            initializeDataTable('#upcomingTable');
+        }
+
+        function initializeDataTable(selector) {
+            if (!$(selector).length) {
+                return;
             }
+            if ($.fn.DataTable.isDataTable(selector)) {
+                $(selector).DataTable().destroy();
+            }
+            $(selector).DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/bg.json'
+                },
+                pageLength: 10,
+                responsive: true,
+                dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
+            });
         }
 
         function initializeCharts() {
             // Stage Chart
             const stageCtx = document.getElementById('stageChart');
             if (stageCtx) {
-                const stageChart = new Chart(stageCtx.getContext('2d'), {
+                stageChart = new Chart(stageCtx.getContext('2d'), {
                     type: 'doughnut',
                     data: {
-                        labels: ['Завършен', 'В процес', 'Незапочнат'],
+                        labels: ['При предварителен договор', 'Акт 14', 'Акт 15', 'Акт 16'],
                         datasets: [{
-                            data: [0, 0, 0],
-                            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
-                            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+                            data: [0, 0, 0, 0],
+                            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e'],
+                            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a'],
                             hoverBorderColor: "rgba(234, 236, 244, 1)",
                         }]
                     },
@@ -534,24 +642,24 @@
             // Payment Chart
             const paymentCtx = document.getElementById('paymentChart');
             if (paymentCtx) {
-                const paymentChart = new Chart(paymentCtx.getContext('2d'), {
+                paymentChart = new Chart(paymentCtx.getContext('2d'), {
                     type: 'bar',
                     data: {
-                        labels: ['Авансово плащане', 'При ключ', 'При завършване'],
+                        labels: ['Предв. договор', 'Акт 14', 'Акт 15', 'Акт 16'],
                         datasets: [
                             {
                                 label: 'Събрани',
                                 backgroundColor: '#1cc88a',
                                 hoverBackgroundColor: '#17a673',
                                 borderColor: '#1cc88a',
-                                data: [0, 0, 0]
+                                data: [0, 0, 0, 0]
                             },
                             {
                                 label: 'Очаквани',
                                 backgroundColor: '#4e73df',
                                 hoverBackgroundColor: '#2e59d9',
                                 borderColor: '#4e73df',
-                                data: [0, 0, 0]
+                                data: [0, 0, 0, 0]
                             }
                         ]
                     },

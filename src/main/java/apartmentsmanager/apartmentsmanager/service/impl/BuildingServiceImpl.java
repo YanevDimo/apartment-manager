@@ -230,11 +230,47 @@ public class BuildingServiceImpl implements BuildingService {
     }
     
     @Override
+    @Transactional
     public Building updateBuildingStage(Long buildingId, String stage) {
         Building building = buildingRepository.findById(buildingId)
             .orElseThrow(() -> new RuntimeException("Сграда с ID " + buildingId + " не е намерена"));
+        
+        // Update building stage
         building.setStage(stage);
+        
+        // Map building stage to apartment stage
+        String apartmentStage = mapBuildingStageToApartmentStage(stage);
+        
+        // Update all apartments/objects in this building to the new stage
+        if (building.getApartments() != null && !building.getApartments().isEmpty()) {
+            building.getApartments().forEach(apt -> apt.setStage(apartmentStage));
+        }
+        
         return buildingRepository.save(building);
+    }
+    
+    /**
+     * Map building stage to apartment stage
+     * Building stages: "Открита строителна площадка", "Акт 14", "Акт 15", "Акт 16"
+     * Apartment stages: "Предварителен договор", "Акт 14", "Акт 15", "Акт 16"
+     */
+    private String mapBuildingStageToApartmentStage(String buildingStage) {
+        if (buildingStage == null) {
+            return "Предварителен договор";
+        }
+        
+        switch (buildingStage) {
+            case "Открита строителна площадка":
+                return "Предварителен договор";
+            case "Акт 14":
+                return "Акт 14";
+            case "Акт 15":
+                return "Акт 15";
+            case "Акт 16":
+                return "Акт 16";
+            default:
+                return "Предварителен договор";
+        }
     }
 
     @Override

@@ -17,6 +17,17 @@
             background-color: #198754;
             border-color: #198754;
         }
+        .stage-select {
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+        .stage-select:hover:not(:disabled) {
+            background-color: #f8f9fa;
+        }
+        .stage-select:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
     </style>
     <!-- Sidebar Styles -->
     <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
@@ -107,7 +118,27 @@
                                     <td th:text="${building.address != null ? building.address : '-'}">Адрес</td>
                                     <td th:text="${building.createdAt != null ? #temporals.format(building.createdAt, 'dd.MM.yyyy HH:mm') : '-'}">Дата</td>
                                     <td>
-                                        <span th:text="${(building.stage != null and !building.stage.isEmpty()) ? building.stage : '-'}">-</span>
+                                        <select class="form-select form-select-sm stage-select" 
+                                                th:data-building-id="${building.id}"
+                                                th:data-building-name="${building.name}"
+                                                style="min-width: 180px; font-size: 0.85rem;">
+                                            <option value="Открита строителна площадка" 
+                                                    th:selected="${building.stage == 'Открита строителна площадка'}">
+                                                Открита площадка
+                                            </option>
+                                            <option value="Акт 14" 
+                                                    th:selected="${building.stage == 'Акт 14'}">
+                                                Акт 14
+                                            </option>
+                                            <option value="Акт 15" 
+                                                    th:selected="${building.stage == 'Акт 15'}">
+                                                Акт 15
+                                            </option>
+                                            <option value="Акт 16" 
+                                                    th:selected="${building.stage == 'Акт 16'}">
+                                                Акт 16
+                                            </option>
+                                        </select>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
@@ -344,6 +375,79 @@
      });
  });
  }
+    });
+    
+    // ===== STAGE CHANGE HANDLER =====
+    // Handle building stage change via dropdown
+    document.querySelectorAll('.stage-select').forEach(function(select) {
+        select.addEventListener('change', function(e) {
+            const buildingId = this.getAttribute('data-building-id');
+            const buildingName = this.getAttribute('data-building-name');
+            const newStage = this.value;
+            const previousStage = this.getAttribute('data-previous-stage') || this.value;
+            
+            // Confirm the change
+            if (!confirm(`Промяна на етап за "${buildingName}":\n\nНов етап: ${newStage}\n\nВсички обекти в сградата ще бъдат актуализирани автоматично.\n\nПродължи?`)) {
+                // Revert to previous value if user cancels
+                this.value = previousStage;
+                return;
+            }
+            
+            // Disable dropdown during request
+            this.disabled = true;
+            const originalBg = this.style.backgroundColor;
+            this.style.backgroundColor = '#fff3cd';
+            
+            // Send AJAX request to update stage
+            fetch('/buildings/update-stage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `buildingId=${buildingId}&stage=${encodeURIComponent(newStage)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Success feedback
+                    this.style.backgroundColor = '#d1e7dd';
+                    this.setAttribute('data-previous-stage', newStage);
+                    
+                    // Show success message
+                    alert('✓ ' + data.message);
+                    
+                    // Reset background after 2 seconds
+                    setTimeout(() => {
+                        this.style.backgroundColor = originalBg;
+                        this.disabled = false;
+                    }, 2000);
+                } else {
+                    // Error - revert to previous stage
+                    this.value = previousStage;
+                    this.style.backgroundColor = '#f8d7da';
+                    alert('✗ ' + data.message);
+                    
+                    setTimeout(() => {
+                        this.style.backgroundColor = originalBg;
+                        this.disabled = false;
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                // Network error - revert to previous stage
+                this.value = previousStage;
+                this.style.backgroundColor = '#f8d7da';
+                alert('✗ Грешка при промяна на етап: ' + error.message);
+                
+                setTimeout(() => {
+                    this.style.backgroundColor = originalBg;
+                    this.disabled = false;
+                }, 2000);
+            });
+        });
+        
+        // Store initial value
+        select.setAttribute('data-previous-stage', select.value);
     });
     </script>
     </div>
