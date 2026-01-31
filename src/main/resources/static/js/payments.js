@@ -22,9 +22,14 @@ function initializePayments() {
         savePayment();
     });
     
-    // Payment amount validation
+    // Payment amount validation and suggestion
     $('#paymentAmount').on('input', function() {
         validatePaymentAmount();
+    });
+    
+    // Update hint when stage is manually changed
+    $('#paymentStage').on('change', function() {
+        $('#paymentHint').remove();
     });
     
     // Set default date to today
@@ -48,7 +53,11 @@ function openAddPaymentModal(apartmentId) {
             $('#paymentApartmentId').val(apartmentId);
             $('#apartmentInfoText').text(apartment.buildingName + ' - ' + apartment.apartmentNumber);
             
-            // Load payment summary
+            // Clear previous hints
+            $('#paymentHint').remove();
+            $('#depositWarning').remove();
+            
+            // Load payment summary and plan
             loadPaymentSummary(apartmentId);
             
             // Check if deposit already exists
@@ -121,7 +130,11 @@ function openEditPaymentModal(paymentId) {
             
             $('#apartmentInfoText').text(payment.apartment.buildingName + ' - ' + payment.apartment.apartmentNumber);
             
-            // Load payment summary
+            // Clear previous hints
+            $('#paymentHint').remove();
+            $('#depositWarning').remove();
+            
+            // Load payment summary and plan
             loadPaymentSummary(payment.apartment.id);
             
             // Check if deposit exists (but allow editing current deposit)
@@ -131,7 +144,6 @@ function openEditPaymentModal(paymentId) {
             } else {
                 // This is a deposit payment being edited, allow checkbox
                 $('#isDeposit').prop('disabled', false);
-                $('#depositWarning').remove();
             }
             
             $('#paymentModal').modal('show');
@@ -159,10 +171,117 @@ function loadPaymentSummary(apartmentId) {
             $('#paymentSummary').hide();
         }
     });
+    
+    // Load payment plan details
+    loadPaymentPlan(apartmentId);
 }
 
 /**
- * Validate payment amount
+ * Load payment plan details with progress by stage
+ */
+function loadPaymentPlan(apartmentId) {
+    $.ajax({
+        url: `/payments/api/apartment/${apartmentId}/payment-plan`,
+        method: 'GET',
+        success: function(data) {
+            if (!data.hasPaymentPlan) {
+                $('#paymentPlanSection').hide();
+                return;
+            }
+            
+            const stages = [
+                { key: 'prelim', name: 'При предварителен договор' },
+                { key: 'akt14', name: 'Акт 14' },
+                { key: 'akt15', name: 'Акт 15' },
+                { key: 'akt16', name: 'Акт 16' }
+            ];
+            
+            const tbody = $('#paymentPlanBody');
+            tbody.empty();
+            
+            let cumulativeOverpayment = 0; // Track overpayment to distribute
+            
+            stages.forEach((stage, index) => {
+                const expected = parseFloat(data.expectedAmounts[stage.key] || 0);
+                let paid = parseFloat(data.paidByStage[stage.key] || 0);
+                
+                // Apply cumulative overpayment from previous stages
+                if (cumulativeOverpayment > 0) {
+                    const toApply = Math.min(cumulativeOverpayment, Math.max(0, expected - paid));
+                    paid += toApply;
+                    cumulativeOverpayment -= toApply;
+                }
+                
+                const remaining = Math.max(0, expected - paid);
+                const overpayment = Math.max(0, paid - expected);
+                
+                // Add overpayment to cumulative for next stage
+                if (overpayment > 0) {
+                    cumulativeOverpayment += overpayment;
+                }
+                
+                let statusBadge = '';
+                let rowClass = '';
+                
+                if (paid >= expected && expected > 0) {
+                    statusBadge = '<span class="badge bg-success">Платено</span>';
+                    rowClass = 'table-success';
+                } else if (paid > 0 && paid < expected) {
+                    statusBadge = '<span class="badge bg-warning">Частично</span>';
+                    rowClass = 'table-warning';
+                } else if (expected > 0) {
+                    statusBadge = '<span class="badge bg-secondary">Неплатено</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-light text-dark">Не се прилага</span>';
+                    rowClass = 'table-light';
+                }
+                
+                const row = `
+                    <tr class="${rowClass}">
+                        <td><strong>${stage.name}</strong></td>
+                        <td>${formatCurrency(expected)} €</td>
+                        <td>${formatCurrency(paid)} €${overpayment > 0 ? ' <span class="badge bg-info">+' + formatCurrency(overpayment) + '</span>' : ''}</td>
+                        <td class="${remaining > 0 ? 'text-danger fw-bold' : ''}">${formatCurrency(remaining)} €</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+                
+                tbody.append(row);
+            });
+            
+            // Show warning for unallocated payments
+            const otherPayments = parseFloat(data.paidByStage.other || 0);
+            if (otherPayments > 0 || cumulativeOverpayment > 0) {
+                const totalUnallocated = otherPayments + cumulativeOverpayment;
+                $('#paymentWarningText').html(
+                    `<strong>Внимание:</strong> Има ${formatCurrency(totalUnallocated)} € нерапределени плащания. ` +
+                    `Моля свържете плащанията с конкретен етап.`
+                );
+                $('#paymentWarning').show();
+            } else {
+                $('#paymentWarning').hide();
+            }
+            
+            $('#paymentPlanSection').show();
+        },
+        error: function() {
+            $('#paymentPlanSection').hide();
+        }
+    });
+}
+
+/**
+ * Format currency with proper decimal places
+ */
+function formatCurrency(value) {
+    return new Intl.NumberFormat('bg-BG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(value);
+}
+
+/**
+ * Validate payment amount and suggest stage
  */
 function validatePaymentAmount() {
     const amount = parseFloat($('#paymentAmount').val()) || 0;
@@ -177,6 +296,73 @@ function validatePaymentAmount() {
     } else {
         $('#paymentAmount').removeClass('is-invalid');
     }
+    
+    // Suggest payment stage based on amount
+    if (amount > 0 && !paymentId) {
+        suggestPaymentStage(amount);
+    }
+}
+
+/**
+ * Suggest payment stage based on payment plan progress
+ */
+function suggestPaymentStage(amount) {
+    const apartmentId = $('#paymentApartmentId').val();
+    
+    if (!apartmentId) return;
+    
+    $.ajax({
+        url: `/payments/api/apartment/${apartmentId}/payment-plan`,
+        method: 'GET',
+        success: function(data) {
+            if (!data.hasPaymentPlan) return;
+            
+            const stages = [
+                { key: 'prelim', name: 'При предварителен договор', value: 'При предварителен договор' },
+                { key: 'akt14', name: 'Акт 14', value: 'Акт 14' },
+                { key: 'akt15', name: 'Акт 15', value: 'Акт 15' },
+                { key: 'akt16', name: 'Акт 16', value: 'Акт 16' }
+            ];
+            
+            // Find first unpaid or partially paid stage
+            let suggestedStage = null;
+            let suggestedAmount = 0;
+            
+            for (const stage of stages) {
+                const expected = parseFloat(data.expectedAmounts[stage.key] || 0);
+                const paid = parseFloat(data.paidByStage[stage.key] || 0);
+                const remaining = expected - paid;
+                
+                if (remaining > 0.01) {
+                    suggestedStage = stage;
+                    suggestedAmount = remaining;
+                    break;
+                }
+            }
+            
+            if (suggestedStage) {
+                // Auto-select the suggested stage
+                $('#paymentStage').val(suggestedStage.value);
+                
+                // Show hint
+                const diff = amount - suggestedAmount;
+                let hintMessage = '';
+                
+                if (Math.abs(diff) < 0.01) {
+                    hintMessage = `<i class="bi bi-check-circle text-success"></i> Плащането покрива точно етап "${suggestedStage.name}"`;
+                } else if (diff < 0) {
+                    hintMessage = `<i class="bi bi-exclamation-triangle text-warning"></i> Недостига ${formatCurrency(Math.abs(diff))} € за покриване на "${suggestedStage.name}" (очаквано: ${formatCurrency(suggestedAmount)} €)`;
+                } else {
+                    hintMessage = `<i class="bi bi-info-circle text-info"></i> Надвишение от ${formatCurrency(diff)} € ще се отчете за следващия етап`;
+                }
+                
+                if (!$('#paymentHint').length) {
+                    $('#paymentAmount').after('<small id="paymentHint" class="form-text"></small>');
+                }
+                $('#paymentHint').html(hintMessage);
+            }
+        }
+    });
 }
 
 /**
@@ -220,9 +406,18 @@ function savePayment() {
                 showToast(response.message || 'Плащането е запазено успешно', 'success');
                 $('#paymentModal').modal('hide');
                 
+                // Clear payment hint
+                $('#paymentHint').remove();
+                
                 // Reload apartments table to update totals
                 if (typeof apartmentsTable !== 'undefined') {
                     apartmentsTable.ajax.reload();
+                }
+                
+                // Reload payment plan if viewing payments
+                const apartmentId = formData.apartment.id;
+                if (apartmentId && $('#viewPaymentsModal').is(':visible')) {
+                    viewPaymentsForApartment(apartmentId);
                 }
             } else {
                 showToast(response.message || 'Грешка при запазване', 'error');

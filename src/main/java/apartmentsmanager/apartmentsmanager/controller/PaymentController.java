@@ -290,6 +290,78 @@ public class PaymentController {
         
         return ResponseEntity.ok(response);
     }
+    
+    @GetMapping("/api/apartment/{apartmentId}/payment-plan")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getPaymentPlanDetails(@PathVariable Long apartmentId) {
+        Apartment apartment = apartmentService.getApartmentById(apartmentId).orElse(null);
+        
+        if (apartment == null || apartment.getPaymentPlan() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        // Get payment plan
+        var plan = apartment.getPaymentPlan();
+        response.put("hasPaymentPlan", true);
+        
+        // Expected amounts per stage
+        Map<String, BigDecimal> expectedAmounts = new HashMap<>();
+        expectedAmounts.put("prelim", plan.getPreliminaryContractAmount() != null ? plan.getPreliminaryContractAmount() : BigDecimal.ZERO);
+        expectedAmounts.put("akt14", plan.getAkt14Amount() != null ? plan.getAkt14Amount() : BigDecimal.ZERO);
+        expectedAmounts.put("akt15", plan.getAkt15Amount() != null ? plan.getAkt15Amount() : BigDecimal.ZERO);
+        expectedAmounts.put("akt16", plan.getAkt16Amount() != null ? plan.getAkt16Amount() : BigDecimal.ZERO);
+        response.put("expectedAmounts", expectedAmounts);
+        
+        // Get payments by stage
+        List<Payment> payments = paymentService.getPaymentsByApartmentId(apartmentId);
+        
+        Map<String, BigDecimal> paidByStage = new HashMap<>();
+        paidByStage.put("prelim", BigDecimal.ZERO);
+        paidByStage.put("akt14", BigDecimal.ZERO);
+        paidByStage.put("akt15", BigDecimal.ZERO);
+        paidByStage.put("akt16", BigDecimal.ZERO);
+        paidByStage.put("other", BigDecimal.ZERO);
+        
+        for (Payment payment : payments) {
+            String stage = payment.getPaymentStage();
+            BigDecimal amount = payment.getAmount() != null ? payment.getAmount() : BigDecimal.ZERO;
+            
+            if (stage != null) {
+                if (stage.contains("предварителен") || stage.toLowerCase().contains("prelim")) {
+                    paidByStage.put("prelim", paidByStage.get("prelim").add(amount));
+                } else if (stage.contains("Акт 14") || stage.contains("акт 14")) {
+                    paidByStage.put("akt14", paidByStage.get("akt14").add(amount));
+                } else if (stage.contains("Акт 15") || stage.contains("акт 15")) {
+                    paidByStage.put("akt15", paidByStage.get("akt15").add(amount));
+                } else if (stage.contains("Акт 16") || stage.contains("акт 16")) {
+                    paidByStage.put("akt16", paidByStage.get("akt16").add(amount));
+                } else {
+                    paidByStage.put("other", paidByStage.get("other").add(amount));
+                }
+            } else {
+                paidByStage.put("other", paidByStage.get("other").add(amount));
+            }
+        }
+        
+        response.put("paidByStage", paidByStage);
+        
+        // Calculate remaining per stage
+        Map<String, BigDecimal> remainingByStage = new HashMap<>();
+        remainingByStage.put("prelim", expectedAmounts.get("prelim").subtract(paidByStage.get("prelim")));
+        remainingByStage.put("akt14", expectedAmounts.get("akt14").subtract(paidByStage.get("akt14")));
+        remainingByStage.put("akt15", expectedAmounts.get("akt15").subtract(paidByStage.get("akt15")));
+        remainingByStage.put("akt16", expectedAmounts.get("akt16").subtract(paidByStage.get("akt16")));
+        response.put("remainingByStage", remainingByStage);
+        
+        // Total amounts
+        response.put("totalPrice", apartment.getTotalPrice());
+        response.put("totalPaid", paymentService.getTotalPaidForApartment(apartmentId));
+        response.put("totalRemaining", apartment.getTotalPrice().subtract(paymentService.getTotalPaidForApartment(apartmentId)));
+        
+        return ResponseEntity.ok(response);
+    }
 }
 
 
