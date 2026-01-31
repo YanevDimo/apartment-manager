@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -45,6 +46,28 @@ public class ApartmentController {
         List<Client> clients = clientService.getAllClients();
         model.addAttribute("clients", clients);
         return "apartments";
+    }
+    
+    @GetMapping("/api/available")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getAvailableApartmentsApi() {
+        List<Apartment> apartments = apartmentService.getAllApartments().stream()
+            .filter(apt -> apt.getClient() == null || !apt.getIsSold())
+            .collect(Collectors.toList());
+        
+        List<Map<String, Object>> apartmentData = apartments.stream().map(apt -> {
+            Map<String, Object> data = new HashMap<>();
+            data.put("id", apt.getId());
+            data.put("apartmentNumber", apt.getApartmentNumber());
+            data.put("area", apt.getArea());
+            data.put("totalPrice", apt.getTotalPrice());
+            data.put("stage", apt.getStage());
+            data.put("buildingName", apt.getBuilding() != null ? apt.getBuilding().getName() : 
+                                    (apt.getBuildingName() != null ? apt.getBuildingName() : ""));
+            return data;
+        }).collect(Collectors.toList());
+        
+        return ResponseEntity.ok(apartmentData);
     }
     
     @GetMapping("/api/list")
@@ -212,14 +235,34 @@ public class ApartmentController {
     
     @GetMapping("/api/{id}")
     @ResponseBody
-    public ResponseEntity<Apartment> getApartment(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getApartment(@PathVariable Long id) {
         Long buildingId = buildingService.getOrSetCurrentBuilding()
             .map(b -> b.getId())
             .orElse(null);
-        return apartmentService.getApartmentById(id)
-                .filter(apt -> buildingId != null && apt.getBuilding() != null && buildingId.equals(apt.getBuilding().getId()))
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        
+        Optional<Apartment> aptOpt = apartmentService.getApartmentById(id);
+        if (aptOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Apartment apt = aptOpt.get();
+        if (buildingId == null || apt.getBuilding() == null || !buildingId.equals(apt.getBuilding().getId())) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        // Create a safe DTO to avoid lazy loading issues
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", apt.getId());
+        data.put("apartmentNumber", apt.getApartmentNumber());
+        data.put("area", apt.getArea());
+        data.put("pricePerM2", apt.getPricePerM2());
+        data.put("totalPrice", apt.getTotalPrice());
+        data.put("stage", apt.getStage());
+        data.put("notes", apt.getNotes());
+        data.put("isSold", apt.getIsSold());
+        data.put("client", apt.getClient() != null ? apt.getClient().getName() : null);
+        
+        return ResponseEntity.ok(data);
     }
     
     @GetMapping("/api/overdue")
