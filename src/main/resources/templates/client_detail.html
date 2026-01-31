@@ -185,16 +185,19 @@
                     <!-- Apartments List -->
                     <div th:if="${client.apartments != null and !client.apartments.isEmpty()}">
                         <div class="card shadow-sm">
-                            <div class="card-header bg-dark text-white">
+                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">
-                                    <i class="bi bi-building"></i> Покупени имоти
+                                    <i class="bi bi-building"></i> Закупени обекти
                                 </h5>
+                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addPurchaseModal">
+                                    <i class="bi bi-plus-circle"></i> Добави покупка
+                                </button>
                             </div>
                             <div class="card-body">
                                 <div th:each="apt : ${client.apartments}" class="card mb-3 border">
                                     <div class="card-body">
                                         <div class="row">
-                                            <div class="col-md-6">
+                                            <div class="col-md-5">
                                                 <h6 class="card-title">
                                                     <i class="bi bi-house text-primary"></i> 
                                                     <span th:text="${apt.buildingName != null ? apt.buildingName : (apt.building != null ? apt.building.name : 'Неизвестна сграда')} + ' - Ап. ' + ${apt.apartmentNumber}">Сграда - Ап. 1</span>
@@ -215,7 +218,7 @@
                                                     </small>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-5">
                                                 <div class="text-end">
                                                     <h5 class="text-primary" th:text="${#numbers.formatDecimal(apt.totalPrice, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</h5>
                                                     <div class="progress mb-2" style="height: 20px;">
@@ -238,6 +241,25 @@
                                                         Платено: <span class="text-success fw-bold" th:text="${#numbers.formatDecimal(apt.getTotalPaid(), 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span> |
                                                         Остатък: <span class="text-warning fw-bold" th:text="${#numbers.formatDecimal(apt.getRemainingPayment(), 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
                                                     </small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 text-end">
+                                                <div class="btn-group-vertical" role="group">
+                                                    <button type="button" class="btn btn-sm btn-warning mb-2 edit-purchase-btn" 
+                                                            th:data-apt-id="${apt.id}"
+                                                            th:data-apt-number="${apt.apartmentNumber}"
+                                                            th:data-total-price="${apt.totalPrice}"
+                                                            th:data-prelim="${apt.paymentPlan != null ? apt.paymentPlan.preliminaryContractAmount : 0}"
+                                                            th:data-akt14="${apt.paymentPlan != null ? apt.paymentPlan.akt14Amount : 0}"
+                                                            th:data-akt15="${apt.paymentPlan != null ? apt.paymentPlan.akt15Amount : 0}"
+                                                            th:data-akt16="${apt.paymentPlan != null ? apt.paymentPlan.akt16Amount : 0}">
+                                                        <i class="bi bi-pencil"></i> Редактирай
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-danger delete-purchase-btn" 
+                                                            th:data-apt-id="${apt.id}"
+                                                            th:data-apt-number="${apt.apartmentNumber}">
+                                                        <i class="bi bi-trash"></i> Изтрий
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -315,6 +337,117 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Purchase Modal -->
+        <div class="modal fade" id="editPurchaseModal" tabindex="-1" aria-labelledby="editPurchaseModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editPurchaseModalLabel">
+                            <i class="bi bi-pencil me-2"></i>Редактирай покупка
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="editAptId" />
+                        
+                        <div class="alert alert-info">
+                            <strong id="editAptNumber"></strong>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-currency-euro"></i> Обща цена (€) *</label>
+                            <input type="number" class="form-control" id="editTotalPrice" step="0.01" min="0.01" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-tag"></i> Пакет за плащане *</label>
+                            <select class="form-select" id="editPaymentPackage" required>
+                                <option value="">Изберете пакет</option>
+                                <option value="standard">Стандартен</option>
+                                <option value="balanced">Балансиран</option>
+                                <option value="optimal">Оптимален</option>
+                                <option value="investment">Инвестиционен</option>
+                                <option value="profitable">Печеливш</option>
+                                <option value="custom">Индивидуален</option>
+                            </select>
+                        </div>
+                        
+                        <div id="editCustomPercentages" style="display: none;">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i> Общият процент трябва да е 100%
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <label>Предварителен договор (%)</label>
+                                    <input type="number" class="form-control edit-custom-perc" id="editPrelimPerc" step="0.1" min="0" max="100" value="30">
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Акт 14 (%)</label>
+                                    <input type="number" class="form-control edit-custom-perc" id="editAkt14Perc" step="0.1" min="0" max="100" value="30">
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <label>Акт 15 (%)</label>
+                                    <input type="number" class="form-control edit-custom-perc" id="editAkt15Perc" step="0.1" min="0" max="100" value="30">
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Акт 16 (%)</label>
+                                    <input type="number" class="form-control edit-custom-perc" id="editAkt16Perc" step="0.1" min="0" max="100" value="10">
+                                </div>
+                            </div>
+                            <div class="text-end mb-3">
+                                <strong>Общо: <span id="editTotalPerc">100</span>%</strong>
+                            </div>
+                        </div>
+                        
+                        <div id="editPlanPreview" style="display: none;">
+                            <h6 class="mb-3"><i class="bi bi-calendar-check"></i> Схема на плащане</h6>
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Етап</th>
+                                        <th>Процент</th>
+                                        <th>Сума</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Предварителен договор</td>
+                                        <td id="editPrelimPercDisplay">-</td>
+                                        <td id="editPrelimAmount">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Акт 14</td>
+                                        <td id="editAkt14PercDisplay">-</td>
+                                        <td id="editAkt14Amount">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Акт 15</td>
+                                        <td id="editAkt15PercDisplay">-</td>
+                                        <td id="editAkt15Amount">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Акт 16</td>
+                                        <td id="editAkt16PercDisplay">-</td>
+                                        <td id="editAkt16Amount">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Отказ
+                        </button>
+                        <button type="button" class="btn btn-primary" id="confirmEditBtn">
+                            <i class="bi bi-check-circle"></i> Запази промените
+                        </button>
                     </div>
                 </div>
             </div>
@@ -832,6 +965,244 @@
                     }
                     alert(errorMsg);
                     $('#confirmPurchaseBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Добави избраните обекти');
+                }
+            });
+        });
+        
+        // ===== EDIT PURCHASE =====
+        $(document).on('click', '.edit-purchase-btn', function() {
+            const aptId = $(this).data('apt-id');
+            const aptNumber = $(this).data('apt-number');
+            const totalPrice = parseFloat($(this).data('total-price'));
+            const prelim = parseFloat($(this).data('prelim'));
+            const akt14 = parseFloat($(this).data('akt14'));
+            const akt15 = parseFloat($(this).data('akt15'));
+            const akt16 = parseFloat($(this).data('akt16'));
+            
+            // Set values
+            $('#editAptId').val(aptId);
+            $('#editAptNumber').text(aptNumber);
+            $('#editTotalPrice').val(totalPrice.toFixed(2));
+            
+            // Calculate percentages from amounts
+            if (totalPrice > 0) {
+                const prelimPerc = (prelim / totalPrice) * 100;
+                const akt14Perc = (akt14 / totalPrice) * 100;
+                const akt15Perc = (akt15 / totalPrice) * 100;
+                const akt16Perc = (akt16 / totalPrice) * 100;
+                
+                // Determine package type
+                let detectedPackage = 'custom';
+                Object.keys(paymentPackages).forEach(key => {
+                    const pkg = paymentPackages[key];
+                    if (Math.abs(pkg.percentages.prelim - prelimPerc) < 0.5 &&
+                        Math.abs(pkg.percentages.akt14 - akt14Perc) < 0.5 &&
+                        Math.abs(pkg.percentages.akt15 - akt15Perc) < 0.5 &&
+                        Math.abs(pkg.percentages.akt16 - akt16Perc) < 0.5) {
+                        detectedPackage = key;
+                    }
+                });
+                
+                $('#editPaymentPackage').val(detectedPackage);
+                
+                if (detectedPackage === 'custom') {
+                    $('#editPrelimPerc').val(prelimPerc.toFixed(1));
+                    $('#editAkt14Perc').val(akt14Perc.toFixed(1));
+                    $('#editAkt15Perc').val(akt15Perc.toFixed(1));
+                    $('#editAkt16Perc').val(akt16Perc.toFixed(1));
+                    $('#editCustomPercentages').show();
+                } else {
+                    $('#editCustomPercentages').hide();
+                }
+                
+                $('#editPlanPreview').show();
+                recalculateEditPricing();
+            }
+            
+            $('#editPurchaseModal').modal('show');
+        });
+        
+        $('#editPaymentPackage').on('change', function() {
+            const packageType = $(this).val();
+            if (packageType === 'custom') {
+                $('#editCustomPercentages').slideDown();
+            } else {
+                $('#editCustomPercentages').slideUp();
+            }
+            
+            if (packageType) {
+                $('#editPlanPreview').slideDown();
+            } else {
+                $('#editPlanPreview').slideUp();
+            }
+            
+            recalculateEditPricing();
+        });
+        
+        $('#editTotalPrice, .edit-custom-perc').on('input', function() {
+            recalculateEditPricing();
+        });
+        
+        function recalculateEditPricing() {
+            const totalPrice = parseFloat($('#editTotalPrice').val());
+            const packageType = $('#editPaymentPackage').val();
+            
+            if (!totalPrice || totalPrice <= 0 || !packageType) {
+                $('#editPlanPreview').hide();
+                return;
+            }
+            
+            let percentages = {};
+            
+            if (packageType === 'custom') {
+                percentages = {
+                    prelim: parseFloat($('#editPrelimPerc').val()) || 0,
+                    akt14: parseFloat($('#editAkt14Perc').val()) || 0,
+                    akt15: parseFloat($('#editAkt15Perc').val()) || 0,
+                    akt16: parseFloat($('#editAkt16Perc').val()) || 0
+                };
+                
+                const totalPerc = percentages.prelim + percentages.akt14 + percentages.akt15 + percentages.akt16;
+                $('#editTotalPerc').text(totalPerc.toFixed(1));
+                
+                if (Math.abs(totalPerc - 100) > 0.1) {
+                    $('#editTotalPerc').addClass('text-danger');
+                } else {
+                    $('#editTotalPerc').removeClass('text-danger');
+                }
+            } else {
+                const pkg = paymentPackages[packageType];
+                percentages = pkg.percentages;
+            }
+            
+            // Calculate amounts with proper rounding to 2 decimal places
+            const prelimAmount = Math.round(totalPrice * percentages.prelim) / 100;
+            const akt14Amount = Math.round(totalPrice * percentages.akt14) / 100;
+            const akt15Amount = Math.round(totalPrice * percentages.akt15) / 100;
+            const akt16Amount = totalPrice - prelimAmount - akt14Amount - akt15Amount;
+            
+            // Update UI
+            $('#editPrelimPercDisplay').text(percentages.prelim + '%');
+            $('#editPrelimAmount').text(formatCurrency(prelimAmount) + ' €');
+            
+            $('#editAkt14PercDisplay').text(percentages.akt14 + '%');
+            $('#editAkt14Amount').text(formatCurrency(akt14Amount) + ' €');
+            
+            $('#editAkt15PercDisplay').text(percentages.akt15 + '%');
+            $('#editAkt15Amount').text(formatCurrency(akt15Amount) + ' €');
+            
+            $('#editAkt16PercDisplay').text(percentages.akt16 + '%');
+            $('#editAkt16Amount').text(formatCurrency(akt16Amount) + ' €');
+            
+            $('#editPlanPreview').show();
+        }
+        
+        $('#confirmEditBtn').on('click', function() {
+            const aptId = $('#editAptId').val();
+            const totalPrice = parseFloat($('#editTotalPrice').val());
+            const packageType = $('#editPaymentPackage').val();
+            
+            if (!totalPrice || totalPrice <= 0) {
+                alert('Моля въведете валидна цена');
+                return;
+            }
+            
+            if (!packageType) {
+                alert('Моля изберете пакет за плащане');
+                return;
+            }
+            
+            let percentages = {};
+            
+            if (packageType === 'custom') {
+                percentages = {
+                    prelim: parseFloat($('#editPrelimPerc').val()) || 0,
+                    akt14: parseFloat($('#editAkt14Perc').val()) || 0,
+                    akt15: parseFloat($('#editAkt15Perc').val()) || 0,
+                    akt16: parseFloat($('#editAkt16Perc').val()) || 0
+                };
+                
+                const totalPerc = percentages.prelim + percentages.akt14 + percentages.akt15 + percentages.akt16;
+                if (Math.abs(totalPerc - 100) > 0.1) {
+                    alert(`Общият процент трябва да е 100%! (Сега е ${totalPerc.toFixed(1)}%)`);
+                    return;
+                }
+            } else {
+                const pkg = paymentPackages[packageType];
+                percentages = pkg.percentages;
+            }
+            
+            // Calculate amounts with same logic as UI
+            const prelimAmount = Math.round(totalPrice * percentages.prelim) / 100;
+            const akt14Amount = Math.round(totalPrice * percentages.akt14) / 100;
+            const akt15Amount = Math.round(totalPrice * percentages.akt15) / 100;
+            const akt16Amount = totalPrice - prelimAmount - akt14Amount - akt15Amount;
+            
+            const payload = {
+                totalPrice: totalPrice,
+                packageType: packageType,
+                paymentPlan: {
+                    preliminaryContractAmount: prelimAmount,
+                    akt14Amount: akt14Amount,
+                    akt15Amount: akt15Amount,
+                    akt16Amount: akt16Amount
+                }
+            };
+            
+            $('#confirmEditBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Запазване...');
+            
+            $.ajax({
+                url: `/clients/api/${clientId}/purchases/${aptId}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Успешно редактирана покупка!');
+                        $('#editPurchaseModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Грешка: ' + (response.message || 'Неуспешно редактиране'));
+                        $('#confirmEditBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Запази промените');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Грешка при редактиране на покупката';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    alert(errorMsg);
+                    $('#confirmEditBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Запази промените');
+                }
+            });
+        });
+        
+        // ===== DELETE PURCHASE =====
+        $(document).on('click', '.delete-purchase-btn', function() {
+            const aptId = $(this).data('apt-id');
+            const aptNumber = $(this).data('apt-number');
+            
+            if (!confirm(`Сигурни ли сте, че искате да изтриете покупката на ${aptNumber}?\n\nВНИМАНИЕ: Това ще премахне връзката между клиента и обекта. Всички плащания ще бъдат изтрити!`)) {
+                return;
+            }
+            
+            $.ajax({
+                url: `/clients/api/${clientId}/purchases/${aptId}`,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        alert('Успешно изтрита покупка!');
+                        location.reload();
+                    } else {
+                        alert('Грешка: ' + (response.message || 'Неуспешно изтриване'));
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Грешка при изтриване на покупката';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    alert(errorMsg);
                 }
             });
         });

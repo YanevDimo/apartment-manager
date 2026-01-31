@@ -370,6 +370,166 @@ public class ClientController {
         }
     }
     
+    @PutMapping("/api/{clientId}/purchases/{apartmentId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updatePurchase(@PathVariable Long clientId,
+                                                              @PathVariable Long apartmentId,
+                                                              @RequestBody Map<String, Object> requestBody) {
+        Map<String, Object> response = new HashMap<>();
+        
+        Client client = clientService.getClientById(clientId).orElse(null);
+        if (client == null) {
+            response.put("success", false);
+            response.put("message", "Клиентът не е намерен");
+            return ResponseEntity.notFound().build();
+        }
+        
+        var apartment = apartmentService.getApartmentById(apartmentId).orElse(null);
+        if (apartment == null) {
+            response.put("success", false);
+            response.put("message", "Обектът не е намерен");
+            return ResponseEntity.notFound().build();
+        }
+        
+        // Verify that the apartment belongs to this client
+        if (apartment.getClient() == null || !apartment.getClient().getId().equals(clientId)) {
+            response.put("success", false);
+            response.put("message", "Обектът не принадлежи на този клиент");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        try {
+            // Update total price
+            if (requestBody.containsKey("totalPrice")) {
+                BigDecimal totalPrice = new BigDecimal(requestBody.get("totalPrice").toString())
+                                           .setScale(2, java.math.RoundingMode.HALF_UP);
+                apartment.setTotalPrice(totalPrice);
+                
+                // Update price per m2 if area is available
+                if (apartment.getArea() != null && apartment.getArea().compareTo(BigDecimal.ZERO) > 0) {
+                    apartment.setPricePerM2(totalPrice.divide(apartment.getArea(), 2, java.math.RoundingMode.HALF_UP));
+                }
+            }
+            
+            // Update payment plan
+            if (requestBody.containsKey("paymentPlan")) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> planData = (Map<String, Object>) requestBody.get("paymentPlan");
+                apartmentsmanager.apartmentsmanager.entity.PaymentPlan plan = new apartmentsmanager.apartmentsmanager.entity.PaymentPlan();
+                
+                // Convert amounts with proper precision (2 decimal places)
+                BigDecimal prelimAmount = planData.get("preliminaryContractAmount") != null ? 
+                    new BigDecimal(planData.get("preliminaryContractAmount").toString()).setScale(2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                BigDecimal akt14Amount = planData.get("akt14Amount") != null ? 
+                    new BigDecimal(planData.get("akt14Amount").toString()).setScale(2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                BigDecimal akt15Amount = planData.get("akt15Amount") != null ? 
+                    new BigDecimal(planData.get("akt15Amount").toString()).setScale(2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                BigDecimal akt16Amount = planData.get("akt16Amount") != null ? 
+                    new BigDecimal(planData.get("akt16Amount").toString()).setScale(2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                
+                // Calculate total of payment plan amounts
+                BigDecimal planTotal = prelimAmount.add(akt14Amount).add(akt15Amount).add(akt16Amount);
+                BigDecimal totalPrice = apartment.getTotalPrice();
+                
+                // If there's a rounding difference, add it to the last stage (Akt 16)
+                if (totalPrice != null) {
+                    BigDecimal difference = totalPrice.subtract(planTotal);
+                    if (difference.abs().compareTo(new BigDecimal("0.10")) < 0) { // If difference is less than 10 cents
+                        akt16Amount = akt16Amount.add(difference).setScale(2, java.math.RoundingMode.HALF_UP);
+                    }
+                }
+                
+                plan.setPreliminaryContractAmount(prelimAmount);
+                plan.setAkt14Amount(akt14Amount);
+                plan.setAkt15Amount(akt15Amount);
+                plan.setAkt16Amount(akt16Amount);
+                
+                apartment.setPaymentPlan(plan);
+            }
+            
+            // Update package info in notes if provided
+            if (requestBody.containsKey("packageType")) {
+                String packageType = (String) requestBody.get("packageType");
+                String packageInfo = "Пакет за плащане: " + getPackageName(packageType);
+                
+                // Replace old package info if exists
+                String notes = apartment.getNotes();
+                if (notes != null && notes.contains("Пакет за плащане:")) {
+                    notes = notes.replaceAll("Пакет за плащане:.*", packageInfo);
+                    apartment.setNotes(notes);
+                } else {
+                    if (notes != null && !notes.isEmpty()) {
+                        apartment.setNotes(notes + "\n" + packageInfo);
+                    } else {
+                        apartment.setNotes(packageInfo);
+                    }
+                }
+            }
+            
+            apartmentService.saveApartment(apartment);
+            
+            response.put("success", true);
+            response.put("message", "Покупката е редактирана успешно");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Грешка при редактиране: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    @DeleteMapping("/api/{clientId}/purchases/{apartmentId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deletePurchase(@PathVariable Long clientId,
+                                                              @PathVariable Long apartmentId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        Client client = clientService.getClientById(clientId).orElse(null);
+        if (client == null) {
+            response.put("success", false);
+            response.put("message", "Клиентът не е намерен");
+            return ResponseEntity.notFound().build();
+        }
+        
+        var apartment = apartmentService.getApartmentById(apartmentId).orElse(null);
+        if (apartment == null) {
+            response.put("success", false);
+            response.put("message", "Обектът не е намерен");
+            return ResponseEntity.notFound().build();
+        }
+        
+        // Verify that the apartment belongs to this client
+        if (apartment.getClient() == null || !apartment.getClient().getId().equals(clientId)) {
+            response.put("success", false);
+            response.put("message", "Обектът не принадлежи на този клиент");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        try {
+            // Remove client reference and reset sold status
+            apartment.setClient(null);
+            apartment.setIsSold(false);
+            apartment.setPaymentPlan(null);
+            
+            // Remove package info from notes
+            String notes = apartment.getNotes();
+            if (notes != null && notes.contains("Пакет за плащане:")) {
+                notes = notes.replaceAll("Пакет за плащане:.*\n?", "").trim();
+                apartment.setNotes(notes.isEmpty() ? null : notes);
+            }
+            
+            apartmentService.saveApartment(apartment);
+            
+            response.put("success", true);
+            response.put("message", "Покупката е изтрита успешно");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Грешка при изтриване: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
     private String getPackageName(String packageType) {
         return switch (packageType) {
             case "standard" -> "Стандартен";
