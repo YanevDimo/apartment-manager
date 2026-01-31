@@ -1,6 +1,7 @@
 package apartmentsmanager.apartmentsmanager.controller;
 
 import apartmentsmanager.apartmentsmanager.entity.Client;
+import apartmentsmanager.apartmentsmanager.service.ApartmentService;
 import apartmentsmanager.apartmentsmanager.service.ClientService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,9 +23,11 @@ import java.util.stream.Collectors;
 public class ClientController {
     
     private final ClientService clientService;
+    private final ApartmentService apartmentService;
     
-    public ClientController(ClientService clientService) {
+    public ClientController(ClientService clientService, ApartmentService apartmentService) {
         this.clientService = clientService;
+        this.apartmentService = apartmentService;
     }
     
     @GetMapping
@@ -51,7 +54,6 @@ public class ClientController {
             data.put("name", client.getName());
             data.put("phone", client.getPhone());
             data.put("email", client.getEmail());
-            data.put("egn", client.getEgn());
             data.put("address", client.getAddress());
             data.put("notes", client.getNotes());
             data.put("createdAt", client.getCreatedAt() != null ? client.getCreatedAt().toString() : null);
@@ -80,7 +82,6 @@ public class ClientController {
             data.put("name", client.getName());
             data.put("phone", client.getPhone());
             data.put("email", client.getEmail());
-            data.put("egn", client.getEgn());
             data.put("address", client.getAddress());
             data.put("notes", client.getNotes());
             data.put("createdAt", client.getCreatedAt() != null ? client.getCreatedAt().toString() : null);
@@ -111,15 +112,6 @@ public class ClientController {
                     .map(error -> error.getDefaultMessage())
                     .collect(Collectors.toList()));
             return ResponseEntity.badRequest().body(response);
-        }
-        
-        // Check for duplicate EGN if provided
-        if (client.getEgn() != null && !client.getEgn().trim().isEmpty()) {
-            if (clientService.findByEgn(client.getEgn()).isPresent()) {
-                response.put("success", false);
-                response.put("message", "Клиент с този ЕГН/ЕИК вече съществува");
-                return ResponseEntity.badRequest().body(response);
-            }
         }
         
         try {
@@ -156,20 +148,6 @@ public class ClientController {
             response.put("success", false);
             response.put("message", "Клиентът не е намерен");
             return ResponseEntity.notFound().build();
-        }
-        
-        // Check for duplicate EGN if provided (excluding current client)
-        if (client.getEgn() != null && !client.getEgn().trim().isEmpty()) {
-            clientService.findByEgn(client.getEgn()).ifPresent(found -> {
-                if (!found.getId().equals(id)) {
-                    response.put("success", false);
-                    response.put("message", "Клиент с този ЕГН/ЕИК вече съществува");
-                }
-            });
-            
-            if (response.containsKey("success") && !(Boolean) response.get("success")) {
-                return ResponseEntity.badRequest().body(response);
-            }
         }
         
         client.setId(id);
@@ -285,6 +263,125 @@ public class ClientController {
         return "client_detail";
     }
     
+    @PostMapping("/api/{id}/add-purchases")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> addPurchasesToClient(@PathVariable Long id,
+                                                                     @RequestBody Map<String, Object> requestBody) {
+        Map<String, Object> response = new HashMap<>();
+        
+        Client client = clientService.getClientById(id).orElse(null);
+        if (client == null) {
+            response.put("success", false);
+            response.put("message", "Клиентът не е намерен");
+            return ResponseEntity.notFound().build();
+        }
+        
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> purchases = (List<Map<String, Object>>) requestBody.get("purchases");
+        
+        if (purchases == null || purchases.isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Не са избрани обекти");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        try {
+            int updatedCount = 0;
+            for (Map<String, Object> purchase : purchases) {
+                Integer aptId = (Integer) purchase.get("apartmentId");
+                var apartment = apartmentService.getApartmentById(aptId.longValue()).orElse(null);
+                
+                if (apartment != null && apartment.getClient() == null) {
+                    apartment.setClient(client);
+                    apartment.setIsSold(true);
+                    
+                    // Set final price after discount
+                    if (purchase.containsKey("finalPrice")) {
+                        // Use setScale to ensure exactly 2 decimal places
+                        BigDecimal finalPrice = new BigDecimal(purchase.get("finalPrice").toString())
+                                                   .setScale(2, java.math.RoundingMode.HALF_UP);
+                        apartment.setTotalPrice(finalPrice);
+                        
+                        // Calculate price per m2 if area is available
+                        if (apartment.getArea() != null && apartment.getArea().compareTo(BigDecimal.ZERO) > 0) {
+                            apartment.setPricePerM2(finalPrice.divide(apartment.getArea(), 2, java.math.RoundingMode.HALF_UP));
+                        }
+                    }
+                    
+                    // Set payment plan with calculated amounts
+                    if (purchase.containsKey("paymentPlan")) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> planData = (Map<String, Object>) purchase.get("paymentPlan");
+                        apartmentsmanager.apartmentsmanager.entity.PaymentPlan plan = new apartmentsmanager.apartmentsmanager.entity.PaymentPlan();
+                        
+                        // Convert amounts with proper precision (2 decimal places)
+                        BigDecimal prelimAmount = planData.get("preliminaryContractAmount") != null ? 
+                            new BigDecimal(planData.get("preliminaryContractAmount").toString()).setScale(2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                        BigDecimal akt14Amount = planData.get("akt14Amount") != null ? 
+                            new BigDecimal(planData.get("akt14Amount").toString()).setScale(2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                        BigDecimal akt15Amount = planData.get("akt15Amount") != null ? 
+                            new BigDecimal(planData.get("akt15Amount").toString()).setScale(2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                        BigDecimal akt16Amount = planData.get("akt16Amount") != null ? 
+                            new BigDecimal(planData.get("akt16Amount").toString()).setScale(2, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                        
+                        // Calculate total of payment plan amounts
+                        BigDecimal planTotal = prelimAmount.add(akt14Amount).add(akt15Amount).add(akt16Amount);
+                        BigDecimal finalPrice = apartment.getTotalPrice();
+                        
+                        // If there's a rounding difference, add it to the last stage (Akt 16)
+                        if (finalPrice != null) {
+                            BigDecimal difference = finalPrice.subtract(planTotal);
+                            if (difference.abs().compareTo(new BigDecimal("0.10")) < 0) { // If difference is less than 10 cents
+                                akt16Amount = akt16Amount.add(difference).setScale(2, java.math.RoundingMode.HALF_UP);
+                            }
+                        }
+                        
+                        plan.setPreliminaryContractAmount(prelimAmount);
+                        plan.setAkt14Amount(akt14Amount);
+                        plan.setAkt15Amount(akt15Amount);
+                        plan.setAkt16Amount(akt16Amount);
+                        
+                        apartment.setPaymentPlan(plan);
+                    }
+                    
+                    // Store package info in notes
+                    String packageType = (String) purchase.get("packageType");
+                    String packageInfo = "Пакет за плащане: " + getPackageName(packageType);
+                    
+                    if (apartment.getNotes() != null && !apartment.getNotes().isEmpty()) {
+                        apartment.setNotes(apartment.getNotes() + "\n" + packageInfo);
+                    } else {
+                        apartment.setNotes(packageInfo);
+                    }
+                    
+                    apartmentService.saveApartment(apartment);
+                    updatedCount++;
+                }
+            }
+            
+            response.put("success", true);
+            response.put("message", updatedCount + " обекта добавени успешно");
+            response.put("count", updatedCount);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Грешка при добавяне: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    private String getPackageName(String packageType) {
+        return switch (packageType) {
+            case "standard" -> "Стандартен";
+            case "balanced" -> "Балансиран";
+            case "optimal" -> "Оптимален";
+            case "investment" -> "Инвестиционен";
+            case "profitable" -> "Печеливш";
+            case "custom" -> "Индивидуален";
+            default -> packageType;
+        };
+    }
+    
     @GetMapping("/edit/{id}")
     public String editClientPage(@PathVariable Long id, Model model) {
         Client client = clientService.getClientById(id).orElse(null);
@@ -310,20 +407,6 @@ public class ClientController {
         if (existingClient == null) {
             redirectAttributes.addFlashAttribute("error", "Клиентът не е намерен");
             return "redirect:/clients";
-        }
-        
-        // Check for duplicate EGN if provided (excluding current client)
-        if (client.getEgn() != null && !client.getEgn().trim().isEmpty()) {
-            clientService.findByEgn(client.getEgn()).ifPresent(found -> {
-                if (!found.getId().equals(id)) {
-                    bindingResult.rejectValue("egn", "error.egn", "Клиент с този ЕГН/ЕИК вече съществува");
-                }
-            });
-            
-            if (bindingResult.hasErrors()) {
-                model.addAttribute("client", client);
-                return "edit_client";
-            }
         }
         
         client.setId(id);

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bg" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
@@ -78,11 +78,6 @@
                             <div class="mb-3" th:unless="${client.email != null and !client.email.isEmpty()}">
                                 <h6><i class="bi bi-envelope text-muted"></i> Имейл</h6>
                                 <span class="text-muted">Не е посочен</span>
-                            </div>
-
-                            <div class="mb-3" th:if="${client.egn != null and !client.egn.isEmpty()}">
-                                <h6><i class="bi bi-card-text text-info"></i> ЕГН/ЕИК</h6>
-                                <span th:text="${client.egn}">1234567890</span>
                             </div>
 
                             <div class="mb-3" th:if="${client.address != null and !client.address.isEmpty()}">
@@ -230,13 +225,13 @@
                                                              th:with="paidAmount=${apt.getTotalPaid() != null ? apt.getTotalPaid() : T(java.math.BigDecimal).ZERO},
                                                                       totalAmount=${apt.totalPrice != null ? apt.totalPrice : T(java.math.BigDecimal).ZERO},
                                                                       percentage=${totalAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? 
-                                                                                  paidAmount.divide(totalAmount, 2, T(java.math.RoundingMode).HALF_UP).multiply(T(java.math.BigDecimal).valueOf(100)) : 
+                                                                                  paidAmount.divide(totalAmount, 4, T(java.math.RoundingMode).HALF_UP).multiply(T(java.math.BigDecimal).TEN).multiply(T(java.math.BigDecimal).TEN) : 
                                                                                   T(java.math.BigDecimal).ZERO}"
                                                              th:style="${totalAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 
                                                                         ('width: ' + ${#numbers.formatDecimal(percentage, 0, 'POINT', 0, 'POINT')} + '%;') : 
                                                                         'width: 0%;'">
                                                             <span th:text="${totalAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 
-                                                                          (#numbers.formatDecimal(percentage, 0, 'POINT', 0, 'POINT') + '%') : '0%'">0%</span>
+                                                                          (${#numbers.formatDecimal(percentage, 0, 'POINT', 0, 'POINT')} + '%') : '0%'">0%</span>
                                                         </div>
                                                     </div>
                                                     <small class="text-muted">
@@ -314,9 +309,9 @@
                                     <i class="bi bi-cart text-muted" style="font-size: 4rem;"></i>
                                     <h4 class="text-muted mt-3">Няма покупки</h4>
                                     <p class="text-muted">Клиентът все още няма покупки.</p>
-                                    <a th:href="@{/add-apartment}" class="btn btn-primary">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPurchaseModal">
                                         <i class="bi bi-plus-circle"></i> Добави покупка
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -325,8 +320,522 @@
             </div>
         </div>
 
+        <!-- Add Purchase Modal -->
+        <div class="modal fade" id="addPurchaseModal" tabindex="-1" aria-labelledby="addPurchaseModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addPurchaseModalLabel">
+                            <i class="bi bi-cart-plus me-2"></i>Добави покупка за <span th:text="${client.name}">клиент</span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Изберете обекти и въведете цена и план за плащане за всеки
+                        </div>
+                        
+                        <div id="availableObjectsLoading" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Зареждане...</span>
+                            </div>
+                            <p class="text-muted mt-2">Зареждане на налични обекти...</p>
+                        </div>
+                        
+                        <div id="availableObjectsContainer" style="display: none;">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" id="objectSearchInput" placeholder="Търсене по номер...">
+                            </div>
+                            
+                            <div id="availableObjectsList" style="max-height: 500px; overflow-y: auto;">
+                                <!-- Objects will be loaded here -->
+                            </div>
+                            
+                            <div id="noObjectsMessage" class="alert alert-warning mt-3" style="display: none;">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Няма налични обекти за продажба.
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <strong>Избрани обекти: <span id="selectedCount">0</span></strong>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Отказ
+                        </button>
+                        <button type="button" class="btn btn-primary" id="confirmPurchaseBtn" disabled>
+                            <i class="bi bi-check-circle"></i> Добави избраните обекти
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <script th:inline="javascript">
+        const clientId = [[${client.id}]];
+        let selectedObjectsData = {};
+        let allObjects = [];
+        
+        // Payment packages configuration (without discounts)
+        const paymentPackages = {
+            standard: {
+                name: 'Стандартен',
+                percentages: { prelim: 30, akt14: 30, akt15: 30, akt16: 10 }
+            },
+            balanced: {
+                name: 'Балансиран',
+                percentages: { prelim: 50, akt14: 0, akt15: 0, akt16: 50 }
+            },
+            optimal: {
+                name: 'Оптимален',
+                percentages: { prelim: 50, akt14: 30, akt15: 10, akt16: 10 }
+            },
+            investment: {
+                name: 'Инвестиционен',
+                percentages: { prelim: 80, akt14: 0, akt15: 0, akt16: 20 }
+            },
+            profitable: {
+                name: 'Печеливш',
+                percentages: { prelim: 100, akt14: 0, akt15: 0, akt16: 0 }
+            },
+            custom: {
+                name: 'Индивидуален',
+                percentages: { prelim: 30, akt14: 30, akt15: 30, akt16: 10 } // default, will be customized
+            }
+        };
+        
+        // Load available objects when modal opens
+        $('#addPurchaseModal').on('show.bs.modal', function() {
+            loadAvailableObjects();
+        });
+        
+        function loadAvailableObjects() {
+            $('#availableObjectsLoading').show();
+            $('#availableObjectsContainer').hide();
+            selectedObjectsData = {};
+            
+            $.ajax({
+                url: '/apartments/api/available',
+                method: 'GET',
+                success: function(response) {
+                    allObjects = response || [];
+                    displayObjects(allObjects);
+                    $('#availableObjectsLoading').hide();
+                    $('#availableObjectsContainer').show();
+                    updateSelectedCount();
+                },
+                error: function(xhr) {
+                    $('#availableObjectsLoading').hide();
+                    alert('Грешка при зареждане на обектите');
+                }
+            });
+        }
+        
+        function displayObjects(objects) {
+            const container = $('#availableObjectsList');
+            container.empty();
+            
+            if (objects.length === 0) {
+                $('#noObjectsMessage').show();
+                return;
+            }
+            
+            $('#noObjectsMessage').hide();
+            
+            objects.forEach(function(obj) {
+                const objCard = $(`
+                    <div class="card mb-3" id="card-${obj.id}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input object-checkbox" type="checkbox" value="${obj.id}" id="obj-${obj.id}">
+                                    <label class="form-check-label" for="obj-${obj.id}" style="cursor: pointer;">
+                                        <strong>${obj.apartmentNumber}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="bi bi-building"></i> ${obj.buildingName || 'Неизвестна сграда'}
+                                            | <i class="bi bi-rulers"></i> ${obj.area} кв.м
+                                            ${obj.stage ? '| <i class="bi bi-tag"></i> ' + obj.stage : ''}
+                                        </small>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="object-details" id="details-${obj.id}" style="display: none;">
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="bi bi-currency-euro"></i> Обща цена (€) *</label>
+                                        <input type="number" class="form-control base-price-input" data-obj-id="${obj.id}" 
+                                               step="0.01" min="0.01" required placeholder="Въведете цена">
+                                        <small class="text-muted">Основна цена преди отстъпка</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="bi bi-tag"></i> Пакет за плащане *</label>
+                                        <select class="form-select payment-package-select" data-obj-id="${obj.id}" required>
+                                            <option value="">Изберете пакет</option>
+                                            <option value="standard">Стандартен</option>
+                                            <option value="balanced">Балансиран</option>
+                                            <option value="optimal">Оптимален</option>
+                                            <option value="investment">Инвестиционен</option>
+                                            <option value="profitable">Печеливш</option>
+                                            <option value="custom">Индивидуален</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="price-summary mb-3" id="price-summary-${obj.id}" style="display: none;">
+                                    <div class="alert alert-info text-center">
+                                        <h5 class="mb-0">
+                                            <strong>Обща цена: </strong>
+                                            <span class="text-success" id="final-price-${obj.id}">0.00 €</span>
+                                        </h5>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-plan-section" id="plan-${obj.id}" style="display: none;">
+                                    <h6 class="mb-3"><i class="bi bi-calendar-check"></i> Схема на плащане</h6>
+                                    
+                                    <div class="custom-percentages" id="custom-perc-${obj.id}" style="display: none;">
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-exclamation-triangle"></i> 
+                                            Общият процент трябва да е 100%
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-md-6">
+                                                <label>Предварителен договор (%)</label>
+                                                <input type="number" class="form-control custom-perc" data-stage="prelim" data-obj-id="${obj.id}" 
+                                                       step="0.1" min="0" max="100" value="30">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Акт 14 (%)</label>
+                                                <input type="number" class="form-control custom-perc" data-stage="akt14" data-obj-id="${obj.id}" 
+                                                       step="0.1" min="0" max="100" value="30">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-md-6">
+                                                <label>Акт 15 (%)</label>
+                                                <input type="number" class="form-control custom-perc" data-stage="akt15" data-obj-id="${obj.id}" 
+                                                       step="0.1" min="0" max="100" value="30">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Акт 16 (%)</label>
+                                                <input type="number" class="form-control custom-perc" data-stage="akt16" data-obj-id="${obj.id}" 
+                                                       step="0.1" min="0" max="100" value="10">
+                                            </div>
+                                        </div>
+                                        <div class="text-end mb-3">
+                                            <strong>Общо: <span id="total-perc-${obj.id}">100</span>%</strong>
+                                        </div>
+                                    </div>
+                                    
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Етап</th>
+                                                <th>Процент</th>
+                                                <th>Сума</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="plan-preview-${obj.id}">
+                                            <tr>
+                                                <td>Предварителен договор</td>
+                                                <td id="prelim-perc-${obj.id}">-</td>
+                                                <td id="prelim-amount-${obj.id}">-</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Акт 14</td>
+                                                <td id="akt14-perc-${obj.id}">-</td>
+                                                <td id="akt14-amount-${obj.id}">-</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Акт 15</td>
+                                                <td id="akt15-perc-${obj.id}">-</td>
+                                                <td id="akt15-amount-${obj.id}">-</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Акт 16</td>
+                                                <td id="akt16-perc-${obj.id}">-</td>
+                                                <td id="akt16-amount-${obj.id}">-</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                
+                container.append(objCard);
+            });
+            
+            // Event handlers
+            $('.object-checkbox').on('change', function() {
+                const objId = parseInt($(this).val());
+                const isChecked = $(this).is(':checked');
+                
+                if (isChecked) {
+                    $(`#details-${objId}`).slideDown();
+                    $(`#card-${objId}`).addClass('border-primary');
+                    const obj = allObjects.find(o => o.id === objId);
+                    selectedObjectsData[objId] = {
+                        id: objId,
+                        apartmentNumber: obj.apartmentNumber,
+                        basePrice: null,
+                        package: null,
+                        finalPrice: null,
+                        percentages: null
+                    };
+                } else {
+                    $(`#details-${objId}`).slideUp();
+                    $(`#card-${objId}`).removeClass('border-primary');
+                    delete selectedObjectsData[objId];
+                }
+                updateSelectedCount();
+            });
+            
+            $('.base-price-input').on('input', function() {
+                const objId = $(this).data('obj-id');
+                if (selectedObjectsData[objId]) {
+                    selectedObjectsData[objId].basePrice = parseFloat($(this).val()) || null;
+                    recalculatePricing(objId);
+                }
+            });
+            
+            $('.payment-package-select').on('change', function() {
+                const objId = $(this).data('obj-id');
+                const packageType = $(this).val();
+                
+                if (selectedObjectsData[objId]) {
+                    selectedObjectsData[objId].package = packageType;
+                    
+                    // Show/hide custom percentages section
+                    if (packageType === 'custom') {
+                        $(`#custom-perc-${objId}`).slideDown();
+                    } else {
+                        $(`#custom-perc-${objId}`).slideUp();
+                    }
+                    
+                    if (packageType) {
+                        $(`#plan-${objId}`).slideDown();
+                    } else {
+                        $(`#plan-${objId}`).slideUp();
+                    }
+                    
+                    recalculatePricing(objId);
+                }
+            });
+            
+            $('.custom-perc').on('input', function() {
+                const objId = $(this).data('obj-id');
+                recalculatePricing(objId);
+            });
+        }
+        
+        function recalculatePricing(objId) {
+            const data = selectedObjectsData[objId];
+            if (!data || !data.basePrice || !data.package) {
+                $(`#price-summary-${objId}`).hide();
+                return;
+            }
+            
+            const totalPrice = data.basePrice;
+            const packageType = data.package;
+            let percentages = {};
+            
+            if (packageType === 'custom') {
+                percentages = {
+                    prelim: parseFloat($(`.custom-perc[data-stage="prelim"][data-obj-id="${objId}"]`).val()) || 0,
+                    akt14: parseFloat($(`.custom-perc[data-stage="akt14"][data-obj-id="${objId}"]`).val()) || 0,
+                    akt15: parseFloat($(`.custom-perc[data-stage="akt15"][data-obj-id="${objId}"]`).val()) || 0,
+                    akt16: parseFloat($(`.custom-perc[data-stage="akt16"][data-obj-id="${objId}"]`).val()) || 0
+                };
+                
+                const totalPerc = percentages.prelim + percentages.akt14 + percentages.akt15 + percentages.akt16;
+                $(`#total-perc-${objId}`).text(totalPerc.toFixed(1));
+                
+                if (Math.abs(totalPerc - 100) > 0.1) {
+                    $(`#total-perc-${objId}`).addClass('text-danger');
+                } else {
+                    $(`#total-perc-${objId}`).removeClass('text-danger');
+                }
+            } else {
+                const pkg = paymentPackages[packageType];
+                percentages = pkg.percentages;
+            }
+            
+            // Update data
+            data.finalPrice = totalPrice;
+            data.percentages = percentages;
+            
+            // Calculate amounts with proper rounding to 2 decimal places
+            const prelimAmount = Math.round(totalPrice * percentages.prelim) / 100;
+            const akt14Amount = Math.round(totalPrice * percentages.akt14) / 100;
+            const akt15Amount = Math.round(totalPrice * percentages.akt15) / 100;
+            
+            // Calculate last amount to ensure total equals totalPrice exactly
+            const akt16Amount = totalPrice - prelimAmount - akt14Amount - akt15Amount;
+            
+            // Update UI
+            $(`#final-price-${objId}`).text(formatCurrency(totalPrice) + ' €');
+            
+            // Update payment plan preview
+            $(`#prelim-perc-${objId}`).text(percentages.prelim + '%');
+            $(`#prelim-amount-${objId}`).text(formatCurrency(prelimAmount) + ' €');
+            
+            $(`#akt14-perc-${objId}`).text(percentages.akt14 + '%');
+            $(`#akt14-amount-${objId}`).text(formatCurrency(akt14Amount) + ' €');
+            
+            $(`#akt15-perc-${objId}`).text(percentages.akt15 + '%');
+            $(`#akt15-amount-${objId}`).text(formatCurrency(akt15Amount) + ' €');
+            
+            $(`#akt16-perc-${objId}`).text(percentages.akt16 + '%');
+            $(`#akt16-amount-${objId}`).text(formatCurrency(akt16Amount) + ' €');
+            
+            $(`#price-summary-${objId}`).slideDown();
+        }
+        
+        function updateSelectedCount() {
+            const count = Object.keys(selectedObjectsData).length;
+            $('#selectedCount').text(count);
+            $('#confirmPurchaseBtn').prop('disabled', count === 0);
+        }
+        
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('bg-BG', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+        
+        // Search functionality
+        $('#objectSearchInput').on('input', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            $('.card').each(function() {
+                const objId = $(this).find('.object-checkbox').val();
+                const obj = allObjects.find(o => o.id == objId);
+                if (obj && (obj.apartmentNumber.toLowerCase().includes(searchTerm) ||
+                            (obj.buildingName && obj.buildingName.toLowerCase().includes(searchTerm)))) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+        
+        // Confirm purchase
+        $('#confirmPurchaseBtn').on('click', function() {
+            const selectedIds = Object.keys(selectedObjectsData);
+            if (selectedIds.length === 0) return;
+            
+            // Validate all selected objects
+            let hasError = false;
+            const purchases = [];
+            
+            selectedIds.forEach(objId => {
+                const data = selectedObjectsData[objId];
+                
+                if (!data.basePrice || data.basePrice <= 0) {
+                    alert(`Моля въведете цена за ${data.apartmentNumber}`);
+                    hasError = true;
+                    return;
+                }
+                
+                if (!data.package) {
+                    alert(`Моля изберете пакет за плащане за ${data.apartmentNumber}`);
+                    hasError = true;
+                    return;
+                }
+                
+                // Validate custom package percentages
+                if (data.package === 'custom' && data.percentages) {
+                    const totalPerc = data.percentages.prelim + data.percentages.akt14 + 
+                                    data.percentages.akt15 + data.percentages.akt16;
+                    console.log(`Custom package validation for ${objId}: ${totalPerc}%`);
+                    if (Math.abs(totalPerc - 100) > 0.1) {
+                        alert(`Общият процент за ${data.apartmentNumber} трябва да е 100%! (Сега е ${totalPerc.toFixed(1)}%)`);
+                        hasError = true;
+                        return;
+                    }
+                }
+                
+                const finalPrice = data.finalPrice;
+                const percentages = data.percentages;
+                
+                // Calculate amounts with same logic as UI - ensuring sum equals finalPrice
+                const prelimAmount = Math.round(finalPrice * percentages.prelim) / 100;
+                const akt14Amount = Math.round(finalPrice * percentages.akt14) / 100;
+                const akt15Amount = Math.round(finalPrice * percentages.akt15) / 100;
+                const akt16Amount = finalPrice - prelimAmount - akt14Amount - akt15Amount;
+                
+                const purchase = {
+                    apartmentId: parseInt(objId),
+                    finalPrice: finalPrice,
+                    packageType: data.package,
+                    paymentPlan: {
+                        preliminaryContractAmount: prelimAmount,
+                        akt14Amount: akt14Amount,
+                        akt15Amount: akt15Amount,
+                        akt16Amount: akt16Amount
+                    }
+                };
+                
+                console.log('Purchase object created:', purchase);
+                purchases.push(purchase);
+            });
+            
+            if (hasError) {
+                console.log('Validation failed, stopping');
+                return;
+            }
+            
+            console.log('All purchases prepared:', purchases);
+            console.log('Sending to API...');
+            
+            $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Обработка...');
+            
+            const payload = { purchases: purchases };
+            console.log('Payload:', JSON.stringify(payload, null, 2));
+            
+            $.ajax({
+                url: `/clients/api/${clientId}/add-purchases`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function(response) {
+                    console.log('AJAX Success:', response);
+                    if (response.success) {
+                        alert('Успешно добавени ' + response.count + ' обекта!');
+                        $('#addPurchaseModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Грешка: ' + (response.message || 'Неуспешно добавяне'));
+                        $('#confirmPurchaseBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Добави избраните обекти');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    console.error('XHR:', xhr);
+                    console.error('Response Text:', xhr.responseText);
+                    let errorMsg = 'Грешка при добавяне на покупките';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        errorMsg += ': ' + xhr.responseText;
+                    }
+                    alert(errorMsg);
+                    $('#confirmPurchaseBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Добави избраните обекти');
+                }
+            });
+        });
+        </script>
         
         <!-- Sidebar Script -->
         <th:block th:replace="~{fragments/sidebar :: sidebarScript}"></th:block>

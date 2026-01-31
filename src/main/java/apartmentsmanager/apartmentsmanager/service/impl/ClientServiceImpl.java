@@ -34,7 +34,20 @@ public class ClientServiceImpl implements ClientService {
     @Override
     @Transactional(readOnly = true)
     public Optional<Client> getClientByIdWithApartmentsAndPayments(Long id) {
-        return clientRepository.findByIdWithApartmentsAndPayments(id);
+        Optional<Client> clientOpt = clientRepository.findByIdWithApartmentsAndPayments(id);
+        // Explicitly initialize all lazy collections within transaction to avoid lazy loading issues
+        clientOpt.ifPresent(client -> {
+            if (client.getApartments() != null) {
+                // Iterate through apartments to initialize them
+                client.getApartments().forEach(apartment -> {
+                    // Force initialization of payments collection for each apartment
+                    if (apartment.getPayments() != null) {
+                        apartment.getPayments().size(); // This forces Hibernate to load the collection
+                    }
+                });
+            }
+        });
+        return clientOpt;
     }
     
     @Override

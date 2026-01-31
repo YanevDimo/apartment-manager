@@ -26,8 +26,8 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     // Find by EGN/EIK
     Optional<Client> findByEgn(String egn);
     
-    // Find client with apartments and payments eagerly loaded
-    @EntityGraph(attributePaths = {"apartments", "apartments.payments"})
+    // Find client with apartments eagerly loaded (payments will be initialized separately to avoid MultipleBagFetchException)
+    @EntityGraph(attributePaths = {"apartments"})
     @Query("SELECT c FROM Client c WHERE c.id = :id")
     Optional<Client> findByIdWithApartmentsAndPayments(@Param("id") Long id);
     
