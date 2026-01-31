@@ -87,22 +87,30 @@ public class Apartment {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        calculateTotalPrice();
+        // Calculate totalPrice only if not already set
+        if (totalPrice == null) {
+            calculateTotalPrice();
+        }
     }
     
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-        calculateTotalPrice();
+        // Don't auto-calculate totalPrice if apartment is sold (has client)
+        // to preserve the exact purchase price
+        if (client == null) {
+            calculateTotalPrice();
+        }
     }
     
     /**
      * Calculate total price from area * pricePerM2
+     * Only used for unsold apartments
      */
     private void calculateTotalPrice() {
         if (area != null && pricePerM2 != null) {
             totalPrice = area.multiply(pricePerM2).setScale(2, RoundingMode.HALF_UP);
-        } else {
+        } else if (totalPrice == null) {
             totalPrice = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         }
     }
