@@ -78,11 +78,11 @@ public interface ApartmentRepository extends JpaRepository<Apartment, Long> {
     List<Object[]> countApartmentsByStage();
     
     // Find all with payments eagerly loaded
-    @Query("SELECT DISTINCT a FROM Apartment a LEFT JOIN FETCH a.payments WHERE a.isSold = true")
+    @Query("SELECT DISTINCT a FROM Apartment a LEFT JOIN FETCH a.payments LEFT JOIN FETCH a.building WHERE a.isSold = true")
     List<Apartment> findAllSoldApartmentsWithPayments();
 
     // Find all sold apartments with payments by building
-    @Query("SELECT DISTINCT a FROM Apartment a LEFT JOIN FETCH a.payments WHERE a.isSold = true AND a.building.id = :buildingId")
+    @Query("SELECT DISTINCT a FROM Apartment a LEFT JOIN FETCH a.payments LEFT JOIN FETCH a.building WHERE a.isSold = true AND a.building.id = :buildingId")
     List<Apartment> findAllSoldApartmentsWithPaymentsByBuilding(Long buildingId);
 }
 

@@ -1,6 +1,12 @@
 package apartmentsmanager.apartmentsmanager.service.impl;
 
+import apartmentsmanager.apartmentsmanager.entity.Building;
+import apartmentsmanager.apartmentsmanager.repository.BasementRepository;
+import apartmentsmanager.apartmentsmanager.repository.CommercialSpaceRepository;
+import apartmentsmanager.apartmentsmanager.repository.GarageRepository;
+import apartmentsmanager.apartmentsmanager.repository.ParkingSpaceRepository;
 import apartmentsmanager.apartmentsmanager.service.ApartmentService;
+import apartmentsmanager.apartmentsmanager.service.BuildingService;
 import apartmentsmanager.apartmentsmanager.service.StatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,10 +22,25 @@ import java.util.Map;
 public class StatisticsServiceImpl implements StatisticsService {
     
     private final ApartmentService apartmentService;
+    private final BuildingService buildingService;
+    private final GarageRepository garageRepository;
+    private final BasementRepository basementRepository;
+    private final ParkingSpaceRepository parkingSpaceRepository;
+    private final CommercialSpaceRepository commercialSpaceRepository;
     
     @Autowired
-    public StatisticsServiceImpl(ApartmentService apartmentService) {
+    public StatisticsServiceImpl(ApartmentService apartmentService,
+                                 BuildingService buildingService,
+                                 GarageRepository garageRepository,
+                                 BasementRepository basementRepository,
+                                 ParkingSpaceRepository parkingSpaceRepository,
+                                 CommercialSpaceRepository commercialSpaceRepository) {
         this.apartmentService = apartmentService;
+        this.buildingService = buildingService;
+        this.garageRepository = garageRepository;
+        this.basementRepository = basementRepository;
+        this.parkingSpaceRepository = parkingSpaceRepository;
+        this.commercialSpaceRepository = commercialSpaceRepository;
     }
     
     @Override
@@ -95,7 +116,10 @@ public class StatisticsServiceImpl implements StatisticsService {
         stats.put("collectionRate", collectionRate);
         stats.put("remainingPayments", totalExpected.subtract(totalCollected));
         stats.put("stageBreakdown", buildStageBreakdown(buildingId));
-        stats.put("paymentBreakdown", buildPaymentBreakdown(buildingId));
+        Map<String, Object> paymentBreakdown = buildPaymentBreakdown(buildingId);
+        stats.put("paymentBreakdown", paymentBreakdown);
+        stats.put("expectedRemainingByStage", buildExpectedRemainingByStage(paymentBreakdown));
+        stats.put("freeCounts", buildFreeCounts(buildingId));
         return stats;
     }
 
@@ -167,6 +191,69 @@ public class StatisticsServiceImpl implements StatisticsService {
         breakdown.put("expected", expected);
         breakdown.put("collected", collected);
         return breakdown;
+    }
+
+    private Map<String, BigDecimal> buildExpectedRemainingByStage(Map<String, Object> paymentBreakdown) {
+        Map<String, BigDecimal> remaining = new HashMap<>();
+        if (paymentBreakdown == null) {
+            return remaining;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, BigDecimal> expected = (Map<String, BigDecimal>) paymentBreakdown.get("expected");
+        @SuppressWarnings("unchecked")
+        Map<String, BigDecimal> collected = (Map<String, BigDecimal>) paymentBreakdown.get("collected");
+
+        if (expected == null || collected == null) {
+            return remaining;
+        }
+
+        expected.forEach((key, value) -> {
+            BigDecimal exp = value != null ? value : BigDecimal.ZERO;
+            BigDecimal col = collected.get(key) != null ? collected.get(key) : BigDecimal.ZERO;
+            BigDecimal diff = exp.subtract(col);
+            remaining.put(key, diff.compareTo(BigDecimal.ZERO) > 0 ? diff : BigDecimal.ZERO);
+        });
+
+        return remaining;
+    }
+
+    private Map<String, Long> buildFreeCounts(Long buildingId) {
+        Map<String, Long> counts = new HashMap<>();
+        counts.put("apartments", 0L);
+        counts.put("garages", 0L);
+        counts.put("basements", 0L);
+        counts.put("parking", 0L);
+        counts.put("commercial", 0L);
+        counts.put("total", 0L);
+
+        Building building = buildingService.getBuildingById(buildingId).orElse(null);
+        if (building == null) {
+            return counts;
+        }
+
+        long apartments = building.getApartments().stream()
+            .filter(a -> a.getIsSold() == null || !a.getIsSold())
+            .count();
+        long garages = garageRepository.findByBuildingId(buildingId).stream()
+            .filter(g -> g.getIsSold() == null || !g.getIsSold())
+            .count();
+        long basements = basementRepository.findByBuildingId(buildingId).stream()
+            .filter(b -> b.getIsSold() == null || !b.getIsSold())
+            .count();
+        long parking = parkingSpaceRepository.findByBuildingId(buildingId).stream()
+            .filter(p -> p.getIsSold() == null || !p.getIsSold())
+            .count();
+        long commercial = commercialSpaceRepository.findByBuildingId(buildingId).stream()
+            .filter(c -> c.getIsSold() == null || !c.getIsSold())
+            .count();
+
+        counts.put("apartments", apartments);
+        counts.put("garages", garages);
+        counts.put("basements", basements);
+        counts.put("parking", parking);
+        counts.put("commercial", commercial);
+        counts.put("total", apartments + garages + basements + parking + commercial);
+        return counts;
     }
 }
 

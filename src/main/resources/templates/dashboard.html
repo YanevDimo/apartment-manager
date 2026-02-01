@@ -10,63 +10,87 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
     <!-- Custom CSS -->
     <link href="/static/css/app.css" rel="stylesheet" />
     <style>
         :root {
-            --primary: #4e73df;
-            --success: #1cc88a;
-            --info: #36b9cc;
-            --warning: #f6c23e;
-            --danger: #e74a3b;
-            --secondary: #858796;
-            --light: #f8f9fc;
-            --dark: #5a5c69;
+            --dashboard-surface: #ffffff;
+            --dashboard-border: #e8edf4;
+            --dashboard-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --dashboard-radius: 16px;
+            --dashboard-text: #111827;
+            --dashboard-muted: #6b7280;
         }
 
         body {
-            background-color: #f8f9fc;
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f2f5;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            color: var(--dashboard-text);
         }
 
         .stats-card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            color: white;
-            transition: transform 0.2s;
+            border: 1px solid var(--dashboard-border);
+            border-radius: var(--dashboard-radius);
+            background: var(--dashboard-surface);
+            box-shadow: var(--dashboard-shadow);
+            color: var(--dashboard-text);
+            transition: transform 0.2s, box-shadow 0.2s;
+            --stats-accent: #4f6ef7;
+            --stats-accent-soft: #e8edff;
         }
 
         .stats-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 36px rgba(15, 23, 42, 0.12);
+        }
+
+        .stats-card--primary,
+        .stats-card--success,
+        .stats-card--info,
+        .stats-card--warning {
+            --stats-accent: #344767;
+            --stats-accent-soft: #344767;
         }
 
         .stats-label {
-            font-size: 0.9rem;
-            font-weight: 700;
-            text-transform: uppercase;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--dashboard-muted);
+            text-transform: none;
         }
 
         .stats-number {
-            font-size: 1.8rem;
+            font-size: 1.9rem;
             font-weight: 700;
+            color: var(--dashboard-text);
         }
 
         .stats-icon {
-            font-size: 2.5rem;
-            opacity: 0.8;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            background: #344767;
+            color: #ffffff;
+            position: static;
+            box-shadow: 0 4px 12px rgba(52,71,103,0.25);
         }
 
         .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border: 0;
+            border-radius: var(--dashboard-radius);
+            box-shadow: var(--dashboard-shadow);
             margin-bottom: 1.5rem;
         }
 
         .card-header {
-            background-color: #f8f9fc;
-            border-bottom: 1px solid #e3e6f0;
+            background-color: var(--dashboard-surface);
+            border-bottom: 1px solid var(--dashboard-border);
             padding: 1rem 1.35rem;
         }
 
@@ -253,6 +277,149 @@
             </div>
         </div>
 
+        <!-- Основни статистики -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stats-card stats-card--primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="stats-label">Общ брой апартаменти</div>
+                                <div class="stats-number" id="total-apartments">0</div>
+                            </div>
+                            <div class="stats-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stats-card stats-card--success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="stats-label">Събрани приходи</div>
+                                <div class="stats-number" id="total-collected">0 €</div>
+                            </div>
+                            <div class="stats-icon">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stats-card stats-card--info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="stats-label">Очаквани приходи</div>
+                                <div class="stats-number" id="total-expected">0 €</div>
+                            </div>
+                            <div class="stats-icon">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stats-card stats-card--warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="stats-label">Забавени плащания</div>
+                                <div class="stats-number" id="delayed-count">0</div>
+                            </div>
+                            <div class="stats-icon">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Свободни обекти и очаквани приходи по етап -->
+        <div class="row mb-4">
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-box-seam me-2"></i> Свободни обекти (текуща сграда)
+                        </h6>
+                        <span class="badge bg-primary" id="free-total">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Апартаменти</span>
+                                    <span class="fw-semibold" id="free-apartments">0</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Гаражи</span>
+                                    <span class="fw-semibold" id="free-garages">0</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Мазета</span>
+                                    <span class="fw-semibold" id="free-basements">0</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Паркоместа</span>
+                                    <span class="fw-semibold" id="free-parking">0</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Търговски</span>
+                                    <span class="fw-semibold" id="free-commercial">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="bi bi-graph-up-arrow me-2"></i> Очаквани приходи по етап
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Предв. договор</span>
+                            <span class="fw-semibold" id="expected-prelim">0.00 €</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Акт 14</span>
+                            <span class="fw-semibold" id="expected-akt14">0.00 €</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Акт 15</span>
+                            <span class="fw-semibold" id="expected-akt15">0.00 €</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Акт 16</span>
+                            <span class="fw-semibold" id="expected-akt16">0.00 €</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Предстоящи и забавени плащания -->
         <div class="row mb-4">
             <div class="col-lg-6 mb-4">
@@ -308,73 +475,6 @@
                                     <!-- Will be populated by JavaScript -->
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Основни статистики -->
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stats-card" style="background: linear-gradient(135deg, #4e73df, #224abe);">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="stats-label">Общ брой апартаменти</div>
-                                <div class="stats-number" id="total-apartments">0</div>
-                            </div>
-                            <div class="stats-icon">
-                                <i class="bi bi-building"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stats-card" style="background: linear-gradient(135deg, #1cc88a, #13855c);">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="stats-label">Събрани приходи</div>
-                                <div class="stats-number" id="total-collected">0 €</div>
-                            </div>
-                            <div class="stats-icon">
-                                <i class="bi bi-cash-stack"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stats-card" style="background: linear-gradient(135deg, #36b9cc, #258391);">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="stats-label">Очаквани приходи</div>
-                                <div class="stats-number" id="total-expected">0 €</div>
-                            </div>
-                            <div class="stats-icon">
-                                <i class="bi bi-graph-up"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stats-card" style="background: linear-gradient(135deg, #f6c23e, #dda20a);">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="stats-label">Забавени плащания</div>
-                                <div class="stats-number" id="delayed-count">0</div>
-                            </div>
-                            <div class="stats-icon">
-                                <i class="bi bi-exclamation-triangle"></i>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -486,9 +586,14 @@
                         totalCollected: data.totalCollected || 0,
                         totalExpected: data.totalExpected || 0,
                         delayedCount: data.overdueCount || 0,
-                        collectionRate: data.collectionRate || 0
+                        collectionRate: data.collectionRate || 0,
+                        freeCounts: data.freeCounts || {},
+                        expectedRemainingByStage: data.expectedRemainingByStage || {},
+                        paymentBreakdown: data.paymentBreakdown || {}
                     };
                     updateStatisticsDisplay(stats);
+                    updateFreeCounts(stats);
+                    updateExpectedByStage(stats);
                     updateCharts(data);
                 })
                 .catch(error => {
@@ -569,6 +674,37 @@
             $('#total-collected').text(formatCurrency(stats.totalCollected || 0));
             $('#total-expected').text(formatCurrency(stats.totalExpected || 0));
             $('#delayed-count').text(stats.delayedCount || stats.overdueCount || 0);
+        }
+
+        function updateFreeCounts(stats) {
+            const free = stats.freeCounts || {};
+            $('#free-apartments').text(free.apartments || 0);
+            $('#free-garages').text(free.garages || 0);
+            $('#free-basements').text(free.basements || 0);
+            $('#free-parking').text(free.parking || 0);
+            $('#free-commercial').text(free.commercial || 0);
+            $('#free-total').text(free.total || 0);
+        }
+
+        function updateExpectedByStage(stats) {
+            let remaining = stats.expectedRemainingByStage || {};
+            const hasRemainingData = remaining.prelim || remaining.akt14 || remaining.akt15 || remaining.akt16;
+
+            if (!hasRemainingData && stats.paymentBreakdown && stats.paymentBreakdown.expected && stats.paymentBreakdown.collected) {
+                const expected = stats.paymentBreakdown.expected;
+                const collected = stats.paymentBreakdown.collected;
+                remaining = {
+                    prelim: (expected.prelim || 0) - (collected.prelim || 0),
+                    akt14: (expected.akt14 || 0) - (collected.akt14 || 0),
+                    akt15: (expected.akt15 || 0) - (collected.akt15 || 0),
+                    akt16: (expected.akt16 || 0) - (collected.akt16 || 0)
+                };
+            }
+
+            $('#expected-prelim').text(formatCurrency(remaining.prelim || 0));
+            $('#expected-akt14').text(formatCurrency(remaining.akt14 || 0));
+            $('#expected-akt15').text(formatCurrency(remaining.akt15 || 0));
+            $('#expected-akt16').text(formatCurrency(remaining.akt16 || 0));
         }
 
         function loadOverdueApartments() {

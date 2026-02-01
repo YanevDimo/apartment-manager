@@ -2,6 +2,7 @@ package apartmentsmanager.apartmentsmanager.controller;
 
 import apartmentsmanager.apartmentsmanager.entity.Apartment;
 import apartmentsmanager.apartmentsmanager.entity.Client;
+import apartmentsmanager.apartmentsmanager.entity.Payment;
 import apartmentsmanager.apartmentsmanager.service.ApartmentService;
 import apartmentsmanager.apartmentsmanager.service.BuildingService;
 import apartmentsmanager.apartmentsmanager.service.ClientService;
@@ -13,6 +14,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +84,7 @@ public class ApartmentController {
             : List.of();
         
         List<Map<String, Object>> apartmentData = apartments.stream().map(apt -> {
+            String effectiveStage = resolveApartmentStage(apt);
             Map<String, Object> data = new HashMap<>();
             data.put("id", apt.getId());
             data.put("buildingName", apt.getBuildingName());
@@ -88,11 +92,11 @@ public class ApartmentController {
             data.put("area", apt.getArea());
             data.put("pricePerM2", apt.getPricePerM2());
             data.put("totalPrice", apt.getTotalPrice());
-            data.put("stage", apt.getStage());
+            data.put("stage", effectiveStage != null ? effectiveStage : "-");
             data.put("client", apt.getClient() != null ? apt.getClient().getName() : "");
             data.put("totalPaid", apt.getTotalPaid());
             data.put("remainingPayment", apt.getRemainingPayment());
-            data.put("hasOverduePayments", apt.hasOverduePayments());
+            data.put("hasOverduePayments", hasOverduePaymentsForStage(apt, effectiveStage));
             return data;
         }).collect(Collectors.toList());
         
@@ -101,6 +105,110 @@ public class ApartmentController {
         response.put("total", apartments.size());
         
         return ResponseEntity.ok(response);
+    }
+
+    private String resolveApartmentStage(Apartment apartment) {
+        if (apartment == null) {
+            return null;
+        }
+        String stage = apartment.getStage();
+        if (stage != null && !stage.isBlank()) {
+            return stage;
+        }
+        String buildingStage = null;
+        try {
+            if (apartment.getBuilding() != null) {
+                buildingStage = apartment.getBuilding().getStage();
+            }
+        } catch (Exception ignored) {
+            // Building might be lazily loaded in some contexts
+        }
+        if (buildingStage == null || buildingStage.isBlank()) {
+            return null;
+        }
+        if ("Открита строителна площадка".equals(buildingStage)) {
+            return "Предварителен договор";
+        }
+        return buildingStage;
+    }
+
+    private boolean hasOverduePaymentsForStage(Apartment apartment, String stage) {
+        if (apartment == null || apartment.getPaymentPlan() == null || stage == null) {
+            return false;
+        }
+
+        List<String> stageOrder = java.util.Arrays.asList("prelim", "akt14", "akt15", "akt16");
+        Map<String, String> stageMappingToKey = new HashMap<>();
+        stageMappingToKey.put("Предварителен договор", "prelim");
+        stageMappingToKey.put("При предварителен договор", "prelim");
+        stageMappingToKey.put("Акт 14", "akt14");
+        stageMappingToKey.put("Акт 15", "akt15");
+        stageMappingToKey.put("Акт 16", "akt16");
+
+        String currentStageKey = stageMappingToKey.get(stage);
+        if (currentStageKey == null) {
+            return false;
+        }
+
+        int currentStageIndex = stageOrder.indexOf(currentStageKey);
+        if (currentStageIndex == -1) {
+            return false;
+        }
+
+        List<String> stagesToCheck = stageOrder.subList(0, currentStageIndex + 1);
+        List<String> activeStages = new ArrayList<>();
+        for (String stageKey : stagesToCheck) {
+            BigDecimal expected = getExpectedAmountForStage(apartment, stageKey);
+            if (expected != null && expected.compareTo(new BigDecimal("0.01")) > 0) {
+                activeStages.add(stageKey);
+            }
+        }
+
+        if (activeStages.isEmpty()) {
+            return false;
+        }
+
+        BigDecimal expectedCumulative = BigDecimal.ZERO;
+        for (String stageKey : activeStages) {
+            BigDecimal expected = getExpectedAmountForStage(apartment, stageKey);
+            if (expected != null) {
+                expectedCumulative = expectedCumulative.add(expected);
+            }
+        }
+
+        BigDecimal totalPaid = apartment.getPayments() == null
+            ? BigDecimal.ZERO
+            : apartment.getPayments().stream()
+                .map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal shortfall = expectedCumulative.subtract(totalPaid);
+        return shortfall.compareTo(new BigDecimal("0.01")) > 0;
+    }
+
+    private BigDecimal getExpectedAmountForStage(Apartment apartment, String stageKey) {
+        if (apartment == null || apartment.getPaymentPlan() == null) {
+            return BigDecimal.ZERO;
+        }
+        switch (stageKey) {
+            case "prelim":
+                return apartment.getPaymentPlan().getPreliminaryContractAmount() != null
+                    ? apartment.getPaymentPlan().getPreliminaryContractAmount()
+                    : BigDecimal.ZERO;
+            case "akt14":
+                return apartment.getPaymentPlan().getAkt14Amount() != null
+                    ? apartment.getPaymentPlan().getAkt14Amount()
+                    : BigDecimal.ZERO;
+            case "akt15":
+                return apartment.getPaymentPlan().getAkt15Amount() != null
+                    ? apartment.getPaymentPlan().getAkt15Amount()
+                    : BigDecimal.ZERO;
+            case "akt16":
+                return apartment.getPaymentPlan().getAkt16Amount() != null
+                    ? apartment.getPaymentPlan().getAkt16Amount()
+                    : BigDecimal.ZERO;
+            default:
+                return BigDecimal.ZERO;
+        }
     }
     
     @PostMapping("/api/add")

@@ -60,6 +60,20 @@ public class StatisticsController {
             paymentBreakdown.put("expected", expected);
             paymentBreakdown.put("collected", collected);
             stats.put("paymentBreakdown", paymentBreakdown);
+            Map<String, Number> remaining = new HashMap<>();
+            remaining.put("prelim", 0);
+            remaining.put("akt14", 0);
+            remaining.put("akt15", 0);
+            remaining.put("akt16", 0);
+            stats.put("expectedRemainingByStage", remaining);
+            Map<String, Number> freeCounts = new HashMap<>();
+            freeCounts.put("apartments", 0);
+            freeCounts.put("garages", 0);
+            freeCounts.put("basements", 0);
+            freeCounts.put("parking", 0);
+            freeCounts.put("commercial", 0);
+            freeCounts.put("total", 0);
+            stats.put("freeCounts", freeCounts);
             stats.put("currentBuildingId", null);
             return ResponseEntity.ok(stats);
         }
