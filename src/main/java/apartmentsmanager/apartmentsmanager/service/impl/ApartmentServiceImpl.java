@@ -27,6 +27,15 @@ public class ApartmentServiceImpl implements ApartmentService {
     public List<Apartment> getAllApartments() {
         return apartmentRepository.findAll();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Apartment> getAllApartmentsByBuilding(Long buildingId) {
+        if (buildingId == null) {
+            return List.of();
+        }
+        return apartmentRepository.findByBuildingId(buildingId);
+    }
     
     @Override
     @Transactional(readOnly = true)

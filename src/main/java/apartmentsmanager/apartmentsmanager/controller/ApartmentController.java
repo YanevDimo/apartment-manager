@@ -80,7 +80,7 @@ public class ApartmentController {
             .map(b -> b.getId())
             .orElse(null);
         List<Apartment> apartments = buildingId != null
-            ? apartmentService.getAllSoldApartmentsByBuilding(buildingId)
+            ? apartmentService.getAllApartmentsByBuilding(buildingId)
             : List.of();
         
         List<Map<String, Object>> apartmentData = apartments.stream().map(apt -> {

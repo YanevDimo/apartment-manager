@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface ApartmentService {
     
     List<Apartment> getAllApartments();
+
+    List<Apartment> getAllApartmentsByBuilding(Long buildingId);
     
     List<Apartment> getAllSoldApartments();
 

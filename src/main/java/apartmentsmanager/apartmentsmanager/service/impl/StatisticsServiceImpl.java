@@ -236,7 +236,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 parking++;
             } else if (compact.startsWith("МАЗЕ")) {
                 basements++;
-            } else if (compact.startsWith("ТЪРГОВ")) {
+            } else if (compact.startsWith("ТЪРГОВ") || compact.startsWith("МАГАЗИН") || compact.contains("ТЪРГОВСКОПОМЕЩЕНИЕ")) {
                 commercial++;
             } else {
                 apartments++;

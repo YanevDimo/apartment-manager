@@ -67,18 +67,26 @@
             color: var(--dashboard-text);
         }
 
+        .stats-card .card-body {
+            position: relative;
+            padding-right: 4.5rem;
+        }
+
         .stats-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1.25rem;
+            line-height: 1;
             background: #344767;
             color: #ffffff;
-            position: static;
-            box-shadow: 0 4px 12px rgba(52,71,103,0.25);
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            box-shadow: 0 6px 16px rgba(52,71,103,0.3);
         }
 
         .card {

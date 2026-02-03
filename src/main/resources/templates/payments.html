@@ -9,15 +9,6 @@
     <link href="/static/css/app.css" rel="stylesheet" />
     <!-- Sidebar Styles -->
     <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
-    <style>
-        .table thead th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-        }
-        .action-buttons .btn {
-            margin-right: 4px;
-        }
-    </style>
 </head>
 <body>
     <!-- Sidebar Toggle Button (Mobile) -->
@@ -38,34 +29,34 @@
 
             <div class="row mb-4">
                 <div class="col-md-3 mb-3">
-                    <div class="card text-white bg-primary">
+                    <div class="card stats-card stats-card--primary">
                         <div class="card-body">
-                            <div class="small text-white-50">Общо плащания</div>
-                            <div class="fs-4 fw-semibold" id="totalPaymentsCount">0</div>
+                            <div class="stats-label">Общо плащания</div>
+                            <div class="stats-number" id="totalPaymentsCount">0</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <div class="card text-white bg-success">
+                    <div class="card stats-card stats-card--success">
                         <div class="card-body">
-                            <div class="small text-white-50">Обща сума</div>
-                            <div class="fs-4 fw-semibold" id="totalPaymentsAmount">0.00 €</div>
+                            <div class="stats-label">Обща сума</div>
+                            <div class="stats-number" id="totalPaymentsAmount">0.00 €</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <div class="card text-white bg-info">
+                    <div class="card stats-card stats-card--info">
                         <div class="card-body">
-                            <div class="small text-white-50">Банкови</div>
-                            <div class="fs-4 fw-semibold" id="totalBankPayments">0.00 €</div>
+                            <div class="stats-label">Банкови</div>
+                            <div class="stats-number" id="totalBankPayments">0.00 €</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <div class="card text-white bg-warning">
+                    <div class="card stats-card stats-card--warning">
                         <div class="card-body">
-                            <div class="small text-white-50">В брой</div>
-                            <div class="fs-4 fw-semibold" id="totalCashPayments">0.00 €</div>
+                            <div class="stats-label">В брой</div>
+                            <div class="stats-number" id="totalCashPayments">0.00 €</div>
                         </div>
                     </div>
                 </div>
@@ -83,7 +74,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle">
+                        <table class="table table-striped table-hover align-middle payments-table">
                             <thead>
                                 <tr>
                                     <th>Обект</th>

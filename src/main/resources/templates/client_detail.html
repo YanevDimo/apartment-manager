@@ -12,49 +12,6 @@
     <link href="/static/css/app.css" rel="stylesheet" />
     <!-- Sidebar Styles -->
     <th:block th:replace="~{fragments/sidebar :: sidebarStyles}"></th:block>
-    <style>
-        .stat-card {
-            transition: transform 0.2s;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        .payment-badge {
-            font-size: 0.75rem;
-        }
-        .progress {
-            height: 20px;
-        }
-        .apartment-card {
-            transition: border 0.3s ease, box-shadow 0.3s ease;
-        }
-        .delay-indicator {
-            animation: fadeIn 0.5s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* Payment history collapse styles */
-        .collapse-icon {
-            transition: transform 0.3s ease;
-        }
-        .collapsed .collapse-icon {
-            transform: rotate(0deg);
-        }
-        .collapse-icon:not(.collapsed) {
-            transform: rotate(180deg);
-        }
-        [data-bs-toggle="collapse"]:not(.collapsed) .collapse-icon {
-            transform: rotate(180deg);
-        }
-        .card-header .btn-link:hover {
-            background-color: rgba(0, 0, 0, 0.02);
-        }
-        .card-header .btn-link:focus {
-            box-shadow: none;
-        }
-    </style>
 </head>
 <body>
     <!-- Sidebar Toggle Button (Mobile) -->
@@ -78,7 +35,7 @@
                 <!-- Left Sidebar - Client Information -->
                 <div class="col-md-4 mb-4">
                     <div class="card shadow-sm">
-                        <div class="card-header bg-primary text-white">
+                        <div class="card-header card-header-accent card-header-accent--primary">
                             <h5 class="mb-0">
                                 <i class="bi bi-person"></i> Информация за клиента
                             </h5>
@@ -149,34 +106,34 @@
                     <!-- Statistics Cards -->
                     <div class="row mb-4">
                         <div class="col-md-3 mb-3">
-                            <div class="card stat-card bg-primary text-white">
+                            <div class="card stats-card stats-card--primary">
                                 <div class="card-body text-center">
-                                    <h4 th:text="${apartmentsCount}">0</h4>
-                                    <small>Имота</small>
+                                    <div class="stats-number" th:text="${apartmentsCount}">0</div>
+                                    <div class="stats-label">Имота</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <div class="card stat-card bg-info text-white">
+                            <div class="card stats-card stats-card--info">
                                 <div class="card-body text-center">
-                                    <h4 th:text="${#numbers.formatDecimal(totalValue, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</h4>
-                                    <small>Обща стойност</small>
+                                    <div class="stats-number" th:text="${#numbers.formatDecimal(totalValue, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</div>
+                                    <div class="stats-label">Обща стойност</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <div class="card stat-card bg-success text-white">
+                            <div class="card stats-card stats-card--success">
                                 <div class="card-body text-center">
-                                    <h4 th:text="${#numbers.formatDecimal(totalPaid, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</h4>
-                                    <small>Платено</small>
+                                    <div class="stats-number" th:text="${#numbers.formatDecimal(totalPaid, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</div>
+                                    <div class="stats-label">Платено</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <div class="card stat-card text-white" th:classappend="${remaining.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'bg-warning' : 'bg-secondary'">
+                            <div class="card stats-card" th:classappend="${remaining.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'stats-card--warning' : 'stats-card--success'">
                                 <div class="card-body text-center">
-                                    <h4 th:text="${#numbers.formatDecimal(remaining, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</h4>
-                                    <small>Остатък</small>
+                                    <div class="stats-number" th:text="${#numbers.formatDecimal(remaining, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</div>
+                                    <div class="stats-label">Остатък</div>
                                 </div>
                             </div>
                         </div>
@@ -214,7 +171,7 @@
                     <!-- Apartments List -->
                     <div th:if="${client.apartments != null and !client.apartments.isEmpty()}">
                         <div class="card shadow-sm">
-                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                            <div class="card-header card-header-accent card-header-accent--dark d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">
                                     <i class="bi bi-building"></i> Закупени обекти
                                 </h5>
@@ -253,7 +210,7 @@
                                             <div class="col-md-5">
                                                 <div class="text-end">
                                                     <h5 class="text-primary" th:text="${#numbers.formatDecimal(apt.totalPrice, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</h5>
-                                                    <div class="progress mb-2" style="height: 20px;">
+                                                    <div class="progress mb-2 client-progress">
                                                         <div class="progress-bar" 
                                                              th:classappend="${apt.totalPrice != null and apt.totalPrice.compareTo(T(java.math.BigDecimal).ZERO) > 0 and apt.getTotalPaid().compareTo(apt.totalPrice) >= 0} ? 'bg-success' : 
                                                                               (${apt.totalPrice != null and apt.totalPrice.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'bg-info' : 'bg-secondary')"

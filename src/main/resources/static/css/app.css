@@ -834,6 +834,276 @@ body {
 }
 
 /* ============================================
+   Clients Page
+   ============================================ */
+.clients-page .clients-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.clients-page .clients-table thead th {
+    background: linear-gradient(180deg, #2b2d30 0%, #1f2023 100%);
+    color: #ffffff;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+    border: none;
+}
+
+.clients-page .clients-table tbody tr {
+    transition: all 0.3s ease;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.clients-page .clients-table tbody tr:hover {
+    background: linear-gradient(90deg, #f8f9ff 0%, #ffffff 100%);
+    box-shadow: 0 2px 8px rgba(17, 24, 39, 0.08);
+    transform: translateX(2px);
+}
+
+.clients-page .clients-table tbody td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border: none;
+}
+
+.clients-page .client-name-link {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.clients-page .client-name-link:hover {
+    color: var(--primary-dark);
+    transform: translateX(3px);
+}
+
+.clients-page .client-id-badge {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: #ffffff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.clients-page .contact-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.clients-page .contact-link:hover {
+    color: var(--primary-dark);
+}
+
+.clients-page .contact-link i {
+    font-size: 1rem;
+}
+
+.clients-page .action-icon {
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    padding: 0.45rem;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clients-page .action-icon:hover {
+    transform: translateY(-2px);
+    text-decoration: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.clients-page .icon-blue {
+    color: var(--info-color) !important;
+    background: rgba(26, 115, 232, 0.1);
+}
+
+.clients-page .icon-blue:hover {
+    color: var(--info-color) !important;
+    background: rgba(26, 115, 232, 0.18) !important;
+}
+
+.clients-page .icon-green {
+    color: var(--success-color) !important;
+    background: rgba(46, 125, 50, 0.1);
+}
+
+.clients-page .icon-green:hover {
+    color: var(--success-color) !important;
+    background: rgba(46, 125, 50, 0.18) !important;
+}
+
+.clients-page .icon-red {
+    color: var(--danger-color) !important;
+    background: rgba(244, 67, 53, 0.1);
+}
+
+.clients-page .icon-red:hover {
+    color: var(--danger-color) !important;
+    background: rgba(244, 67, 53, 0.18) !important;
+}
+
+.clients-page .clients-search .input-group-text {
+    background-color: var(--light-bg);
+    border-right: none;
+}
+
+.clients-page .clients-search .form-control {
+    border-left: none;
+}
+
+.clients-page .clients-search .form-control:focus {
+    border-left: none;
+    box-shadow: none;
+}
+
+.clients-page .clients-search:focus-within .input-group-text {
+    border-color: var(--primary-dark);
+    background-color: #ffffff;
+}
+
+/* ============================================
+   Payments Page
+   ============================================ */
+.payments-table thead th {
+    background-color: var(--light-bg);
+    font-weight: 600;
+}
+
+.payments-table .btn + .btn {
+    margin-left: 4px;
+}
+
+/* ============================================
+   View Building
+   ============================================ */
+.info-card {
+    border-left: 4px solid var(--primary-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.info-card--success {
+    border-left-color: var(--success-color);
+}
+
+.info-card--warning {
+    border-left-color: var(--warning-color);
+}
+
+.info-card--danger {
+    border-left-color: var(--danger-color);
+}
+
+.info-card--secondary {
+    border-left-color: var(--secondary-color);
+}
+
+.info-card--info {
+    border-left-color: var(--info-color);
+}
+
+.info-card-icon {
+    font-size: 2.5rem;
+    opacity: 0.3;
+}
+
+.stat-badge {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* ============================================
+   Client Detail
+   ============================================ */
+.payment-badge {
+    font-size: 0.75rem;
+}
+
+.client-progress {
+    height: 20px;
+}
+
+.apartment-card {
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.delay-indicator {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.collapse-icon {
+    transition: transform 0.3s ease;
+}
+
+.collapsed .collapse-icon {
+    transform: rotate(0deg);
+}
+
+[data-bs-toggle="collapse"]:not(.collapsed) .collapse-icon {
+    transform: rotate(180deg);
+}
+
+.card-header .btn-link:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.card-header .btn-link:focus {
+    box-shadow: none;
+}
+
+/* ============================================
+   Excel Operations
+   ============================================ */
+.card-header-accent {
+    color: #ffffff;
+    background: var(--primary-color);
+}
+
+.card-header-accent--primary {
+    background: var(--primary-color);
+}
+
+.card-header-accent--dark {
+    background: var(--dark-bg);
+}
+
+.card-header-accent--success {
+    background: var(--success-color);
+}
+
+/* ============================================
    DataTables Customization
    ============================================ */
 .dataTables_wrapper .dataTables_length,
