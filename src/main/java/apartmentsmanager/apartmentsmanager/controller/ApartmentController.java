@@ -250,7 +250,8 @@ public class ApartmentController {
             return ResponseEntity.badRequest().body(response);
         }
         
-        apartment.setIsSold(true);
+        apartment.setClient(null);
+        apartment.setIsSold(false);
         Apartment saved = apartmentService.saveApartment(apartment);
         
         response.put("success", true);

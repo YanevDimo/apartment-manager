@@ -168,7 +168,8 @@ public class ExcelServiceImpl implements ExcelService {
                         apartment.setNotes(getCellValueAsString(row.getCell(10)));
                     }
                     
-                    apartment.setIsSold(true);
+                    apartment.setClient(null);
+                    apartment.setIsSold(false);
                     
                     // Validate required fields
                     if ((apartment.getBuildingName() == null || apartment.getBuildingName().trim().isEmpty()) ||

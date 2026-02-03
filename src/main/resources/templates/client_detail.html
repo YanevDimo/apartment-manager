@@ -302,6 +302,85 @@
                                             </div>
                                         </div>
 
+                                        <!-- Payment Plan for this Apartment -->
+                                        <div class="row mt-3" th:if="${apt.paymentPlan != null}">
+                                            <div class="col-12">
+                                                <div class="card border-light">
+                                                    <div class="card-header py-2 bg-light">
+                                                        <h6 class="mb-0">
+                                                            <button class="btn btn-link text-decoration-none text-dark p-0 w-100 text-start d-flex justify-content-between align-items-center collapsed" 
+                                                                    type="button" 
+                                                                    data-bs-toggle="collapse" 
+                                                                    th:data-bs-target="${'#paymentPlan-' + apt.id}" 
+                                                                    aria-expanded="false" 
+                                                                    th:aria-controls="${'paymentPlan-' + apt.id}">
+                                                                <span>
+                                                                    <i class="bi bi-card-checklist me-2"></i>План за плащане
+                                                                    <span class="badge bg-primary ms-2" 
+                                                                          th:text="${#numbers.formatDecimal(apt.paymentPlan.totalPlannedAmount != null ? apt.paymentPlan.totalPlannedAmount : T(java.math.BigDecimal).ZERO, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
+                                                                </span>
+                                                                <i class="bi bi-chevron-down collapse-icon"></i>
+                                                            </button>
+                                                        </h6>
+                                                    </div>
+                                                    <div class="collapse" th:id="${'paymentPlan-' + apt.id}">
+                                                        <div class="card-body py-2">
+                                                            <div class="row">
+                                                                <div class="col-md-6 mb-2">
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <small class="text-muted">Предв. договор</small>
+                                                                        <small class="fw-bold">
+                                                                            <span th:text="${#numbers.formatDecimal(apt.paymentPlan.preliminaryContractAmount != null ? apt.paymentPlan.preliminaryContractAmount : T(java.math.BigDecimal).ZERO, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
+                                                                        </small>
+                                                                    </div>
+                                                                    <small class="text-muted">
+                                                                        Дата:
+                                                                        <span th:text="${apt.paymentPlan.preliminaryContractDate != null ? #temporals.format(apt.paymentPlan.preliminaryContractDate, 'dd.MM.yyyy') : '-'}">-</span>
+                                                                    </small>
+                                                                </div>
+                                                                <div class="col-md-6 mb-2">
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <small class="text-muted">Акт 14</small>
+                                                                        <small class="fw-bold">
+                                                                            <span th:text="${#numbers.formatDecimal(apt.paymentPlan.akt14Amount != null ? apt.paymentPlan.akt14Amount : T(java.math.BigDecimal).ZERO, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
+                                                                        </small>
+                                                                    </div>
+                                                                    <small class="text-muted">
+                                                                        Дата:
+                                                                        <span th:text="${apt.paymentPlan.akt14Date != null ? #temporals.format(apt.paymentPlan.akt14Date, 'dd.MM.yyyy') : '-'}">-</span>
+                                                                    </small>
+                                                                </div>
+                                                                <div class="col-md-6 mb-2">
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <small class="text-muted">Акт 15</small>
+                                                                        <small class="fw-bold">
+                                                                            <span th:text="${#numbers.formatDecimal(apt.paymentPlan.akt15Amount != null ? apt.paymentPlan.akt15Amount : T(java.math.BigDecimal).ZERO, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
+                                                                        </small>
+                                                                    </div>
+                                                                    <small class="text-muted">
+                                                                        Дата:
+                                                                        <span th:text="${apt.paymentPlan.akt15Date != null ? #temporals.format(apt.paymentPlan.akt15Date, 'dd.MM.yyyy') : '-'}">-</span>
+                                                                    </small>
+                                                                </div>
+                                                                <div class="col-md-6 mb-2">
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <small class="text-muted">Акт 16</small>
+                                                                        <small class="fw-bold">
+                                                                            <span th:text="${#numbers.formatDecimal(apt.paymentPlan.akt16Amount != null ? apt.paymentPlan.akt16Amount : T(java.math.BigDecimal).ZERO, 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
+                                                                        </small>
+                                                                    </div>
+                                                                    <small class="text-muted">
+                                                                        Дата:
+                                                                        <span th:text="${apt.paymentPlan.akt16Date != null ? #temporals.format(apt.paymentPlan.akt16Date, 'dd.MM.yyyy') : '-'}">-</span>
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Payment History for this Apartment -->
                                         <div class="row mt-3" th:if="${apt.payments != null and !apt.payments.isEmpty()}">
                                             <div class="col-12">

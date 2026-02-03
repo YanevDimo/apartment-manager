@@ -138,7 +138,7 @@ public class ApartmentServiceImpl implements ApartmentService {
     @Override
     @Transactional(readOnly = true)
     public long getTotalApartmentsCount() {
-        return apartmentRepository.findByIsSoldTrue().size();
+        return apartmentRepository.count();
     }
 
     @Override
@@ -147,7 +147,7 @@ public class ApartmentServiceImpl implements ApartmentService {
         if (buildingId == null) {
             return 0;
         }
-        return apartmentRepository.countSoldApartmentsByBuilding(buildingId);
+        return apartmentRepository.countByBuildingId(buildingId);
     }
     
     @Override

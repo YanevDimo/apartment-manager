@@ -25,6 +25,9 @@ public interface ApartmentRepository extends JpaRepository<Apartment, Long> {
     // Find by building ID
     List<Apartment> findByBuildingId(Long buildingId);
 
+    // Count apartments by building ID
+    long countByBuildingId(Long buildingId);
+
     // Find sold apartments by building ID
     List<Apartment> findByIsSoldTrueAndBuildingId(Long buildingId);
     

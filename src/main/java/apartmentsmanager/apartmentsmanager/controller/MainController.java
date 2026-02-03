@@ -119,8 +119,13 @@ public class MainController {
                         apartment.setApartmentNumber(apartmentNumber.trim());
                         apartment.setArea(new BigDecimal(area));
                         apartment.setPricePerM2(new BigDecimal(pricePerM2));
-                        apartment.setClient(client);
-                        apartment.setIsSold(true);
+                        if (client != null) {
+                            apartment.setClient(client);
+                            apartment.setIsSold(true);
+                        } else {
+                            apartment.setClient(null);
+                            apartment.setIsSold(false);
+                        }
                         
                         apartmentService.saveApartment(apartment);
                     } catch (NumberFormatException e) {

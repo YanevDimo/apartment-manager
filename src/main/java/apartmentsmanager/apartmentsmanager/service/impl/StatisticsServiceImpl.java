@@ -1,12 +1,8 @@
 package apartmentsmanager.apartmentsmanager.service.impl;
 
-import apartmentsmanager.apartmentsmanager.entity.Building;
-import apartmentsmanager.apartmentsmanager.repository.BasementRepository;
-import apartmentsmanager.apartmentsmanager.repository.CommercialSpaceRepository;
-import apartmentsmanager.apartmentsmanager.repository.GarageRepository;
-import apartmentsmanager.apartmentsmanager.repository.ParkingSpaceRepository;
+import apartmentsmanager.apartmentsmanager.entity.Apartment;
+import apartmentsmanager.apartmentsmanager.repository.ApartmentRepository;
 import apartmentsmanager.apartmentsmanager.service.ApartmentService;
-import apartmentsmanager.apartmentsmanager.service.BuildingService;
 import apartmentsmanager.apartmentsmanager.service.StatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -22,25 +19,12 @@ import java.util.Map;
 public class StatisticsServiceImpl implements StatisticsService {
     
     private final ApartmentService apartmentService;
-    private final BuildingService buildingService;
-    private final GarageRepository garageRepository;
-    private final BasementRepository basementRepository;
-    private final ParkingSpaceRepository parkingSpaceRepository;
-    private final CommercialSpaceRepository commercialSpaceRepository;
-    
+    private final ApartmentRepository apartmentRepository;
     @Autowired
     public StatisticsServiceImpl(ApartmentService apartmentService,
-                                 BuildingService buildingService,
-                                 GarageRepository garageRepository,
-                                 BasementRepository basementRepository,
-                                 ParkingSpaceRepository parkingSpaceRepository,
-                                 CommercialSpaceRepository commercialSpaceRepository) {
+                                 ApartmentRepository apartmentRepository) {
         this.apartmentService = apartmentService;
-        this.buildingService = buildingService;
-        this.garageRepository = garageRepository;
-        this.basementRepository = basementRepository;
-        this.parkingSpaceRepository = parkingSpaceRepository;
-        this.commercialSpaceRepository = commercialSpaceRepository;
+        this.apartmentRepository = apartmentRepository;
     }
     
     @Override
@@ -226,26 +210,38 @@ public class StatisticsServiceImpl implements StatisticsService {
         counts.put("commercial", 0L);
         counts.put("total", 0L);
 
-        Building building = buildingService.getBuildingById(buildingId).orElse(null);
-        if (building == null) {
+        if (buildingId == null) {
             return counts;
         }
 
-        long apartments = building.getApartments().stream()
-            .filter(a -> a.getIsSold() == null || !a.getIsSold())
-            .count();
-        long garages = garageRepository.findByBuildingId(buildingId).stream()
-            .filter(g -> g.getIsSold() == null || !g.getIsSold())
-            .count();
-        long basements = basementRepository.findByBuildingId(buildingId).stream()
-            .filter(b -> b.getIsSold() == null || !b.getIsSold())
-            .count();
-        long parking = parkingSpaceRepository.findByBuildingId(buildingId).stream()
-            .filter(p -> p.getIsSold() == null || !p.getIsSold())
-            .count();
-        long commercial = commercialSpaceRepository.findByBuildingId(buildingId).stream()
-            .filter(c -> c.getIsSold() == null || !c.getIsSold())
-            .count();
+        // Use repositories directly instead of Building lazy collections
+        // to avoid lazy loading issues with getApartments() returning empty list
+        long apartments = 0L;
+        long garages = 0L;
+        long basements = 0L;
+        long parking = 0L;
+        long commercial = 0L;
+
+        List<Apartment> objects = apartmentRepository.findByBuildingId(buildingId);
+        for (Apartment apt : objects) {
+            boolean isFree = apt.getIsSold() == null || !apt.getIsSold() || apt.getClient() == null;
+            if (!isFree) {
+                continue;
+            }
+            String number = apt.getApartmentNumber() == null ? "" : apt.getApartmentNumber().trim().toUpperCase();
+            String compact = number.replace(" ", "");
+            if (compact.startsWith("ГАРАЖ")) {
+                garages++;
+            } else if (compact.startsWith("ПАРКОМЯСТО")) {
+                parking++;
+            } else if (compact.startsWith("МАЗЕ")) {
+                basements++;
+            } else if (compact.startsWith("ТЪРГОВ")) {
+                commercial++;
+            } else {
+                apartments++;
+            }
+        }
 
         counts.put("apartments", apartments);
         counts.put("garages", garages);
