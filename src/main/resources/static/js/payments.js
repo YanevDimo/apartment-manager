@@ -117,6 +117,8 @@ function openAddPaymentModal(apartmentId) {
             
             // Set default date to today
             $('#paymentDate').val(new Date().toISOString().split('T')[0]);
+            // Default payment method to cash
+            $('#paymentMethod').val('В брой');
             
             $('#paymentModal').modal('show');
         },
@@ -662,7 +664,7 @@ function loadAllPayments() {
             tbody.empty();
             
             if (!data.payments || data.payments.length === 0) {
-                tbody.append('<tr><td colspan="8" class="text-center text-muted">Няма плащания</td></tr>');
+                tbody.append('<tr><td colspan="9" class="text-center text-muted">Няма плащания</td></tr>');
             } else {
                 const totalAmount = data.payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
                 const bankTotal = data.payments
@@ -678,13 +680,23 @@ function loadAllPayments() {
                 $('#totalCashPayments').text(formatCurrency(cashTotal) + ' €');
 
                 data.payments.forEach(payment => {
+                    const buildingName = payment.buildingName || '-';
+                    const apartmentLabel = payment.apartment || '-';
+                    const clientName = payment.clientName || '-';
+                    const apartmentLink = payment.apartmentId
+                        ? `<a href="/apartments?open=${payment.apartmentId}" class="text-decoration-none">${apartmentLabel}</a>`
+                        : apartmentLabel;
+                    const clientLink = payment.clientId
+                        ? `<a href="/clients/${payment.clientId}" class="text-decoration-none">${clientName}</a>`
+                        : clientName;
                     const row = `
                         <tr>
-                            <td>${payment.apartment || '-'}</td>
-                            <td class="fw-bold">${formatCurrency(parseFloat(payment.amount || 0))} €</td>
-                            <td>${formatDate(payment.paymentDate) || '-'}</td>
+                            <td data-order="${payment.paymentDate || ''}">${formatDate(payment.paymentDate) || '-'}</td>
+                            <td>${buildingName}</td>
+                            <td>${apartmentLink}</td>
+                            <td>${clientLink}</td>
+                            <td class="fw-bold" data-order="${parseFloat(payment.amount || 0)}">${formatCurrency(parseFloat(payment.amount || 0))} €</td>
                             <td>${payment.paymentMethod || '-'}</td>
-                            <td>${payment.paymentStage || '-'}</td>
                             <td>${payment.invoiceNumber || '-'}</td>
                             <td>${payment.isDeposit ? '<span class="badge bg-info">Да</span>' : '<span class="badge bg-secondary">Не</span>'}</td>
                             <td>
@@ -700,7 +712,41 @@ function loadAllPayments() {
                     tbody.append(row);
                 });
             }
-            
+
+            if ($('#paymentsTable').length) {
+                if ($.fn.DataTable.isDataTable('#paymentsTable')) {
+                    $('#paymentsTable').DataTable().destroy();
+                }
+                $('#paymentsTable').DataTable({
+                    order: [[0, 'desc']],
+                    pageLength: 25,
+                    language: {
+                        "sProcessing": "Обработване...",
+                        "sLengthMenu": "Покажи _MENU_ записа",
+                        "sZeroRecords": "Не са намерени съответстващи записи",
+                        "sInfo": "Показване на _START_ до _END_ от _TOTAL_ записа",
+                        "sInfoEmpty": "Показване на 0 до 0 от 0 записа",
+                        "sInfoFiltered": "(филтрирани от _MAX_ общо записа)",
+                        "sSearch": "Търсене:",
+                        "sEmptyTable": "Няма данни в таблицата",
+                        "sLoadingRecords": "Зареждане...",
+                        "sFirst": "Първа",
+                        "sPrevious": "Предишна",
+                        "sNext": "Следваща",
+                        "sLast": "Последна",
+                        "oPaginate": {
+                            "sFirst": "Първа",
+                            "sPrevious": "Предишна",
+                            "sNext": "Следваща",
+                            "sLast": "Последна"
+                        },
+                        "oAria": {
+                            "sSortAscending": ": активирайте за сортиране на колоната във възходящ ред",
+                            "sSortDescending": ": активирайте за сортиране на колоната в низходящ ред"
+                        }
+                    }
+                });
+            }
             showLoading(false);
         },
         error: function() {

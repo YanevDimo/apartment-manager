@@ -89,11 +89,14 @@ public class ApartmentController {
             data.put("id", apt.getId());
             data.put("buildingName", apt.getBuildingName());
             data.put("apartmentNumber", apt.getApartmentNumber());
+            data.put("entrance", apt.getEntrance());
+            data.put("floor", apt.getFloor());
             data.put("area", apt.getArea());
             data.put("pricePerM2", apt.getPricePerM2());
             data.put("totalPrice", apt.getTotalPrice());
             data.put("stage", effectiveStage != null ? effectiveStage : "-");
             data.put("client", apt.getClient() != null ? apt.getClient().getName() : "");
+            data.put("clientId", apt.getClient() != null ? apt.getClient().getId() : null);
             data.put("totalPaid", apt.getTotalPaid());
             data.put("remainingPayment", apt.getRemainingPayment());
             data.put("hasOverduePayments", hasOverduePaymentsForStage(apt, effectiveStage));
@@ -243,8 +246,10 @@ public class ApartmentController {
         apartment.setBuildingName(building.getName());
 
         // Check for duplicate
-        if (apartmentService.apartmentExists(apartment.getBuildingName(), 
-                                            apartment.getApartmentNumber(), null)) {
+        if (apartmentService.apartmentExists(apartment.getBuildingName(),
+                                            apartment.getApartmentNumber(),
+                                            apartment.getEntrance(),
+                                            null)) {
             response.put("success", false);
             response.put("message", "Апартамент с този номер вече съществува в тази сграда");
             return ResponseEntity.badRequest().body(response);
@@ -299,8 +304,10 @@ public class ApartmentController {
         apartment.setBuildingName(building.getName());
 
         // Check for duplicate (excluding current apartment)
-        if (apartmentService.apartmentExists(apartment.getBuildingName(), 
-                                            apartment.getApartmentNumber(), id)) {
+        if (apartmentService.apartmentExists(apartment.getBuildingName(),
+                                            apartment.getApartmentNumber(),
+                                            apartment.getEntrance(),
+                                            id)) {
             response.put("success", false);
             response.put("message", "Апартамент с този номер вече съществува в тази сграда");
             return ResponseEntity.badRequest().body(response);
@@ -363,6 +370,8 @@ public class ApartmentController {
         Map<String, Object> data = new HashMap<>();
         data.put("id", apt.getId());
         data.put("apartmentNumber", apt.getApartmentNumber());
+        data.put("entrance", apt.getEntrance());
+        data.put("floor", apt.getFloor());
         data.put("area", apt.getArea());
         data.put("pricePerM2", apt.getPricePerM2());
         data.put("totalPrice", apt.getTotalPrice());

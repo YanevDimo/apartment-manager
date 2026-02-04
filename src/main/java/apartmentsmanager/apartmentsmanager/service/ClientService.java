@@ -16,6 +16,10 @@ public interface ClientService {
     Client saveClient(Client client);
     
     void deleteClient(Long id);
+
+    void deleteAllClients();
+
+    void resetClientAutoIncrement();
     
     List<Client> searchClients(String searchTerm);
     

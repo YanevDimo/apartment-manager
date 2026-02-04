@@ -173,7 +173,7 @@
                         <div class="card shadow-sm">
                             <div class="card-header card-header-accent card-header-accent--dark d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">
-                                    <i class="bi bi-building"></i> Закупени обекти
+                                    <i class="bi bi-buildings"></i> Закупени обекти
                                 </h5>
                                 <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addPurchaseModal">
                                     <i class="bi bi-plus-circle"></i> Добави покупка
@@ -493,32 +493,32 @@
                             </select>
                         </div>
                         
-                        <div id="editCustomPercentages" style="display: none;">
+                        <div id="editCustomAmounts" style="display: none;">
                             <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-triangle"></i> Общият процент трябва да е 100%
+                                <i class="bi bi-exclamation-triangle"></i> Общата сума трябва да е равна на цената на обекта
                             </div>
                             <div class="row mb-2">
                                 <div class="col-md-6">
-                                    <label>Предварителен договор (%)</label>
-                                    <input type="number" class="form-control edit-custom-perc" id="editPrelimPerc" step="0.1" min="0" max="100" value="30">
+                                    <label>Предварителен договор (€)</label>
+                                    <input type="number" class="form-control edit-custom-amount" id="editPrelimAmountInput" step="0.01" min="0" value="0">
                                 </div>
                                 <div class="col-md-6">
-                                    <label>Акт 14 (%)</label>
-                                    <input type="number" class="form-control edit-custom-perc" id="editAkt14Perc" step="0.1" min="0" max="100" value="30">
+                                    <label>Акт 14 (€)</label>
+                                    <input type="number" class="form-control edit-custom-amount" id="editAkt14AmountInput" step="0.01" min="0" value="0">
                                 </div>
                             </div>
                             <div class="row mb-2">
                                 <div class="col-md-6">
-                                    <label>Акт 15 (%)</label>
-                                    <input type="number" class="form-control edit-custom-perc" id="editAkt15Perc" step="0.1" min="0" max="100" value="30">
+                                    <label>Акт 15 (€)</label>
+                                    <input type="number" class="form-control edit-custom-amount" id="editAkt15AmountInput" step="0.01" min="0" value="0">
                                 </div>
                                 <div class="col-md-6">
-                                    <label>Акт 16 (%)</label>
-                                    <input type="number" class="form-control edit-custom-perc" id="editAkt16Perc" step="0.1" min="0" max="100" value="10">
+                                    <label>Акт 16 (€)</label>
+                                    <input type="number" class="form-control edit-custom-amount" id="editAkt16AmountInput" step="0.01" min="0" value="0">
                                 </div>
                             </div>
                             <div class="text-end mb-3">
-                                <strong>Общо: <span id="editTotalPerc">100</span>%</strong>
+                                <strong>Общо: <span id="editTotalAmount">0.00</span> €</strong>
                             </div>
                         </div>
                         
@@ -528,7 +528,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Етап</th>
-                                        <th>Процент</th>
+                                        <th>Дял (%)</th>
                                         <th>Сума</th>
                                     </tr>
                                 </thead>
@@ -835,7 +835,7 @@
                                         <strong>${obj.apartmentNumber}</strong>
                                         <br>
                                         <small class="text-muted">
-                                            <i class="bi bi-building"></i> ${obj.buildingName || 'Неизвестна сграда'}
+                                            <i class="bi bi-buildings"></i> ${obj.buildingName || 'Неизвестна сграда'}
                                             | <i class="bi bi-rulers"></i> ${obj.area} кв.м
                                             ${obj.stage ? '| <i class="bi bi-tag"></i> ' + obj.stage : ''}
                                         </small>
@@ -878,37 +878,37 @@
                                 <div class="payment-plan-section" id="plan-${obj.id}" style="display: none;">
                                     <h6 class="mb-3"><i class="bi bi-calendar-check"></i> Схема на плащане</h6>
                                     
-                                    <div class="custom-percentages" id="custom-perc-${obj.id}" style="display: none;">
+                                <div class="custom-amounts" id="custom-amount-${obj.id}" style="display: none;">
                                         <div class="alert alert-warning">
                                             <i class="bi bi-exclamation-triangle"></i> 
-                                            Общият процент трябва да е 100%
+                                            Общата сума трябва да е равна на цената на обекта
                                         </div>
                                         <div class="row mb-2">
                                             <div class="col-md-6">
-                                                <label>Предварителен договор (%)</label>
-                                                <input type="number" class="form-control custom-perc" data-stage="prelim" data-obj-id="${obj.id}" 
-                                                       step="0.1" min="0" max="100" value="30">
+                                                <label>Предварителен договор (€)</label>
+                                                <input type="number" class="form-control custom-amount" data-stage="prelim" data-obj-id="${obj.id}" 
+                                                       step="0.01" min="0" value="0">
                                             </div>
                                             <div class="col-md-6">
-                                                <label>Акт 14 (%)</label>
-                                                <input type="number" class="form-control custom-perc" data-stage="akt14" data-obj-id="${obj.id}" 
-                                                       step="0.1" min="0" max="100" value="30">
+                                                <label>Акт 14 (€)</label>
+                                                <input type="number" class="form-control custom-amount" data-stage="akt14" data-obj-id="${obj.id}" 
+                                                       step="0.01" min="0" value="0">
                                             </div>
                                         </div>
                                         <div class="row mb-2">
                                             <div class="col-md-6">
-                                                <label>Акт 15 (%)</label>
-                                                <input type="number" class="form-control custom-perc" data-stage="akt15" data-obj-id="${obj.id}" 
-                                                       step="0.1" min="0" max="100" value="30">
+                                                <label>Акт 15 (€)</label>
+                                                <input type="number" class="form-control custom-amount" data-stage="akt15" data-obj-id="${obj.id}" 
+                                                       step="0.01" min="0" value="0">
                                             </div>
                                             <div class="col-md-6">
-                                                <label>Акт 16 (%)</label>
-                                                <input type="number" class="form-control custom-perc" data-stage="akt16" data-obj-id="${obj.id}" 
-                                                       step="0.1" min="0" max="100" value="10">
+                                                <label>Акт 16 (€)</label>
+                                                <input type="number" class="form-control custom-amount" data-stage="akt16" data-obj-id="${obj.id}" 
+                                                       step="0.01" min="0" value="0">
                                             </div>
                                         </div>
                                         <div class="text-end mb-3">
-                                            <strong>Общо: <span id="total-perc-${obj.id}">100</span>%</strong>
+                                            <strong>Общо: <span id="total-amount-${obj.id}">0.00</span> €</strong>
                                         </div>
                                     </div>
                                     
@@ -916,7 +916,7 @@
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Етап</th>
-                                                <th>Процент</th>
+                                                <th>Дял (%)</th>
                                                 <th>Сума</th>
                                             </tr>
                                         </thead>
@@ -967,7 +967,7 @@
                         basePrice: null,
                         package: null,
                         finalPrice: null,
-                        percentages: null
+                        planAmounts: null
                     };
                 } else {
                     $(`#details-${objId}`).slideUp();
@@ -992,11 +992,11 @@
                 if (selectedObjectsData[objId]) {
                     selectedObjectsData[objId].package = packageType;
                     
-                    // Show/hide custom percentages section
+                    // Show/hide custom amounts section
                     if (packageType === 'custom') {
-                        $(`#custom-perc-${objId}`).slideDown();
+                        $(`#custom-amount-${objId}`).slideDown();
                     } else {
-                        $(`#custom-perc-${objId}`).slideUp();
+                        $(`#custom-amount-${objId}`).slideUp();
                     }
                     
                     if (packageType) {
@@ -1009,7 +1009,7 @@
                 }
             });
             
-            $('.custom-perc').on('input', function() {
+            $('.custom-amount').on('input', function() {
                 const objId = $(this).data('obj-id');
                 recalculatePricing(objId);
             });
@@ -1025,54 +1025,65 @@
             const totalPrice = data.basePrice;
             const packageType = data.package;
             let percentages = {};
+            let planAmounts = {};
             
             if (packageType === 'custom') {
-                percentages = {
-                    prelim: parseFloat($(`.custom-perc[data-stage="prelim"][data-obj-id="${objId}"]`).val()) || 0,
-                    akt14: parseFloat($(`.custom-perc[data-stage="akt14"][data-obj-id="${objId}"]`).val()) || 0,
-                    akt15: parseFloat($(`.custom-perc[data-stage="akt15"][data-obj-id="${objId}"]`).val()) || 0,
-                    akt16: parseFloat($(`.custom-perc[data-stage="akt16"][data-obj-id="${objId}"]`).val()) || 0
+                planAmounts = {
+                    prelim: parseFloat($(`.custom-amount[data-stage="prelim"][data-obj-id="${objId}"]`).val()) || 0,
+                    akt14: parseFloat($(`.custom-amount[data-stage="akt14"][data-obj-id="${objId}"]`).val()) || 0,
+                    akt15: parseFloat($(`.custom-amount[data-stage="akt15"][data-obj-id="${objId}"]`).val()) || 0,
+                    akt16: parseFloat($(`.custom-amount[data-stage="akt16"][data-obj-id="${objId}"]`).val()) || 0
                 };
+                const totalCustomAmount = planAmounts.prelim + planAmounts.akt14 + planAmounts.akt15 + planAmounts.akt16;
+                $(`#total-amount-${objId}`).text(totalCustomAmount.toFixed(2));
                 
-                const totalPerc = percentages.prelim + percentages.akt14 + percentages.akt15 + percentages.akt16;
-                $(`#total-perc-${objId}`).text(totalPerc.toFixed(1));
-                
-                if (Math.abs(totalPerc - 100) > 0.1) {
-                    $(`#total-perc-${objId}`).addClass('text-danger');
+                if (Math.abs(totalCustomAmount - totalPrice) > 0.01) {
+                    $(`#total-amount-${objId}`).addClass('text-danger');
                 } else {
-                    $(`#total-perc-${objId}`).removeClass('text-danger');
+                    $(`#total-amount-${objId}`).removeClass('text-danger');
+                }
+                
+                if (totalPrice > 0) {
+                    percentages = {
+                        prelim: (planAmounts.prelim / totalPrice) * 100,
+                        akt14: (planAmounts.akt14 / totalPrice) * 100,
+                        akt15: (planAmounts.akt15 / totalPrice) * 100,
+                        akt16: (planAmounts.akt16 / totalPrice) * 100
+                    };
                 }
             } else {
                 const pkg = paymentPackages[packageType];
                 percentages = pkg.percentages;
+                const prelimAmount = Math.round(totalPrice * percentages.prelim) / 100;
+                const akt14Amount = Math.round(totalPrice * percentages.akt14) / 100;
+                const akt15Amount = Math.round(totalPrice * percentages.akt15) / 100;
+                const akt16Amount = totalPrice - prelimAmount - akt14Amount - akt15Amount;
+                planAmounts = { prelim: prelimAmount, akt14: akt14Amount, akt15: akt15Amount, akt16: akt16Amount };
             }
             
             // Update data
             data.finalPrice = totalPrice;
-            data.percentages = percentages;
+            data.planAmounts = planAmounts;
             
-            // Calculate amounts with proper rounding to 2 decimal places
-            const prelimAmount = Math.round(totalPrice * percentages.prelim) / 100;
-            const akt14Amount = Math.round(totalPrice * percentages.akt14) / 100;
-            const akt15Amount = Math.round(totalPrice * percentages.akt15) / 100;
-            
-            // Calculate last amount to ensure total equals totalPrice exactly
-            const akt16Amount = totalPrice - prelimAmount - akt14Amount - akt15Amount;
+            const prelimAmount = planAmounts.prelim || 0;
+            const akt14Amount = planAmounts.akt14 || 0;
+            const akt15Amount = planAmounts.akt15 || 0;
+            const akt16Amount = planAmounts.akt16 || 0;
             
             // Update UI
             $(`#final-price-${objId}`).text(formatCurrency(totalPrice) + ' €');
             
             // Update payment plan preview
-            $(`#prelim-perc-${objId}`).text(percentages.prelim + '%');
+            $(`#prelim-perc-${objId}`).text(totalPrice > 0 ? (percentages.prelim || 0).toFixed(1) + '%' : '-');
             $(`#prelim-amount-${objId}`).text(formatCurrency(prelimAmount) + ' €');
             
-            $(`#akt14-perc-${objId}`).text(percentages.akt14 + '%');
+            $(`#akt14-perc-${objId}`).text(totalPrice > 0 ? (percentages.akt14 || 0).toFixed(1) + '%' : '-');
             $(`#akt14-amount-${objId}`).text(formatCurrency(akt14Amount) + ' €');
             
-            $(`#akt15-perc-${objId}`).text(percentages.akt15 + '%');
+            $(`#akt15-perc-${objId}`).text(totalPrice > 0 ? (percentages.akt15 || 0).toFixed(1) + '%' : '-');
             $(`#akt15-amount-${objId}`).text(formatCurrency(akt15Amount) + ' €');
             
-            $(`#akt16-perc-${objId}`).text(percentages.akt16 + '%');
+            $(`#akt16-perc-${objId}`).text(totalPrice > 0 ? (percentages.akt16 || 0).toFixed(1) + '%' : '-');
             $(`#akt16-amount-${objId}`).text(formatCurrency(akt16Amount) + ' €');
             
             $(`#price-summary-${objId}`).slideDown();
@@ -1130,26 +1141,22 @@
                     return;
                 }
                 
-                // Validate custom package percentages
-                if (data.package === 'custom' && data.percentages) {
-                    const totalPerc = data.percentages.prelim + data.percentages.akt14 + 
-                                    data.percentages.akt15 + data.percentages.akt16;
-                    console.log(`Custom package validation for ${objId}: ${totalPerc}%`);
-                    if (Math.abs(totalPerc - 100) > 0.1) {
-                        alert(`Общият процент за ${data.apartmentNumber} трябва да е 100%! (Сега е ${totalPerc.toFixed(1)}%)`);
+                // Validate custom package amounts
+                if (data.package === 'custom' && data.planAmounts) {
+                    const totalAmount = (data.planAmounts.prelim || 0) + (data.planAmounts.akt14 || 0) +
+                                        (data.planAmounts.akt15 || 0) + (data.planAmounts.akt16 || 0);
+                    if (Math.abs(totalAmount - data.finalPrice) > 0.01) {
+                        alert(`Общата сума за ${data.apartmentNumber} трябва да е равна на цената на обекта!`);
                         hasError = true;
                         return;
                     }
                 }
                 
                 const finalPrice = data.finalPrice;
-                const percentages = data.percentages;
-                
-                // Calculate amounts with same logic as UI - ensuring sum equals finalPrice
-                const prelimAmount = Math.round(finalPrice * percentages.prelim) / 100;
-                const akt14Amount = Math.round(finalPrice * percentages.akt14) / 100;
-                const akt15Amount = Math.round(finalPrice * percentages.akt15) / 100;
-                const akt16Amount = finalPrice - prelimAmount - akt14Amount - akt15Amount;
+                const prelimAmount = data.planAmounts ? data.planAmounts.prelim || 0 : 0;
+                const akt14Amount = data.planAmounts ? data.planAmounts.akt14 || 0 : 0;
+                const akt15Amount = data.planAmounts ? data.planAmounts.akt15 || 0 : 0;
+                const akt16Amount = data.planAmounts ? data.planAmounts.akt16 || 0 : 0;
                 
                 const purchase = {
                     apartmentId: parseInt(objId),
@@ -1249,13 +1256,13 @@
                 $('#editPaymentPackage').val(detectedPackage);
                 
                 if (detectedPackage === 'custom') {
-                    $('#editPrelimPerc').val(prelimPerc.toFixed(1));
-                    $('#editAkt14Perc').val(akt14Perc.toFixed(1));
-                    $('#editAkt15Perc').val(akt15Perc.toFixed(1));
-                    $('#editAkt16Perc').val(akt16Perc.toFixed(1));
-                    $('#editCustomPercentages').show();
+                    $('#editPrelimAmountInput').val(prelim.toFixed(2));
+                    $('#editAkt14AmountInput').val(akt14.toFixed(2));
+                    $('#editAkt15AmountInput').val(akt15.toFixed(2));
+                    $('#editAkt16AmountInput').val(akt16.toFixed(2));
+                    $('#editCustomAmounts').show();
                 } else {
-                    $('#editCustomPercentages').hide();
+                    $('#editCustomAmounts').hide();
                 }
                 
                 $('#editPlanPreview').show();
@@ -1268,9 +1275,9 @@
         $('#editPaymentPackage').on('change', function() {
             const packageType = $(this).val();
             if (packageType === 'custom') {
-                $('#editCustomPercentages').slideDown();
+                $('#editCustomAmounts').slideDown();
             } else {
-                $('#editCustomPercentages').slideUp();
+                $('#editCustomAmounts').slideUp();
             }
             
             if (packageType) {
@@ -1282,7 +1289,7 @@
             recalculateEditPricing();
         });
         
-        $('#editTotalPrice, .edit-custom-perc').on('input', function() {
+        $('#editTotalPrice, .edit-custom-amount').on('input', function() {
             recalculateEditPricing();
         });
         
@@ -1296,45 +1303,59 @@
             }
             
             let percentages = {};
+            let planAmounts = {};
             
             if (packageType === 'custom') {
-                percentages = {
-                    prelim: parseFloat($('#editPrelimPerc').val()) || 0,
-                    akt14: parseFloat($('#editAkt14Perc').val()) || 0,
-                    akt15: parseFloat($('#editAkt15Perc').val()) || 0,
-                    akt16: parseFloat($('#editAkt16Perc').val()) || 0
+                planAmounts = {
+                    prelim: parseFloat($('#editPrelimAmountInput').val()) || 0,
+                    akt14: parseFloat($('#editAkt14AmountInput').val()) || 0,
+                    akt15: parseFloat($('#editAkt15AmountInput').val()) || 0,
+                    akt16: parseFloat($('#editAkt16AmountInput').val()) || 0
                 };
                 
-                const totalPerc = percentages.prelim + percentages.akt14 + percentages.akt15 + percentages.akt16;
-                $('#editTotalPerc').text(totalPerc.toFixed(1));
+                const totalAmount = planAmounts.prelim + planAmounts.akt14 + planAmounts.akt15 + planAmounts.akt16;
+                $('#editTotalAmount').text(totalAmount.toFixed(2));
                 
-                if (Math.abs(totalPerc - 100) > 0.1) {
-                    $('#editTotalPerc').addClass('text-danger');
+                if (Math.abs(totalAmount - totalPrice) > 0.01) {
+                    $('#editTotalAmount').addClass('text-danger');
                 } else {
-                    $('#editTotalPerc').removeClass('text-danger');
+                    $('#editTotalAmount').removeClass('text-danger');
+                }
+                
+                if (totalPrice > 0) {
+                    percentages = {
+                        prelim: (planAmounts.prelim / totalPrice) * 100,
+                        akt14: (planAmounts.akt14 / totalPrice) * 100,
+                        akt15: (planAmounts.akt15 / totalPrice) * 100,
+                        akt16: (planAmounts.akt16 / totalPrice) * 100
+                    };
                 }
             } else {
                 const pkg = paymentPackages[packageType];
                 percentages = pkg.percentages;
+                const prelimAmount = Math.round(totalPrice * percentages.prelim) / 100;
+                const akt14Amount = Math.round(totalPrice * percentages.akt14) / 100;
+                const akt15Amount = Math.round(totalPrice * percentages.akt15) / 100;
+                const akt16Amount = totalPrice - prelimAmount - akt14Amount - akt15Amount;
+                planAmounts = { prelim: prelimAmount, akt14: akt14Amount, akt15: akt15Amount, akt16: akt16Amount };
             }
             
-            // Calculate amounts with proper rounding to 2 decimal places
-            const prelimAmount = Math.round(totalPrice * percentages.prelim) / 100;
-            const akt14Amount = Math.round(totalPrice * percentages.akt14) / 100;
-            const akt15Amount = Math.round(totalPrice * percentages.akt15) / 100;
-            const akt16Amount = totalPrice - prelimAmount - akt14Amount - akt15Amount;
+            const prelimAmount = planAmounts.prelim || 0;
+            const akt14Amount = planAmounts.akt14 || 0;
+            const akt15Amount = planAmounts.akt15 || 0;
+            const akt16Amount = planAmounts.akt16 || 0;
             
             // Update UI
-            $('#editPrelimPercDisplay').text(percentages.prelim + '%');
+            $('#editPrelimPercDisplay').text(totalPrice > 0 ? (percentages.prelim || 0).toFixed(1) + '%' : '-');
             $('#editPrelimAmount').text(formatCurrency(prelimAmount) + ' €');
             
-            $('#editAkt14PercDisplay').text(percentages.akt14 + '%');
+            $('#editAkt14PercDisplay').text(totalPrice > 0 ? (percentages.akt14 || 0).toFixed(1) + '%' : '-');
             $('#editAkt14Amount').text(formatCurrency(akt14Amount) + ' €');
             
-            $('#editAkt15PercDisplay').text(percentages.akt15 + '%');
+            $('#editAkt15PercDisplay').text(totalPrice > 0 ? (percentages.akt15 || 0).toFixed(1) + '%' : '-');
             $('#editAkt15Amount').text(formatCurrency(akt15Amount) + ' €');
             
-            $('#editAkt16PercDisplay').text(percentages.akt16 + '%');
+            $('#editAkt16PercDisplay').text(totalPrice > 0 ? (percentages.akt16 || 0).toFixed(1) + '%' : '-');
             $('#editAkt16Amount').text(formatCurrency(akt16Amount) + ' €');
             
             $('#editPlanPreview').show();
@@ -1356,30 +1377,45 @@
             }
             
             let percentages = {};
+            let planAmounts = {};
             
             if (packageType === 'custom') {
-                percentages = {
-                    prelim: parseFloat($('#editPrelimPerc').val()) || 0,
-                    akt14: parseFloat($('#editAkt14Perc').val()) || 0,
-                    akt15: parseFloat($('#editAkt15Perc').val()) || 0,
-                    akt16: parseFloat($('#editAkt16Perc').val()) || 0
+                planAmounts = {
+                    prelim: parseFloat($('#editPrelimAmountInput').val()) || 0,
+                    akt14: parseFloat($('#editAkt14AmountInput').val()) || 0,
+                    akt15: parseFloat($('#editAkt15AmountInput').val()) || 0,
+                    akt16: parseFloat($('#editAkt16AmountInput').val()) || 0
                 };
                 
-                const totalPerc = percentages.prelim + percentages.akt14 + percentages.akt15 + percentages.akt16;
-                if (Math.abs(totalPerc - 100) > 0.1) {
-                    alert(`Общият процент трябва да е 100%! (Сега е ${totalPerc.toFixed(1)}%)`);
+                const totalAmount = planAmounts.prelim + planAmounts.akt14 + planAmounts.akt15 + planAmounts.akt16;
+                if (Math.abs(totalAmount - totalPrice) > 0.01) {
+                    alert('Общата сума трябва да е равна на цената на обекта.');
                     return;
+                }
+                
+                if (totalPrice > 0) {
+                    percentages = {
+                        prelim: (planAmounts.prelim / totalPrice) * 100,
+                        akt14: (planAmounts.akt14 / totalPrice) * 100,
+                        akt15: (planAmounts.akt15 / totalPrice) * 100,
+                        akt16: (planAmounts.akt16 / totalPrice) * 100
+                    };
                 }
             } else {
                 const pkg = paymentPackages[packageType];
                 percentages = pkg.percentages;
+                const prelimAmount = Math.round(totalPrice * percentages.prelim) / 100;
+                const akt14Amount = Math.round(totalPrice * percentages.akt14) / 100;
+                const akt15Amount = Math.round(totalPrice * percentages.akt15) / 100;
+                const akt16Amount = totalPrice - prelimAmount - akt14Amount - akt15Amount;
+                planAmounts = { prelim: prelimAmount, akt14: akt14Amount, akt15: akt15Amount, akt16: akt16Amount };
             }
             
             // Calculate amounts with same logic as UI
-            const prelimAmount = Math.round(totalPrice * percentages.prelim) / 100;
-            const akt14Amount = Math.round(totalPrice * percentages.akt14) / 100;
-            const akt15Amount = Math.round(totalPrice * percentages.akt15) / 100;
-            const akt16Amount = totalPrice - prelimAmount - akt14Amount - akt15Amount;
+            const prelimAmount = planAmounts.prelim || 0;
+            const akt14Amount = planAmounts.akt14 || 0;
+            const akt15Amount = planAmounts.akt15 || 0;
+            const akt16Amount = planAmounts.akt16 || 0;
             
             const payload = {
                 totalPrice: totalPrice,

@@ -208,6 +208,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         counts.put("basements", 0L);
         counts.put("parking", 0L);
         counts.put("commercial", 0L);
+        counts.put("maisonettes", 0L);
         counts.put("total", 0L);
 
         if (buildingId == null) {
@@ -221,6 +222,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         long basements = 0L;
         long parking = 0L;
         long commercial = 0L;
+        long maisonettes = 0L;
 
         List<Apartment> objects = apartmentRepository.findByBuildingId(buildingId);
         for (Apartment apt : objects) {
@@ -238,6 +240,8 @@ public class StatisticsServiceImpl implements StatisticsService {
                 basements++;
             } else if (compact.startsWith("ТЪРГОВ") || compact.startsWith("МАГАЗИН") || compact.contains("ТЪРГОВСКОПОМЕЩЕНИЕ")) {
                 commercial++;
+            } else if (compact.startsWith("МЕЗОНЕТ")) {
+                maisonettes++;
             } else {
                 apartments++;
             }
@@ -248,7 +252,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         counts.put("basements", basements);
         counts.put("parking", parking);
         counts.put("commercial", commercial);
-        counts.put("total", apartments + garages + basements + parking + commercial);
+        counts.put("maisonettes", maisonettes);
+        counts.put("total", apartments + garages + basements + parking + commercial + maisonettes);
         return counts;
     }
 }

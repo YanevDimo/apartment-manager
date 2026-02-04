@@ -63,6 +63,19 @@ public class MainController {
         model.addAttribute("currentBuildingId", currentBuilding.getId());
         model.addAttribute("currentBuildingName", currentBuilding.getName());
         model.addAttribute("currentBuildingStage", currentBuilding.getStage());
+        var availableObjects = apartmentService.getAllApartmentsByBuilding(currentBuilding.getId()).stream()
+            .filter(a -> a.getIsSold() == null || !a.getIsSold() || a.getClient() == null)
+            .map(a -> {
+                var data = new java.util.HashMap<String, Object>();
+                data.put("name", a.getApartmentNumber());
+                data.put("area", a.getArea());
+                data.put("pricePerM2", a.getPricePerM2());
+                data.put("entrance", a.getEntrance());
+                data.put("floor", a.getFloor());
+                return data;
+            })
+            .toList();
+        model.addAttribute("availableObjects", availableObjects);
         return "add_apartment";
     }
     
@@ -107,6 +120,8 @@ public class MainController {
                 String apartmentNumber = request.getParameter("objects[" + objectIndex + "][apartment]");
                 String area = request.getParameter("objects[" + objectIndex + "][area]");
                 String pricePerM2 = request.getParameter("objects[" + objectIndex + "][price_per_m2]");
+                String entrance = request.getParameter("objects[" + objectIndex + "][entrance]");
+                String floor = request.getParameter("objects[" + objectIndex + "][floor]");
                 
                 if (apartmentNumber != null && !apartmentNumber.trim().isEmpty() &&
                     area != null && !area.trim().isEmpty() &&
@@ -117,6 +132,8 @@ public class MainController {
                         apartment.setBuilding(building);
                         apartment.setBuildingName(building.getName()); // For backward compatibility
                         apartment.setApartmentNumber(apartmentNumber.trim());
+                        apartment.setEntrance(entrance != null && !entrance.trim().isEmpty() ? entrance.trim() : null);
+                        apartment.setFloor(floor != null && !floor.trim().isEmpty() ? floor.trim() : null);
                         apartment.setArea(new BigDecimal(area));
                         apartment.setPricePerM2(new BigDecimal(pricePerM2));
                         if (client != null) {

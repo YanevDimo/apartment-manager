@@ -529,6 +529,40 @@ public class ClientController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    @DeleteMapping("/api/delete-all")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteAllClients() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // Detach clients from apartments to avoid FK constraints
+            apartmentService.getAllApartments().forEach(apartment -> {
+                if (apartment.getClient() != null) {
+                    apartment.setClient(null);
+                    apartment.setIsSold(false);
+                    apartment.setPaymentPlan(null);
+                    // Remove package info from notes if present
+                    String notes = apartment.getNotes();
+                    if (notes != null && notes.contains("Пакет за плащане:")) {
+                        notes = notes.replaceAll("Пакет за плащане:.*\\n?", "").trim();
+                        apartment.setNotes(notes.isEmpty() ? null : notes);
+                    }
+                    apartmentService.saveApartment(apartment);
+                }
+            });
+
+            clientService.deleteAllClients();
+            clientService.resetClientAutoIncrement();
+
+            response.put("success", true);
+            response.put("message", "Всички клиенти са изтрити. ID броячът е нулиран.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Грешка при изтриване на клиентите: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
     
     private String getPackageName(String packageType) {
         return switch (packageType) {

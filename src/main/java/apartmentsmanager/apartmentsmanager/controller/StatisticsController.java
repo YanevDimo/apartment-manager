@@ -72,6 +72,7 @@ public class StatisticsController {
             freeCounts.put("basements", 0);
             freeCounts.put("parking", 0);
             freeCounts.put("commercial", 0);
+            freeCounts.put("maisonettes", 0);
             freeCounts.put("total", 0);
             stats.put("freeCounts", freeCounts);
             stats.put("currentBuildingId", null);

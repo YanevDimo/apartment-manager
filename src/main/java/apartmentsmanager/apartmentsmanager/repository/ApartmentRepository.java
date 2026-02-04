@@ -17,7 +17,7 @@ public interface ApartmentRepository extends JpaRepository<Apartment, Long> {
     Optional<Apartment> findByBuildingAndApartmentNumber(Building building, String apartmentNumber);
     
     // Find by building name and apartment number (for backward compatibility)
-    Optional<Apartment> findByBuildingNameAndApartmentNumber(String buildingName, String apartmentNumber);
+    List<Apartment> findByBuildingNameAndApartmentNumber(String buildingName, String apartmentNumber);
     
     // Find by building
     List<Apartment> findByBuilding(Building building);

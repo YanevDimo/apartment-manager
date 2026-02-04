@@ -28,17 +28,20 @@
 <div class="container-fluid clients-page">
  <div class="row">
  <div class="col-md-12">
- <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
  <h2>
  <i class="bi bi-people"></i> Клиентска база
  </h2>
- <div>
+                <div>
  <a href="/add-client" class="btn btn-success me-2">
  <i class="bi bi-person-plus me-1"></i> Добави клиент
  </a>
  <a href="/export-clients" class="btn btn-outline-info">
  <i class="bi bi-file-earmark-excel me-1"></i> Експорт Excel
  </a>
+                    <button type="button" class="btn btn-outline-danger ms-2" id="deleteAllClientsBtn">
+                        <i class="bi bi-trash3 me-1"></i> Изтрий всички
+                    </button>
  </div>
  </div>
 
@@ -285,6 +288,33 @@ $(document).on('click', '#confirmDeleteBtn', function() {
     if (clientId) {
         deleteClient(clientId);
     }
+});
+
+// Temporary: delete all clients and reset IDs
+$(document).on('click', '#deleteAllClientsBtn', function() {
+    const confirmed = confirm('Сигурни ли сте? Това ще изтрие ВСИЧКИ клиенти и ще нулира ID брояча.');
+    if (!confirmed) {
+        return;
+    }
+    $.ajax({
+        url: '/clients/api/delete-all',
+        method: 'DELETE',
+        success: function(response) {
+            if (response.success) {
+                alert(response.message || 'Всички клиенти са изтрити.');
+                loadClients();
+            } else {
+                alert('Грешка: ' + (response.message || 'Неуспешно изтриване'));
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = 'Грешка при изтриване';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            alert(errorMessage);
+        }
+    });
 });
 
 // Function to delete client via API

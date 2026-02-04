@@ -22,7 +22,7 @@ public interface ApartmentService {
     
     void deleteApartment(Long id);
     
-    boolean apartmentExists(String buildingName, String apartmentNumber, Long excludeId);
+    boolean apartmentExists(String buildingName, String apartmentNumber, String entrance, Long excludeId);
     
     List<Apartment> getApartmentsWithOverduePayments();
 

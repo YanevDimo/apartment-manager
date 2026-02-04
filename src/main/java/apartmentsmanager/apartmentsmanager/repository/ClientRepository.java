@@ -3,6 +3,7 @@ package apartmentsmanager.apartmentsmanager.repository;
 import apartmentsmanager.apartmentsmanager.entity.Client;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -34,4 +35,8 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     // Get apartment count for a client
     @Query("SELECT COUNT(a) FROM Apartment a WHERE a.client.id = :clientId")
     Long countApartmentsByClientId(@Param("clientId") Long clientId);
+
+    @Modifying
+    @Query(value = "ALTER TABLE clients AUTO_INCREMENT = 1", nativeQuery = true)
+    void resetAutoIncrement();
 }

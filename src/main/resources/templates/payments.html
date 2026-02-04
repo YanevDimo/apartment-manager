@@ -74,14 +74,15 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle payments-table">
+                        <table class="table table-striped table-hover align-middle payments-table" id="paymentsTable">
                             <thead>
                                 <tr>
-                                    <th>Обект</th>
-                                    <th>Сума (€)</th>
                                     <th>Дата</th>
+                                    <th>Сграда</th>
+                                    <th>Обект</th>
+                                    <th>Клиент</th>
+                                    <th>Сума (€)</th>
                                     <th>Метод</th>
-                                    <th>Етап</th>
                                     <th>Фактура</th>
                                     <th>Капаро</th>
                                     <th>Действия</th>
@@ -89,7 +90,7 @@
                             </thead>
                             <tbody id="paymentsListBody">
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted">Зареждане...</td>
+                                    <td colspan="9" class="text-center text-muted">Зареждане...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -132,11 +133,10 @@
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="paymentMethod" class="form-label">Метод на плащане</label>
-                                    <select class="form-select" id="paymentMethod" name="paymentMethod">
-                                        <option value="">Изберете метод</option>
+                                    <label for="paymentMethod" class="form-label">Метод на плащане *</label>
+                                    <select class="form-select" id="paymentMethod" name="paymentMethod" required>
+                                        <option value="В брой" selected>В брой</option>
                                         <option value="Банка">Банка</option>
-                                        <option value="В брой">В брой</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">

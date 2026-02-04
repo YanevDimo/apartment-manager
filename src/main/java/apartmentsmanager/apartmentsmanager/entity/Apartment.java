@@ -18,7 +18,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "apartments", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"building_id", "apartment_number"})
+    @UniqueConstraint(columnNames = {"building_id", "entrance", "apartment_number"})
 })
 @Data
 @NoArgsConstructor
@@ -40,6 +40,12 @@ public class Apartment {
     @NotBlank(message = "Номерът на апартамента е задължително")
     @Column(name = "apartment_number", nullable = false, length = 50)
     private String apartmentNumber;
+
+    @Column(name = "entrance", length = 50)
+    private String entrance;
+
+    @Column(name = "floor", length = 50)
+    private String floor;
     
     @NotNull(message = "Площта е задължителна")
     @DecimalMin(value = "0.01", message = "Площта трябва да е по-голяма от 0")

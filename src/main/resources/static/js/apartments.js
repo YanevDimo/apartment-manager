@@ -42,6 +42,18 @@ function initializeTable() {
                 }
             },
             { 
+                data: 'entrance',
+                render: function(data) {
+                    return data || '-';
+                }
+            },
+            { 
+                data: 'floor',
+                render: function(data) {
+                    return data || '-';
+                }
+            },
+            { 
                 data: 'area',
                 render: function(data) {
                     return parseFloat(data || 0).toFixed(2);
@@ -67,7 +79,11 @@ function initializeTable() {
             },
             { 
                 data: 'client',
-                render: function(data) {
+                render: function(data, type, row) {
+                    if (row.clientId) {
+                        const name = data || 'Клиент';
+                        return `<a href="/clients/${row.clientId}" class="text-decoration-none">${name}</a>`;
+                    }
                     return data || '-';
                 }
             },
@@ -145,7 +161,19 @@ function initializeTable() {
         pageLength: 25,
         responsive: true,
         scrollX: true,
-        stateSave: true // Save table state (selection, pagination, etc.)
+        stateSave: true, // Save table state (selection, pagination, etc.)
+        initComplete: function() {
+            const api = this.api();
+            const searchInput = $('#apartmentsTable_filter input');
+            if (searchInput.length) {
+                searchInput.off('keyup.DT input.DT');
+                searchInput.on('input', function() {
+                    const value = this.value || '';
+                    api.search('').columns().search('');
+                    api.column(1).search(value, false, false).draw();
+                });
+            }
+        }
     });
 }
 
@@ -258,10 +286,17 @@ function setupEventHandlers() {
 function openModalFromQuery() {
     const params = new URLSearchParams(window.location.search);
     const clientId = params.get('client');
+    const openId = params.get('open');
     if (params.get('add') === '1') {
         openAddModal(clientId);
         params.delete('add');
         params.delete('client');
+        const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        window.history.replaceState({}, document.title, newUrl);
+    }
+    if (openId) {
+        openEditModal(openId);
+        params.delete('open');
         const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
         window.history.replaceState({}, document.title, newUrl);
     }
@@ -298,6 +333,8 @@ function openEditModal(id) {
             $('#apartmentModalLabel').html('<i class="bi bi-pencil me-2"></i>Редактирай обект');
             $('#apartmentId').val(data.id);
             $('#apartmentNumber').val(data.apartmentNumber);
+            $('#entrance').val(data.entrance || '');
+            $('#floor').val(data.floor || '');
             $('#area').val(data.area);
             $('#stage').val(data.stage || '');
             $('#notes').val(data.notes || '');
@@ -327,6 +364,8 @@ function saveApartment() {
     const formData = {
         id: $('#apartmentId').val() || null,
         apartmentNumber: $('#apartmentNumber').val(),
+        entrance: $('#entrance').val() || null,
+        floor: $('#floor').val() || null,
         area: parseFloat($('#area').val()),
         stage: $('#stage').val() || null,
         notes: $('#notes').val() || null,

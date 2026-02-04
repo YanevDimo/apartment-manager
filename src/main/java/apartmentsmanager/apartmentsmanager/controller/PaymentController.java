@@ -3,6 +3,7 @@ package apartmentsmanager.apartmentsmanager.controller;
 import apartmentsmanager.apartmentsmanager.entity.Apartment;
 import apartmentsmanager.apartmentsmanager.entity.Payment;
 import apartmentsmanager.apartmentsmanager.service.ApartmentService;
+import apartmentsmanager.apartmentsmanager.service.BuildingService;
 import apartmentsmanager.apartmentsmanager.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +26,13 @@ public class PaymentController {
     
     private final PaymentService paymentService;
     private final ApartmentService apartmentService;
+    private final BuildingService buildingService;
     
     @Autowired
-    public PaymentController(PaymentService paymentService, ApartmentService apartmentService) {
+    public PaymentController(PaymentService paymentService, ApartmentService apartmentService, BuildingService buildingService) {
         this.paymentService = paymentService;
         this.apartmentService = apartmentService;
+        this.buildingService = buildingService;
     }
     
     @GetMapping
@@ -40,24 +43,33 @@ public class PaymentController {
     @GetMapping("/api/list")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getAllPaymentsApi() {
-        // Get all payments from all apartments
-        List<Apartment> apartments = apartmentService.getAllSoldApartments();
+        Long buildingId = buildingService.getOrSetCurrentBuilding()
+            .map(b -> b.getId())
+            .orElse(null);
+        // Get payments only for current building
+        List<Apartment> apartments = buildingId != null
+            ? apartmentService.getAllSoldApartmentsByBuilding(buildingId)
+            : List.of();
         List<Map<String, Object>> paymentData = apartments.stream()
-                .flatMap(apt -> paymentService.getPaymentsByApartmentId(apt.getId()).stream())
-                .map(payment -> {
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("id", payment.getId());
-                    data.put("apartmentId", payment.getApartment().getId());
-                    data.put("apartment", payment.getApartment().getFullIdentifier());
-                    data.put("amount", payment.getAmount());
-                    data.put("paymentDate", payment.getPaymentDate().toString());
-                    data.put("invoiceNumber", payment.getInvoiceNumber());
-                    data.put("paymentMethod", payment.getPaymentMethod());
-                    data.put("paymentStage", payment.getPaymentStage());
-                    data.put("isDeposit", payment.getIsDeposit());
-                    data.put("notes", payment.getNotes());
-                    return data;
-                })
+                .flatMap(apt -> paymentService.getPaymentsByApartmentId(apt.getId()).stream()
+                        .map(payment -> {
+                            Map<String, Object> data = new HashMap<>();
+                            data.put("id", payment.getId());
+                            data.put("apartmentId", apt.getId());
+                            data.put("apartment", apt.getApartmentNumber());
+                            data.put("buildingId", apt.getBuilding() != null ? apt.getBuilding().getId() : null);
+                            data.put("buildingName", apt.getBuilding() != null ? apt.getBuilding().getName() : null);
+                            data.put("clientId", apt.getClient() != null ? apt.getClient().getId() : null);
+                            data.put("clientName", apt.getClient() != null ? apt.getClient().getName() : null);
+                            data.put("amount", payment.getAmount());
+                            data.put("paymentDate", payment.getPaymentDate().toString());
+                            data.put("invoiceNumber", payment.getInvoiceNumber());
+                            data.put("paymentMethod", payment.getPaymentMethod());
+                            data.put("paymentStage", payment.getPaymentStage());
+                            data.put("isDeposit", payment.getIsDeposit());
+                            data.put("notes", payment.getNotes());
+                            return data;
+                        }))
                 .collect(Collectors.toList());
         
         Map<String, Object> response = new HashMap<>();

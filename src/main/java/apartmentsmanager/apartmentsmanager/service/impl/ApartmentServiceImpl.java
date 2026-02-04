@@ -70,15 +70,21 @@ public class ApartmentServiceImpl implements ApartmentService {
     
     @Override
     @Transactional(readOnly = true)
-    public boolean apartmentExists(String buildingName, String apartmentNumber, Long excludeId) {
-        Optional<Apartment> existing = apartmentRepository.findByBuildingNameAndApartmentNumber(
+    public boolean apartmentExists(String buildingName, String apartmentNumber, String entrance, Long excludeId) {
+        List<Apartment> existing = apartmentRepository.findByBuildingNameAndApartmentNumber(
             buildingName, apartmentNumber);
-        
-        if (existing.isPresent()) {
-            if (excludeId != null && existing.get().getId().equals(excludeId)) {
-                return false; // Same apartment, not a duplicate
+        if (existing.isEmpty()) {
+            return false;
+        }
+        String normalizedEntrance = entrance != null ? entrance.trim() : "";
+        for (Apartment apt : existing) {
+            if (excludeId != null && apt.getId().equals(excludeId)) {
+                continue;
             }
-            return true; // Duplicate found
+            String existingEntrance = apt.getEntrance() != null ? apt.getEntrance().trim() : "";
+            if (existingEntrance.equalsIgnoreCase(normalizedEntrance)) {
+                return true;
+            }
         }
         return false;
     }

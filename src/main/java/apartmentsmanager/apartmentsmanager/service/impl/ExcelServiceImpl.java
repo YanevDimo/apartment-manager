@@ -17,6 +17,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class ExcelServiceImpl implements ExcelService {
@@ -42,7 +44,7 @@ public class ExcelServiceImpl implements ExcelService {
             // Create header row
             Row headerRow = sheet.createRow(0);
             String[] headers = {
-                "ID", "Сграда", "Апартамент", "Площ (кв.м)", "Цена/кв.м (€)", 
+                "ID", "Сграда", "Апартамент", "Вход", "Етаж", "Площ (кв.м)", "Цена/кв.м (€)",
                 "Обща цена (€)", "Етап", "Клиент", "Платено (€)", "Остатък (€)", "Бележки"
             };
             
@@ -67,14 +69,16 @@ public class ExcelServiceImpl implements ExcelService {
                 row.createCell(0).setCellValue(apt.getId() != null ? apt.getId() : 0);
                 row.createCell(1).setCellValue(apt.getBuildingName() != null ? apt.getBuildingName() : "");
                 row.createCell(2).setCellValue(apt.getApartmentNumber() != null ? apt.getApartmentNumber() : "");
-                row.createCell(3).setCellValue(apt.getArea() != null ? apt.getArea().doubleValue() : 0);
-                row.createCell(4).setCellValue(apt.getPricePerM2() != null ? apt.getPricePerM2().doubleValue() : 0);
-                row.createCell(5).setCellValue(apt.getTotalPrice() != null ? apt.getTotalPrice().doubleValue() : 0);
-                row.createCell(6).setCellValue(apt.getStage() != null ? apt.getStage() : "");
-                row.createCell(7).setCellValue(apt.getClient() != null && apt.getClient().getName() != null ? apt.getClient().getName() : "");
-                row.createCell(8).setCellValue(apt.getTotalPaid() != null ? apt.getTotalPaid().doubleValue() : 0);
-                row.createCell(9).setCellValue(apt.getRemainingPayment() != null ? apt.getRemainingPayment().doubleValue() : 0);
-                row.createCell(10).setCellValue(apt.getNotes() != null ? apt.getNotes() : "");
+                row.createCell(3).setCellValue(apt.getEntrance() != null ? apt.getEntrance() : "");
+                row.createCell(4).setCellValue(apt.getFloor() != null ? apt.getFloor() : "");
+                row.createCell(5).setCellValue(apt.getArea() != null ? apt.getArea().doubleValue() : 0);
+                row.createCell(6).setCellValue(apt.getPricePerM2() != null ? apt.getPricePerM2().doubleValue() : 0);
+                row.createCell(7).setCellValue(apt.getTotalPrice() != null ? apt.getTotalPrice().doubleValue() : 0);
+                row.createCell(8).setCellValue(apt.getStage() != null ? apt.getStage() : "");
+                row.createCell(9).setCellValue(apt.getClient() != null && apt.getClient().getName() != null ? apt.getClient().getName() : "");
+                row.createCell(10).setCellValue(apt.getTotalPaid() != null ? apt.getTotalPaid().doubleValue() : 0);
+                row.createCell(11).setCellValue(apt.getRemainingPayment() != null ? apt.getRemainingPayment().doubleValue() : 0);
+                row.createCell(12).setCellValue(apt.getNotes() != null ? apt.getNotes() : "");
             }
             
             // Auto-size columns
@@ -108,6 +112,13 @@ public class ExcelServiceImpl implements ExcelService {
             currentBuilding = buildingService.getBuildingById(buildingId).orElse(null);
         }
         
+        Map<String, Client> clientsByName = new HashMap<>();
+        clientService.getAllClients().forEach(client -> {
+            if (client.getName() != null) {
+                clientsByName.put(client.getName().trim().toLowerCase(Locale.ROOT), client);
+            }
+        });
+
         try (InputStream inputStream = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(inputStream)) {
             
@@ -140,37 +151,74 @@ public class ExcelServiceImpl implements ExcelService {
                     if (row.getCell(2) != null) {
                         apartment.setApartmentNumber(getCellValueAsString(row.getCell(2)));
                     }
-                    
-                    // Read area (column 3) - required field
-                    BigDecimal area = null;
                     if (row.getCell(3) != null) {
-                        double areaValue = getCellValueAsDouble(row.getCell(3));
+                        apartment.setEntrance(getCellValueAsString(row.getCell(3)));
+                    }
+                    if (row.getCell(4) != null) {
+                        apartment.setFloor(getCellValueAsString(row.getCell(4)));
+                    }
+                    
+                    // Read area (column 5) - required field
+                    BigDecimal area = null;
+                    if (row.getCell(5) != null) {
+                        double areaValue = getCellValueAsDouble(row.getCell(5));
                         if (areaValue > 0) {
                             area = BigDecimal.valueOf(areaValue);
                         }
                     }
                     apartment.setArea(area);
                     
-                    // Read pricePerM2 (column 4) - optional
+                    // Read pricePerM2 (column 6) - optional
                     BigDecimal pricePerM2 = null;
-                    if (row.getCell(4) != null) {
-                        double priceValue = getCellValueAsDouble(row.getCell(4));
+                    if (row.getCell(6) != null) {
+                        double priceValue = getCellValueAsDouble(row.getCell(6));
                         if (priceValue > 0) {
                             pricePerM2 = BigDecimal.valueOf(priceValue);
                         }
                     }
                     apartment.setPricePerM2(pricePerM2);
-                    
-                    if (row.getCell(6) != null) {
-                        apartment.setStage(getCellValueAsString(row.getCell(6)));
+
+                    // Read totalPrice (column 7) - optional
+                    BigDecimal totalPrice = null;
+                    if (row.getCell(7) != null) {
+                        double totalValue = getCellValueAsDouble(row.getCell(7));
+                        if (totalValue > 0) {
+                            totalPrice = BigDecimal.valueOf(totalValue);
+                        }
                     }
-                    if (row.getCell(10) != null) {
-                        apartment.setNotes(getCellValueAsString(row.getCell(10)));
+                    if (totalPrice != null && (pricePerM2 == null || pricePerM2.compareTo(BigDecimal.ZERO) <= 0)) {
+                        apartment.setTotalPrice(totalPrice);
                     }
                     
-                    apartment.setClient(null);
-                    apartment.setIsSold(false);
-                    
+                    if (row.getCell(8) != null) {
+                        apartment.setStage(getCellValueAsString(row.getCell(8)));
+                    }
+
+                    // Read client (column 9)
+                    String clientName = null;
+                    if (row.getCell(9) != null) {
+                        clientName = getCellValueAsString(row.getCell(9));
+                    }
+                    String trimmedClientName = clientName != null ? clientName.trim() : "";
+                    if (!trimmedClientName.isEmpty()) {
+                        String lookupKey = trimmedClientName.toLowerCase(Locale.ROOT);
+                        Client foundClient = clientsByName.get(lookupKey);
+                        if (foundClient == null) {
+                            Client newClient = new Client();
+                            newClient.setName(trimmedClientName);
+                            foundClient = clientService.saveClient(newClient);
+                            clientsByName.put(lookupKey, foundClient);
+                        }
+                        apartment.setClient(foundClient);
+                        apartment.setIsSold(true);
+                    } else {
+                        apartment.setClient(null);
+                        apartment.setIsSold(false);
+                    }
+
+                    if (row.getCell(12) != null) {
+                        apartment.setNotes(getCellValueAsString(row.getCell(12)));
+                    }
                     // Validate required fields
                     if ((apartment.getBuildingName() == null || apartment.getBuildingName().trim().isEmpty()) ||
                         apartment.getApartmentNumber() == null || apartment.getApartmentNumber().trim().isEmpty()) {
@@ -202,7 +250,9 @@ public class ExcelServiceImpl implements ExcelService {
 
                     // Check for duplicates
                     if (apartmentService.apartmentExists(apartment.getBuildingName(),
-                                                        apartment.getApartmentNumber(), null)) {
+                                                        apartment.getApartmentNumber(),
+                                                        apartment.getEntrance(),
+                                                        null)) {
                         skipped++;
                         errors.add("Ред " + (row.getRowNum() + 1) + ": Апартамент вече съществува");
                         continue;
@@ -359,6 +409,70 @@ public class ExcelServiceImpl implements ExcelService {
                 return 0.0;
         }
     }
+
+    private Map<String, Integer> buildHeaderIndexMap(Row headerRow) {
+        Map<String, Integer> headerMap = new HashMap<>();
+        if (headerRow == null) {
+            return headerMap;
+        }
+        for (Cell cell : headerRow) {
+            String raw = getCellValueAsString(cell);
+            if (raw == null) {
+                continue;
+            }
+            String normalized = raw.trim().toLowerCase(Locale.ROOT);
+            if (normalized.isEmpty()) {
+                continue;
+            }
+            if (normalized.contains("име")) {
+                headerMap.put("име", cell.getColumnIndex());
+            } else if (normalized.contains("контакт")) {
+                headerMap.put("контакти", cell.getColumnIndex());
+            } else if (normalized.contains("тел")) {
+                headerMap.put("телефон", cell.getColumnIndex());
+            } else if (normalized.contains("email") || normalized.contains("e-mail")) {
+                headerMap.put("email", cell.getColumnIndex());
+            } else if (normalized.contains("адрес")) {
+                headerMap.put("адрес", cell.getColumnIndex());
+            } else if (normalized.contains("бележки")) {
+                headerMap.put("бележки", cell.getColumnIndex());
+            }
+        }
+        return headerMap;
+    }
+
+    private String getCellValueByHeader(Row row, Map<String, Integer> headerMap, String key, int fallbackIndex) {
+        Integer index = headerMap.get(key);
+        if (index == null) {
+            index = fallbackIndex;
+        }
+        if (index == null || index < 0) {
+            return "";
+        }
+        return getCellValueAsString(row.getCell(index)).trim();
+    }
+
+    private Map<String, String> parseContactInfo(String raw) {
+        Map<String, String> result = new HashMap<>();
+        if (raw == null || raw.trim().isEmpty()) {
+            return result;
+        }
+        String text = raw.trim();
+        Pattern emailPattern = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+        Matcher emailMatcher = emailPattern.matcher(text);
+        if (emailMatcher.find()) {
+            result.put("email", emailMatcher.group());
+        }
+
+        Pattern phonePattern = Pattern.compile("(\\+?\\d[\\d\\s\\-\\.]{6,}\\d)");
+        Matcher phoneMatcher = phonePattern.matcher(text);
+        if (phoneMatcher.find()) {
+            String phone = phoneMatcher.group(1);
+            phone = phone.replaceAll("[\\s\\-\\.]", "");
+            result.put("phone", phone);
+        }
+        return result;
+    }
     
     @Override
     public Map<String, Object> importBuildingsFromExcel(MultipartFile file) {
@@ -500,10 +614,12 @@ public class ExcelServiceImpl implements ExcelService {
             
             Sheet sheet = workbook.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.iterator();
+            Map<String, Integer> headerMap = new HashMap<>();
             
-            // Skip header row
+            // Read header row
             if (rowIterator.hasNext()) {
-                rowIterator.next();
+                Row headerRow = rowIterator.next();
+                headerMap = buildHeaderIndexMap(headerRow);
             }
             
             while (rowIterator.hasNext()) {
@@ -512,21 +628,45 @@ public class ExcelServiceImpl implements ExcelService {
                 try {
                     Client client = new Client();
                     
-                    // Expected columns: Име, Телефон, Email, Адрес, Бележки
-                    if (row.getCell(0) != null) {
-                        client.setName(getCellValueAsString(row.getCell(0)).trim());
+                    // Expected columns (new): Име, Контакти, Телефон, Email, Адрес, Бележки
+                    // Backward compatible with old format: Име, Телефон, Email, Адрес, Бележки
+                    String name = getCellValueByHeader(row, headerMap, "име", 0);
+                    String contacts = getCellValueByHeader(row, headerMap, "контакти", 1);
+                    String phone = getCellValueByHeader(row, headerMap, "телефон", 1);
+                    String email = getCellValueByHeader(row, headerMap, "email", 2);
+                    String address = getCellValueByHeader(row, headerMap, "адрес", 3);
+                    String notes = getCellValueByHeader(row, headerMap, "бележки", 4);
+
+                    if (name != null) {
+                        client.setName(name.trim());
                     }
-                    if (row.getCell(1) != null) {
-                        client.setPhone(getCellValueAsString(row.getCell(1)));
+
+                    if ((phone == null || phone.isEmpty()) && (email == null || email.isEmpty())) {
+                        String raw = contacts;
+                        if ((raw == null || raw.isEmpty()) && (headerMap.isEmpty())) {
+                            // Old template may have combined contact in column 1
+                            raw = getCellValueAsString(row.getCell(1));
+                        }
+                        Map<String, String> parsed = parseContactInfo(raw);
+                        if (phone == null || phone.isEmpty()) {
+                            phone = parsed.getOrDefault("phone", "");
+                        }
+                        if (email == null || email.isEmpty()) {
+                            email = parsed.getOrDefault("email", "");
+                        }
                     }
-                    if (row.getCell(2) != null) {
-                        client.setEmail(getCellValueAsString(row.getCell(2)));
+
+                    if (phone != null && !phone.isEmpty()) {
+                        client.setPhone(phone);
                     }
-                    if (row.getCell(3) != null) {
-                        client.setAddress(getCellValueAsString(row.getCell(3)));
+                    if (email != null && !email.isEmpty()) {
+                        client.setEmail(email);
                     }
-                    if (row.getCell(4) != null) {
-                        client.setNotes(getCellValueAsString(row.getCell(4)));
+                    if (address != null && !address.isEmpty()) {
+                        client.setAddress(address);
+                    }
+                    if (notes != null && !notes.isEmpty()) {
+                        client.setNotes(notes);
                     }
                     
                     // Validate required fields
@@ -608,7 +748,7 @@ public class ExcelServiceImpl implements ExcelService {
             
             // Create header row
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"Име", "Телефон", "Email", "Адрес", "Бележки"};
+            String[] headers = {"Име", "Контакти", "Телефон", "Email", "Адрес", "Бележки"};
             
             CellStyle headerStyle = workbook.createCellStyle();
             Font headerFont = workbook.createFont();
@@ -626,10 +766,11 @@ public class ExcelServiceImpl implements ExcelService {
             // Add example row
             Row exampleRow = sheet.createRow(1);
             exampleRow.createCell(0).setCellValue("Иван Петров");
-            exampleRow.createCell(1).setCellValue("0888123456");
-            exampleRow.createCell(2).setCellValue("ivan@example.com");
-            exampleRow.createCell(3).setCellValue("София, ул. Примерна 1");
-            exampleRow.createCell(4).setCellValue("Примерни бележки");
+            exampleRow.createCell(1).setCellValue("тел.0888123456, e-mail: ivan@example.com");
+            exampleRow.createCell(2).setCellValue("0888123456");
+            exampleRow.createCell(3).setCellValue("ivan@example.com");
+            exampleRow.createCell(4).setCellValue("София, ул. Примерна 1");
+            exampleRow.createCell(5).setCellValue("Примерни бележки");
             
             // Auto-size columns
             for (int i = 0; i < headers.length; i++) {
