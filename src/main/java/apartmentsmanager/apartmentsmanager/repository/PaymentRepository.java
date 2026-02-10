@@ -27,6 +27,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.paymentMethod = 'Банка'")
     BigDecimal calculateTotalBankPayments();
     
+    // Calculate total bank payments for a specific apartment
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.apartment.id = :apartmentId AND (p.paymentMethod = 'Банка' OR p.paymentMethod = 'Bank Transfer' OR p.paymentMethod = 'Bank')")
+    BigDecimal calculateTotalBankPaymentsByApartment(@Param("apartmentId") Long apartmentId);
+    
     // Calculate total cash payments
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.paymentMethod = 'В брой'")
     BigDecimal calculateTotalCashPayments();

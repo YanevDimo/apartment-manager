@@ -252,6 +252,25 @@ public class ClientController {
             remaining = BigDecimal.ZERO;
         }
         
+        // Per-apartment bank info: required amount and paid by bank (for "По банка: X / Y EUR")
+        Map<Long, Map<String, Object>> apartmentBankInfo = new HashMap<>();
+        if (client.getApartments() != null) {
+            for (var apt : client.getApartments()) {
+                BigDecimal paidByBank = BigDecimal.ZERO;
+                if (apt.getPayments() != null) {
+                    for (var p : apt.getPayments()) {
+                        if (p.getAmount() != null && ("Банка".equals(p.getPaymentMethod()) || "Bank Transfer".equals(p.getPaymentMethod()) || "Bank".equals(p.getPaymentMethod()))) {
+                            paidByBank = paidByBank.add(p.getAmount());
+                        }
+                    }
+                }
+                Map<String, Object> info = new HashMap<>();
+                info.put("requiredBankAmount", apt.getRequiredBankAmount());
+                info.put("paidByBank", paidByBank);
+                apartmentBankInfo.put(apt.getId(), info);
+            }
+        }
+        
         model.addAttribute("client", client);
         model.addAttribute("apartmentsCount", apartmentsCount);
         model.addAttribute("totalValue", totalValue);
@@ -259,6 +278,7 @@ public class ClientController {
         model.addAttribute("remaining", remaining);
         model.addAttribute("totalBankPayments", totalBankPayments);
         model.addAttribute("totalCashPayments", totalCashPayments);
+        model.addAttribute("apartmentBankInfo", apartmentBankInfo);
         
         return "client_detail";
     }
@@ -352,6 +372,14 @@ public class ClientController {
                         apartment.setNotes(apartment.getNotes() + "\n" + packageInfo);
                     } else {
                         apartment.setNotes(packageInfo);
+                    }
+                    
+                    // Optional: required amount to be paid by bank for this object
+                    if (purchase.containsKey("requiredBankAmount") && purchase.get("requiredBankAmount") != null && !purchase.get("requiredBankAmount").toString().trim().isEmpty()) {
+                        BigDecimal requiredBank = new BigDecimal(purchase.get("requiredBankAmount").toString()).setScale(2, java.math.RoundingMode.HALF_UP);
+                        if (requiredBank.compareTo(BigDecimal.ZERO) > 0) {
+                            apartment.setRequiredBankAmount(requiredBank);
+                        }
                     }
                     
                     apartmentService.saveApartment(apartment);
@@ -466,6 +494,17 @@ public class ClientController {
                 }
             }
             
+            // Update required bank amount (optional; send null or omit to clear)
+            if (requestBody.containsKey("requiredBankAmount")) {
+                Object val = requestBody.get("requiredBankAmount");
+                if (val == null || val.toString().trim().isEmpty()) {
+                    apartment.setRequiredBankAmount(null);
+                } else {
+                    BigDecimal requiredBank = new BigDecimal(val.toString()).setScale(2, java.math.RoundingMode.HALF_UP);
+                    apartment.setRequiredBankAmount(requiredBank.compareTo(BigDecimal.ZERO) > 0 ? requiredBank : null);
+                }
+            }
+            
             apartmentService.saveApartment(apartment);
             
             response.put("success", true);
@@ -474,6 +513,55 @@ public class ClientController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Грешка при редактиране: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /** Обновява само лимита по банка за обект (бързо редактиране от профила на клиента). */
+    @PatchMapping("/api/{clientId}/purchases/{apartmentId}/bank-limit")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updatePurchaseBankLimit(@PathVariable Long clientId,
+                                                                      @PathVariable Long apartmentId,
+                                                                      @RequestBody Map<String, Object> requestBody) {
+        Map<String, Object> response = new HashMap<>();
+        
+        Client client = clientService.getClientById(clientId).orElse(null);
+        if (client == null) {
+            response.put("success", false);
+            response.put("message", "Клиентът не е намерен");
+            return ResponseEntity.notFound().build();
+        }
+        
+        var apartment = apartmentService.getApartmentById(apartmentId).orElse(null);
+        if (apartment == null) {
+            response.put("success", false);
+            response.put("message", "Обектът не е намерен");
+            return ResponseEntity.notFound().build();
+        }
+        
+        if (apartment.getClient() == null || !apartment.getClient().getId().equals(clientId)) {
+            response.put("success", false);
+            response.put("message", "Обектът не принадлежи на този клиент");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        try {
+            if (requestBody.containsKey("requiredBankAmount")) {
+                Object val = requestBody.get("requiredBankAmount");
+                if (val == null || val.toString().trim().isEmpty()) {
+                    apartment.setRequiredBankAmount(null);
+                } else {
+                    BigDecimal requiredBank = new BigDecimal(val.toString()).setScale(2, java.math.RoundingMode.HALF_UP);
+                    apartment.setRequiredBankAmount(requiredBank.compareTo(BigDecimal.ZERO) > 0 ? requiredBank : null);
+                }
+            }
+            apartmentService.saveApartment(apartment);
+            response.put("success", true);
+            response.put("message", "Лимитът по банка е обновен");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Грешка: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

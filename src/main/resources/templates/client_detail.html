@@ -230,6 +230,26 @@
                                                         Платено: <span class="text-success fw-bold" th:text="${#numbers.formatDecimal(apt.getTotalPaid(), 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span> |
                                                         Остатък: <span class="text-warning fw-bold" th:text="${#numbers.formatDecimal(apt.getRemainingPayment(), 0, 'COMMA', 2, 'POINT')} + ' €'">0.00 €</span>
                                                     </small>
+                                                    <div class="mt-1 d-flex align-items-center flex-wrap gap-1">
+                                                        <small class="text-muted me-1">
+                                                            <i class="bi bi-bank"></i>
+                                                            <th:block th:if="${apartmentBankInfo != null and apartmentBankInfo[apt.id] != null and apartmentBankInfo[apt.id].requiredBankAmount != null}">
+                                                                Лимит по банка: <span th:text="${#numbers.formatDecimal(apartmentBankInfo[apt.id].paidByBank, 0, 'COMMA', 2, 'POINT')}">0</span> / <span th:text="${#numbers.formatDecimal(apartmentBankInfo[apt.id].requiredBankAmount, 0, 'COMMA', 2, 'POINT')}">0</span> €
+                                                            </th:block>
+                                                            <th:block th:unless="${apartmentBankInfo != null and apartmentBankInfo[apt.id] != null and apartmentBankInfo[apt.id].requiredBankAmount != null}">
+                                                                Лимит по банка: не е зададен
+                                                            </th:block>
+                                                        </small>
+                                                        <th:block th:if="${apartmentBankInfo != null and apartmentBankInfo[apt.id] != null and apartmentBankInfo[apt.id].requiredBankAmount != null}">
+                                                            <span th:if="${apartmentBankInfo[apt.id].paidByBank != null and apartmentBankInfo[apt.id].requiredBankAmount != null and apartmentBankInfo[apt.id].paidByBank.compareTo(apartmentBankInfo[apt.id].requiredBankAmount) >= 0}" class="badge bg-secondary">Лимит достигнат</span>
+                                                        </th:block>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary py-0 bank-limit-btn" 
+                                                                th:data-apt-id="${apt.id}"
+                                                                th:data-apt-number="${apt.apartmentNumber}"
+                                                                th:data-required-bank="${apt.requiredBankAmount != null ? apt.requiredBankAmount : ''}">
+                                                            <i class="bi bi-pencil-square"></i> <span th:text="${apt.requiredBankAmount != null ? 'Промени лимит' : 'Задай лимит'}">Лимит</span>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="col-md-2 text-end">
@@ -244,6 +264,7 @@
                                                             th:data-apt-id="${apt.id}"
                                                             th:data-apt-number="${apt.apartmentNumber}"
                                                             th:data-total-price="${apt.totalPrice}"
+                                                            th:data-required-bank="${apt.requiredBankAmount != null ? apt.requiredBankAmount : ''}"
                                                             th:data-prelim="${apt.paymentPlan != null ? apt.paymentPlan.preliminaryContractAmount : 0}"
                                                             th:data-akt14="${apt.paymentPlan != null ? apt.paymentPlan.akt14Amount : 0}"
                                                             th:data-akt15="${apt.paymentPlan != null ? apt.paymentPlan.akt15Amount : 0}"
@@ -481,6 +502,12 @@
                         </div>
                         
                         <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-bank"></i> Лимит по банка (€)</label>
+                            <input type="number" class="form-control" id="editRequiredBankAmount" step="0.01" min="0" placeholder="Празно = без лимит">
+                            <small class="text-muted">След достигане на лимита плащанията за този обект са само в брой.</small>
+                        </div>
+                        
+                        <div class="mb-3">
                             <label class="form-label"><i class="bi bi-tag"></i> Пакет за плащане *</label>
                             <select class="form-select" id="editPaymentPackage" required>
                                 <option value="">Изберете пакет</option>
@@ -563,6 +590,36 @@
                         </button>
                         <button type="button" class="btn btn-primary" id="confirmEditBtn">
                             <i class="bi bi-check-circle"></i> Запази промените
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bank Limit (quick-edit) Modal -->
+        <div class="modal fade" id="bankLimitModal" tabindex="-1" aria-labelledby="bankLimitModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="bankLimitModalLabel">
+                            <i class="bi bi-bank me-2"></i> Лимит по банка
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="bankLimitAptId" />
+                        <p class="text-muted small">Обект: <strong id="bankLimitAptNumber"></strong></p>
+                        <p class="small">След достигане на този лимит (в EUR), плащанията за този обект ще се приемат само в брой.</p>
+                        <div class="mb-3">
+                            <label for="bankLimitAmount" class="form-label">Лимит по банка (€)</label>
+                            <input type="number" class="form-control" id="bankLimitAmount" step="0.01" min="0" placeholder="Празно = без лимит">
+                            <small class="text-muted">Оставете празно за премахване на лимита.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                        <button type="button" class="btn btn-primary" id="confirmBankLimitBtn">
+                            <i class="bi bi-check-circle"></i> Запази
                         </button>
                     </div>
                 </div>
@@ -865,6 +922,12 @@
                                         </select>
                                     </div>
                                 </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-12">
+                                        <label class="form-label"><i class="bi bi-bank"></i> Лимит по банка (€)</label>
+                                        <input type="number" class="form-control required-bank-input" data-obj-id="${obj.id}" step="0.01" min="0" placeholder="Празно = без лимит">
+                                    </div>
+                                </div>
                                 
                                 <div class="price-summary mb-3" id="price-summary-${obj.id}" style="display: none;">
                                     <div class="alert alert-info text-center">
@@ -1158,6 +1221,7 @@
                 const akt15Amount = data.planAmounts ? data.planAmounts.akt15 || 0 : 0;
                 const akt16Amount = data.planAmounts ? data.planAmounts.akt16 || 0 : 0;
                 
+                const requiredBankVal = $('.required-bank-input[data-obj-id="' + objId + '"]').val();
                 const purchase = {
                     apartmentId: parseInt(objId),
                     finalPrice: finalPrice,
@@ -1169,6 +1233,9 @@
                         akt16Amount: akt16Amount
                     }
                 };
+                if (requiredBankVal && parseFloat(requiredBankVal) > 0) {
+                    purchase.requiredBankAmount = parseFloat(requiredBankVal);
+                }
                 
                 console.log('Purchase object created:', purchase);
                 purchases.push(purchase);
@@ -1224,6 +1291,7 @@
             const aptId = $(this).data('apt-id');
             const aptNumber = $(this).data('apt-number');
             const totalPrice = parseFloat($(this).data('total-price'));
+            const requiredBank = $(this).data('required-bank');
             const prelim = parseFloat($(this).data('prelim'));
             const akt14 = parseFloat($(this).data('akt14'));
             const akt15 = parseFloat($(this).data('akt15'));
@@ -1233,6 +1301,7 @@
             $('#editAptId').val(aptId);
             $('#editAptNumber').text(aptNumber);
             $('#editTotalPrice').val(totalPrice.toFixed(2));
+            $('#editRequiredBankAmount').val(requiredBank !== undefined && requiredBank !== '' ? parseFloat(requiredBank).toFixed(2) : '');
             
             // Calculate percentages from amounts
             if (totalPrice > 0) {
@@ -1417,6 +1486,7 @@
             const akt15Amount = planAmounts.akt15 || 0;
             const akt16Amount = planAmounts.akt16 || 0;
             
+            const requiredBankVal = $('#editRequiredBankAmount').val();
             const payload = {
                 totalPrice: totalPrice,
                 packageType: packageType,
@@ -1427,6 +1497,12 @@
                     akt16Amount: akt16Amount
                 }
             };
+            if (requiredBankVal !== undefined && requiredBankVal !== '') {
+                const rb = parseFloat(requiredBankVal);
+                payload.requiredBankAmount = rb > 0 ? rb : null;
+            } else {
+                payload.requiredBankAmount = null;
+            }
             
             $('#confirmEditBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Запазване...');
             
@@ -1486,6 +1562,50 @@
             });
         });
         
+        // ===== BANK LIMIT (quick-edit) =====
+        $(document).on('click', '.bank-limit-btn', function() {
+            const aptId = $(this).data('apt-id');
+            const aptNumber = $(this).data('apt-number');
+            const requiredBank = $(this).data('required-bank');
+            $('#bankLimitAptId').val(aptId);
+            $('#bankLimitAptNumber').text(aptNumber);
+            $('#bankLimitAmount').val(requiredBank !== undefined && requiredBank !== '' ? parseFloat(requiredBank) : '');
+            $('#bankLimitModal').modal('show');
+        });
+        
+        $('#confirmBankLimitBtn').on('click', function() {
+            const aptId = $('#bankLimitAptId').val();
+            const val = $('#bankLimitAmount').val();
+            const payload = {};
+            if (val === '' || val === undefined || parseFloat(val) <= 0) {
+                payload.requiredBankAmount = null;
+            } else {
+                payload.requiredBankAmount = parseFloat(val);
+            }
+            $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            $.ajax({
+                url: `/clients/api/${clientId}/purchases/${aptId}/bank-limit`,
+                method: 'PATCH',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function(response) {
+                    if (response.success) {
+                        $('#bankLimitModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Грешка: ' + (response.message || 'Неуспешно'));
+                        $('#confirmBankLimitBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Запази');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Грешка при запазване на лимита';
+                    if (xhr.responseJSON && xhr.responseJSON.message) errorMsg = xhr.responseJSON.message;
+                    alert(errorMsg);
+                    $('#confirmBankLimitBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Запази');
+                }
+            });
+        });
+        
         // ===== PAYMENT HANDLING =====
         // Handler for "Add Payment" button
         $(document).on('click', '.add-payment-btn', function() {
@@ -1516,6 +1636,9 @@
             // Load payment summary and plan
             loadPaymentSummary(apartmentId);
             
+            // Load allowed payment methods (bank cap: after required bank amount only cash)
+            loadAllowedPaymentMethods(apartmentId);
+            
             // Check if deposit already exists
             checkAndDisableDeposit(apartmentId);
             
@@ -1523,6 +1646,65 @@
             $('#paymentDate').val(new Date().toISOString().split('T')[0]);
             
             $('#paymentModal').modal('show');
+        }
+        
+        let currentRemainingBankAmount = null; // макс. сума по банка за текущия обект (при лимит)
+        
+        /**
+         * Load allowed payment methods for apartment (restrict to cash if bank cap reached)
+         */
+        function loadAllowedPaymentMethods(apartmentId) {
+            $.ajax({
+                url: `/payments/api/apartment/${apartmentId}/allowed-payment-methods`,
+                method: 'GET',
+                success: function(data) {
+                    const allowed = data.allowedMethods || ['В брой', 'Банка'];
+                    currentRemainingBankAmount = data.remainingBankAmount != null ? parseFloat(data.remainingBankAmount) : null;
+                    const $sel = $('#paymentMethod');
+                    $sel.empty();
+                    $sel.append($('<option value="">Изберете метод</option>'));
+                    if (allowed.indexOf('Банка') !== -1) {
+                        $sel.append($('<option value="Банка">Банка</option>'));
+                    }
+                    if (allowed.indexOf('В брой') !== -1) {
+                        $sel.append($('<option value="В брой">В брой</option>'));
+                    }
+                    $('#paymentHint').remove();
+                    $('#bankLimitRemainingHint').remove();
+                    if (allowed.length === 1 && allowed[0] === 'В брой') {
+                        $sel.val('В брой');
+                        $('#paymentMethod').closest('.mb-3').after('<div id="paymentHint" class="alert alert-info py-2 small">За този обект лимитът по банка е достигнат. Допуска се само плащане в брой.</div>');
+                        $('#paymentAmount').removeAttr('max');
+                    } else {
+                        if (currentRemainingBankAmount != null && currentRemainingBankAmount >= 0) {
+                            $('#paymentMethod').closest('.mb-3').after('<div id="bankLimitRemainingHint" class="alert alert-warning py-2 small" style="display:none;"><i class="bi bi-bank"></i> Максимум по банка: <strong id="bankLimitRemainingValue">0</strong> €</div>');
+                            $('#bankLimitRemainingValue').text(currentRemainingBankAmount.toFixed(2));
+                        }
+                        updatePaymentAmountMaxForMethod();
+                    }
+                },
+                error: function() {
+                    currentRemainingBankAmount = null;
+                    $('#paymentMethod').empty().append('<option value="">Изберете метод</option>').append('<option value="Банка">Банка</option>').append('<option value="В брой">В брой</option>');
+                    $('#paymentHint').remove();
+                    $('#bankLimitRemainingHint').remove();
+                    $('#paymentAmount').removeAttr('max');
+                }
+            });
+        }
+        
+        function updatePaymentAmountMaxForMethod() {
+            const method = $('#paymentMethod').val();
+            if (method === 'Банка' && currentRemainingBankAmount != null) {
+                $('#paymentAmount').attr('max', currentRemainingBankAmount);
+                if ($('#bankLimitRemainingHint').length) {
+                    $('#bankLimitRemainingHint').show();
+                    $('#bankLimitRemainingValue').text(currentRemainingBankAmount.toFixed(2));
+                }
+            } else {
+                $('#paymentAmount').removeAttr('max');
+                $('#bankLimitRemainingHint').hide();
+            }
         }
         
         /**
@@ -1980,12 +2162,23 @@
             });
         });
         
+        $(document).on('change', '#paymentMethod', function() {
+            updatePaymentAmountMaxForMethod();
+        });
+        
         // Save payment
         $('#btnSavePayment').on('click', function() {
             const form = $('#paymentForm')[0];
             
             if (!form.checkValidity()) {
                 form.reportValidity();
+                return;
+            }
+            
+            const amount = parseFloat($('#paymentAmount').val());
+            const method = $('#paymentMethod').val();
+            if (method === 'Банка' && currentRemainingBankAmount != null && amount > currentRemainingBankAmount) {
+                alert('Сумата по банка надвишава лимита. Максимум по банка за този обект: ' + currentRemainingBankAmount.toFixed(2) + ' €.');
                 return;
             }
             
@@ -2005,11 +2198,11 @@
             
             const isEdit = formData.id !== null && formData.id !== '';
             const url = isEdit ? `/payments/api/update/${formData.id}` : '/payments/api/add';
-            const method = isEdit ? 'PUT' : 'POST';
+            const httpMethod = isEdit ? 'PUT' : 'POST';
             
             $.ajax({
                 url: url,
-                method: method,
+                method: httpMethod,
                 contentType: 'application/json',
                 data: JSON.stringify(formData),
                 success: function(response) {

@@ -68,4 +68,87 @@ public class PaymentServiceImpl implements PaymentService {
         }
         return false;
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalPaidByBankForApartment(Long apartmentId) {
+        BigDecimal total = paymentRepository.calculateTotalBankPaymentsByApartment(apartmentId);
+        return total != null ? total : BigDecimal.ZERO;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canAcceptBankPayment(Long apartmentId) {
+        Optional<Apartment> apartmentOpt = apartmentRepository.findById(apartmentId);
+        if (apartmentOpt.isEmpty()) {
+            return false;
+        }
+        Apartment apartment = apartmentOpt.get();
+        BigDecimal required = apartment.getRequiredBankAmount();
+        if (required == null || required.compareTo(BigDecimal.ZERO) <= 0) {
+            return true; // no cap, bank always allowed
+        }
+        BigDecimal paidByBank = getTotalPaidByBankForApartment(apartmentId);
+        return paidByBank.compareTo(required) < 0;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean validateBankPaymentAmount(Long apartmentId, BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return true;
+        }
+        Optional<Apartment> apartmentOpt = apartmentRepository.findById(apartmentId);
+        if (apartmentOpt.isEmpty()) {
+            return false;
+        }
+        Apartment apartment = apartmentOpt.get();
+        BigDecimal required = apartment.getRequiredBankAmount();
+        if (required == null || required.compareTo(BigDecimal.ZERO) <= 0) {
+            return true; // no limit
+        }
+        BigDecimal paidByBank = getTotalPaidByBankForApartment(apartmentId);
+        BigDecimal afterPayment = paidByBank.add(amount);
+        return afterPayment.compareTo(required) <= 0;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getRemainingBankAmount(Long apartmentId) {
+        Optional<Apartment> apartmentOpt = apartmentRepository.findById(apartmentId);
+        if (apartmentOpt.isEmpty()) {
+            return null;
+        }
+        Apartment apartment = apartmentOpt.get();
+        BigDecimal required = apartment.getRequiredBankAmount();
+        if (required == null || required.compareTo(BigDecimal.ZERO) <= 0) {
+            return null; // no limit
+        }
+        BigDecimal paidByBank = getTotalPaidByBankForApartment(apartmentId);
+        BigDecimal remaining = required.subtract(paidByBank);
+        return remaining.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : remaining;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canAcceptBankPaymentForUpdate(Long apartmentId, String currentMethod, BigDecimal currentAmount, String newMethod, BigDecimal newAmount) {
+        Optional<Apartment> apartmentOpt = apartmentRepository.findById(apartmentId);
+        if (apartmentOpt.isEmpty()) {
+            return false;
+        }
+        Apartment apartment = apartmentOpt.get();
+        BigDecimal required = apartment.getRequiredBankAmount();
+        if (required == null || required.compareTo(BigDecimal.ZERO) <= 0) {
+            return true;
+        }
+        BigDecimal totalBank = getTotalPaidByBankForApartment(apartmentId);
+        BigDecimal subtract = isBankMethod(currentMethod) && currentAmount != null ? currentAmount : BigDecimal.ZERO;
+        BigDecimal add = isBankMethod(newMethod) && newAmount != null ? newAmount : BigDecimal.ZERO;
+        BigDecimal effectiveBank = totalBank.subtract(subtract).add(add);
+        return effectiveBank.compareTo(required) <= 0;
+    }
+    
+    private static boolean isBankMethod(String method) {
+        return method != null && ("Банка".equals(method) || "Bank Transfer".equals(method) || "Bank".equals(method));
+    }
 }

@@ -75,6 +75,10 @@ public class Apartment {
     @Column(name = "is_sold", nullable = false)
     private Boolean isSold = false;
     
+    /** Сума (в EUR), която трябва да е платена по банков път за този обект. След достигане остатъкът се плаща само в брой. */
+    @Column(name = "required_bank_amount", precision = 15, scale = 2)
+    private BigDecimal requiredBankAmount;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

@@ -152,6 +152,24 @@ public class PaymentController {
             return ResponseEntity.badRequest().body(response);
         }
         
+        // If method is bank: 1) limit not yet reached, 2) this payment must not exceed the limit
+        if (isBankMethod(payment.getPaymentMethod())) {
+            if (!paymentService.canAcceptBankPayment(apartment.getId())) {
+                response.put("success", false);
+                response.put("message", "За този обект лимитът по банка вече е достигнат. Допускат се само плащания в брой.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            if (!paymentService.validateBankPaymentAmount(apartment.getId(), payment.getAmount())) {
+                BigDecimal remaining = paymentService.getRemainingBankAmount(apartment.getId());
+                String msg = remaining != null
+                    ? String.format("Сумата по банка надвишава лимита. Остава по банка: %s €. Намалете сумата или платете в брой.", remaining.setScale(2, java.math.RoundingMode.HALF_UP))
+                    : "Сумата по банка надвишава зададения лимит за този обект.";
+                response.put("success", false);
+                response.put("message", msg);
+                return ResponseEntity.badRequest().body(response);
+            }
+        }
+        
         // Set apartment reference
         payment.setApartment(apartment);
         
@@ -238,6 +256,15 @@ public class PaymentController {
             return ResponseEntity.badRequest().body(response);
         }
         
+        // If new method is bank, check that total bank after update does not exceed limit
+        if (isBankMethod(payment.getPaymentMethod()) && !paymentService.canAcceptBankPaymentForUpdate(
+                apartment.getId(), existingPayment.getPaymentMethod(), existingPayment.getAmount(),
+                payment.getPaymentMethod(), payment.getAmount())) {
+            response.put("success", false);
+            response.put("message", "Сумата по банка надвишава лимита за този обект. Намалете сумата или изберете плащане в брой.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
         // Update payment
         payment.setId(id);
         payment.setApartment(apartment);
@@ -275,6 +302,38 @@ public class PaymentController {
             response.put("message", "Грешка при изтриване: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+    
+    private static boolean isBankMethod(String method) {
+        return method != null && ("Банка".equals(method) || "Bank Transfer".equals(method) || "Bank".equals(method));
+    }
+    
+    @GetMapping("/api/apartment/{apartmentId}/allowed-payment-methods")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getAllowedPaymentMethods(@PathVariable Long apartmentId) {
+        Apartment apartment = apartmentService.getApartmentById(apartmentId).orElse(null);
+        if (apartment == null) {
+            return ResponseEntity.notFound().build();
+        }
+        BigDecimal requiredBank = apartment.getRequiredBankAmount();
+        BigDecimal paidByBank = paymentService.getTotalPaidByBankForApartment(apartmentId);
+        boolean bankAllowed = requiredBank == null || requiredBank.compareTo(BigDecimal.ZERO) <= 0
+                || paidByBank.compareTo(requiredBank) < 0;
+        
+        List<String> allowedMethods = new java.util.ArrayList<>();
+        allowedMethods.add("В брой");
+        if (bankAllowed) {
+            allowedMethods.add("Банка");
+        }
+        
+        BigDecimal remainingBank = paymentService.getRemainingBankAmount(apartmentId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("allowedMethods", allowedMethods);
+        response.put("requiredBankAmount", requiredBank);
+        response.put("paidByBank", paidByBank);
+        response.put("remainingBankAmount", remainingBank);
+        return ResponseEntity.ok(response);
     }
     
     @GetMapping("/api/{id}")
